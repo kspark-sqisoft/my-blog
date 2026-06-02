@@ -345,7 +345,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 발행일·Tag가 표시된다.
 - 예상: 1.5h
 - 의존: T-WEB-001, T-PUB-006
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-WEB-005 — 댓글 UI(깊이 2 중첩 표시 + 작성 폼)

@@ -411,8 +411,8 @@
         "T-WEB-001",
         "T-PUB-006"
       ],
-      "status": "todo",
-      "completed_at": null,
+      "status": "done",
+      "completed_at": "2026-06-02",
       "acceptance": [
         "react-markdown+rehype-sanitize, 안전한 img만",
         "XSS 페이로드 무력화",
