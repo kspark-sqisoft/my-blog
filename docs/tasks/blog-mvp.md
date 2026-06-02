@@ -139,7 +139,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 존재하지 않는 id update/delete → `NotFoundException`.
 - 예상: 1.5h
 - 의존: T-INFRA-002, T-INFRA-003
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-PUB-002 — PostService: 발행/발행취소 (상태 전이 + publishedAt)
