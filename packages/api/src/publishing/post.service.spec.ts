@@ -219,4 +219,37 @@ describe('PostService (통합)', () => {
     expect(ids).not.toContain(withY.id);
     expect(page.total).toBe(1);
   });
+
+  it('getPublishedDetail은 발행된 Post 상세를 tags 포함해 반환한다', async () => {
+    const created = await service.create({
+      title: '상세',
+      contentMarkdown: '# 본문\n내용',
+      authorId,
+      tags: ['x', 'y'],
+    });
+    await service.publish(created.id);
+
+    const detail = await service.getPublishedDetail(created.id);
+    expect(detail.id).toBe(created.id);
+    expect(detail.contentMarkdown).toContain('# 본문');
+    expect(detail.status).toBe('PUBLISHED');
+    expect([...detail.tags].sort()).toEqual(['x', 'y']);
+  });
+
+  it('getPublishedDetail은 초안을 NotFoundException으로 숨긴다', async () => {
+    const draft = await service.create({
+      title: '초안',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    await expect(service.getPublishedDetail(draft.id)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('getPublishedDetail은 없는 id → NotFoundException', async () => {
+    await expect(
+      service.getPublishedDetail('no-such-id'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
 });

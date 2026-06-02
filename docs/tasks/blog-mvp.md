@@ -189,7 +189,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 없는 id → `NotFound`.
 - 예상: 1h
 - 의존: T-PUB-002
-- status: todo
+- status: done
 - tdd_first: true
 
 ### S2.3 Post/Tag API

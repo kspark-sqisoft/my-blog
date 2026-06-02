@@ -122,6 +122,18 @@ export class PostService {
     };
   }
 
+  // 발행된 Post 상세 (공개). 초안/없음은 NotFound로 숨긴다.
+  async getPublishedDetail(id: string): Promise<PostDetailDto> {
+    const post = await this.prisma.post.findFirst({
+      where: { id, status: 'PUBLISHED' },
+      include: withTags,
+    });
+    if (!post) {
+      throw new NotFoundException('Post를 찾을 수 없습니다.');
+    }
+    return this.toDetail(post);
+  }
+
   // 발행 (ADR-0005). 멱등: 이미 발행이면 publishedAt 유지.
   async publish(id: string): Promise<PostDetailDto> {
     const existing = await this.requirePost(id);
