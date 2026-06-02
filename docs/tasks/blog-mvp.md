@@ -203,7 +203,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. DELETE는 204, 생성은 201을 반환한다.
 - 예상: 2h
 - 의존: T-PUB-004, T-PUB-005, T-AUTH-003
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-PUB-007 — TagController: GET /api/tags (사용 태그 + postCount)
