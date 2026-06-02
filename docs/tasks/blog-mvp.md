@@ -83,7 +83,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 시드 후 DB에 User가 정확히 1건 존재한다(테스트).
 - 예상: 1h
 - 의존: T-INFRA-002
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-AUTH-002 — AuthService: 자격 검증 + JWT 발급
