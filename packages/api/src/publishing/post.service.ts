@@ -71,11 +71,51 @@ export class PostService {
     await this.prisma.post.delete({ where: { id } });
   }
 
+  // 발행 (ADR-0005). 멱등: 이미 발행이면 publishedAt 유지.
+  async publish(id: string): Promise<PostDetailDto> {
+    const existing = await this.requirePost(id);
+    if (existing.status === 'PUBLISHED') {
+      return this.toDetail(existing);
+    }
+    const post = await this.prisma.post.update({
+      where: { id },
+      data: { status: 'PUBLISHED', publishedAt: new Date() },
+      include: withTags,
+    });
+    return this.toDetail(post);
+  }
+
+  // 발행 취소. 멱등: 이미 초안이면 그대로. 초안은 publishedAt 없음으로 정리.
+  async unpublish(id: string): Promise<PostDetailDto> {
+    const existing = await this.requirePost(id);
+    if (existing.status === 'DRAFT') {
+      return this.toDetail(existing);
+    }
+    const post = await this.prisma.post.update({
+      where: { id },
+      data: { status: 'DRAFT', publishedAt: null },
+      include: withTags,
+    });
+    return this.toDetail(post);
+  }
+
   private async ensureExists(id: string): Promise<void> {
     const exists = await this.prisma.post.findUnique({ where: { id } });
     if (!exists) {
       throw new NotFoundException('Post를 찾을 수 없습니다.');
     }
+  }
+
+  // 관계 포함 조회 + 존재 보장
+  private async requirePost(id: string): Promise<PostWithTags> {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      include: withTags,
+    });
+    if (!post) {
+      throw new NotFoundException('Post를 찾을 수 없습니다.');
+    }
+    return post;
   }
 
   // Tag를 connectOrCreate로 연결 (0~5 제한 검증은 TagService — T-PUB-003)

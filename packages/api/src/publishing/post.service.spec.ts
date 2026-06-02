@@ -94,4 +94,58 @@ describe('PostService (통합)', () => {
     const found = await prisma.post.findUnique({ where: { id: created.id } });
     expect(found).toBeNull();
   });
+
+  it('publish → status=PUBLISHED, publishedAt 설정', async () => {
+    const created = await service.create({
+      title: '발행할 글',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    const published = await service.publish(created.id);
+    expect(published.status).toBe('PUBLISHED');
+    expect(published.publishedAt).not.toBeNull();
+  });
+
+  it('unpublish → status=DRAFT, publishedAt 정리', async () => {
+    const created = await service.create({
+      title: '토글',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    await service.publish(created.id);
+    const draft = await service.unpublish(created.id);
+    expect(draft.status).toBe('DRAFT');
+    expect(draft.publishedAt).toBeNull();
+  });
+
+  it('이미 발행된 글을 다시 publish해도 publishedAt이 유지된다(멱등)', async () => {
+    const created = await service.create({
+      title: '멱등',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    const first = await service.publish(created.id);
+    const second = await service.publish(created.id);
+    expect(second.status).toBe('PUBLISHED');
+    expect(second.publishedAt).toBe(first.publishedAt);
+  });
+
+  it('초안을 unpublish해도 안전하게 DRAFT를 유지한다', async () => {
+    const created = await service.create({
+      title: '초안',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    const res = await service.unpublish(created.id);
+    expect(res.status).toBe('DRAFT');
+  });
+
+  it('없는 id publish/unpublish → NotFoundException', async () => {
+    await expect(service.publish('no-such-id')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    await expect(service.unpublish('no-such-id')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
 });

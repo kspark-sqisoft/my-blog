@@ -151,7 +151,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 이미 발행/이미 초안 등 무의미한 전이는 안전하게 처리된다(idempotent or 명확한 동작).
 - 예상: 1h
 - 의존: T-PUB-001
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-PUB-003 — TagService: Tag 부착(0~5) + PostTag 연결
