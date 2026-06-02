@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { PostDetailDto } from '@blog/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { TagService } from './tag.service';
 
 export interface CreatePostInput {
   title: string;
@@ -32,15 +33,20 @@ type PostWithTags = {
 
 @Injectable()
 export class PostService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tags: TagService,
+  ) {}
 
   async create(input: CreatePostInput): Promise<PostDetailDto> {
+    const tagNames = input.tags ?? [];
+    this.tags.assertWithinLimit(tagNames);
     const post = await this.prisma.post.create({
       data: {
         title: input.title,
         contentMarkdown: input.contentMarkdown,
         authorId: input.authorId,
-        postTags: this.tagCreate(input.tags),
+        postTags: this.tags.createInput(tagNames),
       },
       include: withTags,
     });
@@ -49,6 +55,9 @@ export class PostService {
 
   async update(id: string, input: UpdatePostInput): Promise<PostDetailDto> {
     await this.ensureExists(id);
+    if (input.tags !== undefined) {
+      this.tags.assertWithinLimit(input.tags);
+    }
     const post = await this.prisma.post.update({
       where: { id },
       data: {
@@ -58,7 +67,7 @@ export class PostService {
         }),
         // tags가 주어지면 집합을 교체
         ...(input.tags !== undefined && {
-          postTags: { deleteMany: {}, ...this.tagCreate(input.tags) },
+          postTags: this.tags.replaceInput(input.tags),
         }),
       },
       include: withTags,
@@ -116,16 +125,6 @@ export class PostService {
       throw new NotFoundException('Post를 찾을 수 없습니다.');
     }
     return post;
-  }
-
-  // Tag를 connectOrCreate로 연결 (0~5 제한 검증은 TagService — T-PUB-003)
-  private tagCreate(tags?: string[]) {
-    const names = tags ?? [];
-    return {
-      create: names.map((name) => ({
-        tag: { connectOrCreate: { where: { name }, create: { name } } },
-      })),
-    };
   }
 
   private toDetail(post: PostWithTags): PostDetailDto {

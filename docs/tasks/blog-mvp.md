@@ -163,7 +163,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. Post 수정 시 Tag 집합이 교체된다(추가/제거 반영).
 - 예상: 1.5h
 - 의존: T-PUB-001
-- status: todo
+- status: done
 - tdd_first: true
 
 ### S2.2 Post 읽기

@@ -4,6 +4,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { seedOperator } from '../auth/seed-operator';
 import { PostService } from './post.service';
+import { TagService } from './tag.service';
 
 process.env.DATABASE_URL ??=
   'postgresql://blog:blog@localhost:5433/blog?schema=public';
@@ -19,7 +20,7 @@ describe('PostService (통합)', () => {
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
       imports: [PrismaModule],
-      providers: [PostService],
+      providers: [PostService, TagService],
     }).compile();
     service = moduleRef.get(PostService);
     prisma = moduleRef.get(PrismaService);
