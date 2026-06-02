@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Stop 가드: docs/tasks 에서 아직 커밋되지 않은 status: done 변경이 있으면
-// acceptance 검증/커밋을 마치라고 피드백한다(decision: block → Claude가 계속 진행).
+// Stop 가드: docs/tasks 또는 feature_list.json 에서 아직 커밋되지 않은 status=done
+// 변경이 있으면 acceptance 검증/커밋을 마치라고 피드백한다(decision: block → 계속 진행).
 // 검증·커밋이 끝나면 git diff 가 비어 자동으로 통과한다.
 function readStdin() {
   return new Promise((resolve) => {
@@ -29,7 +29,7 @@ const dir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 let diff = '';
 try {
-  diff = execSync('git diff HEAD -- docs/tasks', {
+  diff = execSync('git diff HEAD -- docs/tasks feature_list.json', {
     cwd: dir,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'ignore'],
@@ -41,7 +41,8 @@ try {
 const flipped = diff
   .split('\n')
   .filter((l) => l.startsWith('+') && !l.startsWith('+++'))
-  .filter((l) => /status:\s*done/i.test(l));
+  // MD(`status: done`)와 JSON(`"status": "done"`) 둘 다 매칭
+  .filter((l) => /"?status"?\s*[:=]\s*"?done"?/i.test(l));
 
 if (flipped.length > 0) {
   process.stdout.write(

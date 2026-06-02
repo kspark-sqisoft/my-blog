@@ -33,14 +33,28 @@ pnpm 만 사용 (npm·yarn 금지). 패키지 추가는 `pnpm	--filter	@blog/api
 9.      Hooks가	검증	누락을	자동	차단
 10. handoff 노트 작성 후 commit + /clear
 
-## 시작 루틴
+## 매 세션 첫 5가지 (사용자가 "준비" 라고 말하면 자동 실행 = `/ready`)
 
-세션 시작 시 다음 순서로 점검:
+사용자가 "준비"(또는 `/ready`)라고 하면, Claude는 묻지 말고 아래를 순서대로 실행한다:
 
-1. `docs/handoff/` 의 가장 최신 파일 읽기 (이전 세션이 남긴 컨텍스트)
-2. `git	log	--oneline	-10` 으로 최근 변경 확인
-3. `docs/tasks/` 에서 status="todo" 중 의존성 충족된 가장 높은 우선순위 1개 선택
-4. 무엇을 작업할지 사용자에게 확인 받은 후 시작
+1. `bash init.sh` 실행 → 환경 정상 확인. **실패하면 즉시 멈추고 보고** (다음 단계로 진행 금지)
+2. `docs/handoff/` 의 가장 최신 파일 1개 읽기 (직전 세션 컨텍스트)
+3. `git log --oneline -10` 으로 최근 변경 확인
+4. **`feature_list.json`** 에서 다음 작업 후보 결정 (docs/tasks 의 .md 가 아니라 JSON 기준):
+   - `status="todo"` 중에서
+   - `deps` 가 모두 `status="done"` 인 것만
+   - `priority` 가 가장 높은(숫자가 작은) 것 1개
+5. 결정한 태스크의 **ID + acceptance 만** 사용자에게 보여주고 **멈춘다**. 사용자 확인 후에만 구현 시작.
+
+> 진행 상태의 정규 소스는 `feature_list.json` 이다. 사람이 읽는 `docs/tasks/blog-mvp.md` 와 동기화하되,
+> "다음 태스크 선택"과 "완료 판정"은 JSON 을 기준으로 한다. 상태 변경은 `/finish` 가 수행한다.
+
+## 태스크 완료 = `/finish {ID}` (직접 status 를 고치지 말 것)
+
+태스크 하나를 끝내면 `/finish {ID}` 한 명령으로 마감한다. 이 명령이 강제하는 순서:
+검증 재실행(lint/typecheck/test/e2e) → acceptance 점검 → `feature_list.json` status=done 갱신 →
+`docs/handoff/{날짜}-{ID}.md` 작성 → `feat(...): ... (refs {ID})` commit.
+검증이 하나라도 실패하면 status 는 todo 그대로 두고 멈춘다. **검증 없이 done 으로 바꾸지 않는다(Stop 훅이 차단).**
 
 ## 슬래시 명령 (각 Phase에 대응)- `/glossary	{용어}` — 유비쿼터스 언어에 용어 추가·검토 (Phase 1)- `/prd	{기능명}`
 

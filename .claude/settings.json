@@ -36,6 +36,12 @@
             "shell": "bash",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tdd-reminder.mjs\"",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-ready.mjs\"",
+            "timeout": 15
           }
         ]
       }
