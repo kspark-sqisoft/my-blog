@@ -1,6 +1,12 @@
 # 개발 오버라이드: 소스 볼륨 마운트로 핫리로드.
 #   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 services:
+  db:
+    # 로컬에서 Prisma 마이그레이션/접속을 위해 호스트로 포트 노출 (개발 전용)
+    # 호스트 5432 충돌을 피해 5433으로 매핑 (DATABASE_URL은 localhost:5433)
+    ports:
+      - "5433:5432"
+
   api:
     build:
       target: dev

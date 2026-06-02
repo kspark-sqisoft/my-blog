@@ -11,3 +11,75 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// 발행 상태 (ADR-0005)
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// 운영자 (Auth Context)
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  posts Post[]
+
+  @@map("users")
+}
+
+// 게시글 (Publishing Context, Aggregate Root)
+model Post {
+  id              String     @id @default(cuid())
+  title           String
+  contentMarkdown String
+  status          PostStatus @default(DRAFT)
+  publishedAt     DateTime?
+  authorId        String
+  author          User       @relation(fields: [authorId], references: [id])
+  postTags        PostTag[]
+  comments        Comment[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([status, publishedAt])
+  @@map("posts")
+}
+
+// 태그 (Publishing Context, Value Object — ADR-0006)
+model Tag {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  postTags PostTag[]
+
+  @@map("tags")
+}
+
+// Post ↔ Tag 다대다 조인 (ADR-0006)
+model PostTag {
+  postId String
+  tagId  String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("post_tags")
+}
+
+// 댓글 (Conversation Context, Aggregate Root)
+model Comment {
+  id          String    @id @default(cuid())
+  postId      String
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId    String? // 답글 관계 (깊이 2까지 — 서비스 계층에서 강제, ADR-0013)
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[] @relation("CommentReplies")
+  displayName String? // 익명 독자 표시 이름(선택)
+  body        String
+  createdAt   DateTime  @default(now())
+
+  @@index([postId])
+  @@map("comments")
+}

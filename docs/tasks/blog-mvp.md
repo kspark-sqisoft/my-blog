@@ -29,7 +29,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   4. Comment는 `parentId` 자기참조와 `@@index([postId])`를 가진다.
 - 예상: 1h
 - 의존: 없음
-- status: todo
+- status: done
 - tdd_first: true (스키마는 마이그레이션 적용 검증으로 대체)
 
 #### T-INFRA-002 — PrismaService + 모듈 와이어링
