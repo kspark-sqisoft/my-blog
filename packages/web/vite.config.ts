@@ -14,8 +14,9 @@ export default defineConfig({
       usePolling: process.env.VITE_USE_POLLING === 'true',
     },
     proxy: {
-      // 개발 시 /api 요청을 로컬 api 서버(3000)로 프록시
-      '/api': 'http://localhost:3000',
+      // 개발 시 /api 요청을 백엔드로 프록시.
+      // 로컬: http://localhost:3000 / Docker: http://api:3000 (VITE_API_PROXY)
+      '/api': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
     },
   },
   test: {

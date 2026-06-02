@@ -10,17 +10,20 @@ services:
   api:
     build:
       target: dev
+    # 컨테이너 안에서 Prisma 클라이언트 생성 후 개발 서버 기동
+    command: sh -c "pnpm exec prisma generate && pnpm run start:dev"
     environment:
       # Windows 바인드 마운트에서 파일 변경 감지를 위한 폴링
       CHOKIDAR_USEPOLLING: "true"
     volumes:
-      # 소스만 마운트 (컨테이너 node_modules는 보존)
-      - ./packages/api/src:/repo/packages/api/src
-      - ./packages/api/prisma:/repo/packages/api/prisma
-      - ./packages/api/test:/repo/packages/api/test
-      - ./packages/shared/src:/repo/packages/shared/src
+      # 패키지 디렉터리 통째 마운트(vite/tsconfig/prisma 포함), node_modules는 이미지 것 보존
+      - ./packages/api:/repo/packages/api
+      - /repo/packages/api/node_modules
+      - ./packages/shared:/repo/packages/shared
+      - /repo/packages/shared/node_modules
+    # 호스트 3000 충돌 회피 — 호스트 3001 → 컨테이너 3000 (웹은 내부 네트워크로 api:3000 사용)
     ports:
-      - "3000:3000"
+      - "3001:3000"
 
   web:
     build:
@@ -28,10 +31,12 @@ services:
     environment:
       # Vite 파일 감시 폴링 활성화 (vite.config.ts에서 사용)
       VITE_USE_POLLING: "true"
+      # 컨테이너에서 /api 프록시 대상은 내부 api 서비스
+      VITE_API_PROXY: "http://api:3000"
     volumes:
-      - ./packages/web/src:/repo/packages/web/src
-      - ./packages/web/public:/repo/packages/web/public
-      - ./packages/web/index.html:/repo/packages/web/index.html
-      - ./packages/shared/src:/repo/packages/shared/src
+      - ./packages/web:/repo/packages/web
+      - /repo/packages/web/node_modules
+      - ./packages/shared:/repo/packages/shared
+      - /repo/packages/shared/node_modules
     ports:
       - "5173:5173"
