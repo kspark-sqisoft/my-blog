@@ -1,0 +1,17 @@
+# 빌드 컨텍스트에서 제외 (이미지 용량·캐시 최적화)
+**/node_modules
+**/dist
+**/build
+**/generated
+**/.next
+.git
+.gitignore
+.omc
+.claude
+docs
+**/.env
+**/.env.*
+!**/.env.example
+**/*.log
+**/coverage
+**/.vite

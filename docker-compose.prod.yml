@@ -1,0 +1,17 @@
+# 운영 오버라이드: 멀티스테이지 빌드 산출물만. 볼륨 마운트 없음.
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+services:
+  api:
+    build:
+      target: prod
+    restart: unless-stopped
+    # 운영에서는 외부로 직접 노출하지 않고 web(nginx)이 /api로 프록시
+    expose:
+      - "3000"
+
+  web:
+    build:
+      target: prod
+    restart: unless-stopped
+    ports:
+      - "80:80"

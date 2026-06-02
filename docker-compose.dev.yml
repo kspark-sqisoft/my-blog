@@ -1,0 +1,31 @@
+# 개발 오버라이드: 소스 볼륨 마운트로 핫리로드.
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  api:
+    build:
+      target: dev
+    environment:
+      # Windows 바인드 마운트에서 파일 변경 감지를 위한 폴링
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      # 소스만 마운트 (컨테이너 node_modules는 보존)
+      - ./packages/api/src:/repo/packages/api/src
+      - ./packages/api/prisma:/repo/packages/api/prisma
+      - ./packages/api/test:/repo/packages/api/test
+      - ./packages/shared/src:/repo/packages/shared/src
+    ports:
+      - "3000:3000"
+
+  web:
+    build:
+      target: dev
+    environment:
+      # Vite 파일 감시 폴링 활성화 (vite.config.ts에서 사용)
+      VITE_USE_POLLING: "true"
+    volumes:
+      - ./packages/web/src:/repo/packages/web/src
+      - ./packages/web/public:/repo/packages/web/public
+      - ./packages/web/index.html:/repo/packages/web/index.html
+      - ./packages/shared/src:/repo/packages/shared/src
+    ports:
+      - "5173:5173"
