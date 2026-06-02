@@ -107,7 +107,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 토큰 없음/위조/만료 → 401.
 - 예상: 1.5h
 - 의존: T-AUTH-002, T-INFRA-004
-- status: todo
+- status: done
 - tdd_first: true
 
 ### S1.2 인증 API
