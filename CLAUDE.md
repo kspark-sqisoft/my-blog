@@ -6,7 +6,16 @@
 
 ## 패키지 매니저
 
-pnpm 만 사용 (npm·yarn 금지). 패키지 추가는 `pnpm	--filter	@blog/api	add	lodash` 형식.
+pnpm 만 사용 (npm·yarn 금지). 패키지 추가는 `pnpm --filter api add lodash` 형식.
+
+> Docker dev 중 의존성을 추가했다면 컨테이너 익명 node_modules 갱신 필요:
+> `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --renew-anon-volumes`
+> (자세한 함정·해결은 `docs/harness.md` "운영 함정 & 해결" 참고)
+
+## 데이터 입력 주의 (한글 깨짐)
+
+Windows Git Bash 의 `curl -d '{"title":"한글..."}'` 는 비ASCII 를 깨뜨려 ��� 로 저장된다.
+샘플/시드 데이터는 셸 curl 대신 **Node `fetch` 스크립트(UTF-8)** 나 `curl -d @file.json`, 또는 UI 로 입력한다.
 
 ## 절대 규칙 (NON-NEGOTIABLE)
 

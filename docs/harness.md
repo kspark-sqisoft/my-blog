@@ -90,6 +90,34 @@
 - **돌이킬 수 없는 실수 예방**: `.env`·확정 ADR 수정이 도구 실행 전에 차단된다.
 - **재현 가능성**: 누구의 PC에서든 `init.sh` 한 줄로 동일 환경, 동일 워크플로.
 
+## 운영 함정 & 해결 (겪은 것 기록)
+
+### 1. Docker dev — 호스트에서 추가한 의존성이 컨테이너에 안 보임
+**증상**: 호스트에서 `pnpm --filter web add X` 후 브라우저에
+`Failed to resolve import "X"` (Vite). 컨테이너 안 `/repo/.../X` 없음.
+
+**원인**: dev 컨테이너의 `node_modules` 는 **익명 볼륨**이라 이미지 빌드 시점 내용으로 고정됨.
+호스트 설치는 호스트 `node_modules`·lockfile 만 바꾸므로 컨테이너에 반영되지 않는다.
+
+**해결**: 의존성을 바꾼 뒤 이미지 재빌드 + 익명 볼륨 갱신.
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --renew-anon-volumes
+```
+`--build` 가 새 lockfile 로 install, `--renew-anon-volumes` 가 컨테이너 node_modules 를 새로 만든다.
+db 는 named 볼륨(`db-data`)이라 데이터는 보존된다.
+
+### 2. 한글(비ASCII) 데이터가 ���로 깨짐
+**증상**: 목록/상세에 제목이 `efbfbd`(� U+FFFD) 덩어리로 보임.
+
+**원인**: **Windows Git Bash 의 `curl -d '{"title":"한글"}'`** 에서 한글이 잘못 인코딩되어
+API 에 깨진 바이트로 도달 → DB 에 그대로 저장(복구 불가).
+
+**해결/예방**: 셸에서 비ASCII 본문을 직접 넣지 말 것.
+- Node 스크립트의 `fetch` 사용(소스 파일이 UTF-8 이라 안전), 또는
+- JSON 을 UTF-8 파일로 저장 후 `curl -d @payload.json`, 또는
+- 실제 UI(브라우저 폼)로 입력.
+이미 깨진 행은 삭제 후 재생성한다.
+
 ## 관련 파일
 
 - `init.sh` — 환경 부트스트랩
