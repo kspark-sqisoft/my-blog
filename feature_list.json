@@ -45,7 +45,7 @@
       "acceptance": ["GET/POST 공개 200/201", "Throttler 초과 429", "body 누락/길이초과 400"] },
     { "id": "T-WEB-001", "title": "API 클라이언트(axios) + 라우터 + Query/Tailwind", "epic": "E5", "context": "WEB", "priority": 21, "deps": ["T-INFRA-003"], "status": "done", "completed_at": "2026-06-02",
       "acceptance": ["axios baseURL=/api, withCredentials=true", "react-router로 TRD §5 라우트 등록", "TanStack Query Provider + Tailwind 동작(스모크 렌더)"] },
-    { "id": "T-WEB-002", "title": "로그인 페이지 + 보호 라우트 게이트", "epic": "E5", "context": "WEB", "priority": 22, "deps": ["T-WEB-001", "T-AUTH-004"], "status": "todo", "completed_at": null,
+    { "id": "T-WEB-002", "title": "로그인 페이지 + 보호 라우트 게이트", "epic": "E5", "context": "WEB", "priority": 22, "deps": ["T-WEB-001", "T-AUTH-004"], "status": "done", "completed_at": "2026-06-02",
       "acceptance": ["로그인 폼 제출 → POST /api/auth/login, 성공 시 /admin", "me로 세션 확인, 미인증 시 /login 리다이렉트", "인증 실패 메시지"] },
     { "id": "T-WEB-003", "title": "Post 목록 + Tag 필터 페이지", "epic": "E5", "context": "WEB", "priority": 23, "deps": ["T-WEB-001", "T-PUB-006"], "status": "todo", "completed_at": null,
       "acceptance": ["/ 목록 페이지네이션", "/tags/:name 필터", "빈/로딩/에러 상태 처리"] },

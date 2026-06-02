@@ -319,7 +319,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 인증 실패 메시지가 표시된다.
 - 예상: 2h
 - 의존: T-WEB-001, T-AUTH-004
-- status: todo
+- status: done
 - tdd_first: true
 
 ### S5.2 독자 화면
