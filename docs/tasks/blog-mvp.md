@@ -233,7 +233,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 경로 traversal 입력이 차단된다(상위 경로 탈출 불가).
 - 예상: 1.5h
 - 의존: T-INFRA-002
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-PUB-102 — UploadController: POST /api/uploads (운영자, multer, 검증)
