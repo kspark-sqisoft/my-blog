@@ -15,9 +15,9 @@ function renderAt(path: string) {
 }
 
 describe('앱 라우터 + Query Provider (스모크)', () => {
-  it('홈(/) 라우트가 렌더된다', async () => {
+  it('홈(/) 라우트는 Post 목록 페이지를 렌더한다', async () => {
     renderAt('/');
-    expect(await screen.findByTestId('page-home')).toBeInTheDocument();
+    expect(await screen.findByText('최근 글')).toBeInTheDocument();
   });
 
   it('로그인(/login) 라우트는 로그인 폼을 렌더한다', async () => {

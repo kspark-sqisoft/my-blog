@@ -333,7 +333,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 빈 목록/로딩/에러 상태가 처리된다.
 - 예상: 1.5h
 - 의존: T-WEB-001, T-PUB-006
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-WEB-004 — Post 상세 + 마크다운 렌더(이미지 포함, sanitize)
