@@ -1,0 +1,77 @@
+# Playwright E2E 격리 스택 (T-INFRA-005).
+# 기본 docker-compose.yml 과 독립된 자체완결 스택 — 컨테이너/네트워크/볼륨 충돌 없음.
+# 호출 규약: 항상 `-p my-blog-e2e` 프로젝트 이름으로 띄운다.
+#   docker compose -f docker-compose.e2e.yml -p my-blog-e2e up -d --build --wait
+#   docker compose -f docker-compose.e2e.yml -p my-blog-e2e down -v
+# 자동 실행은 scripts/e2e-isolated.sh 가 담당한다.
+#
+# 포트 매핑 (호스트:컨테이너) — dev 스택(5433/3001/5173)과 절대 겹치지 않음:
+#   db   5434:5432   (blog_e2e — dev blog 와 다른 DB/포트/이미지 인스턴스)
+#   api  3002:3000   (격리 NestJS prod 빌드)
+#   web  5174:80     (격리 nginx prod 빌드, /api·/uploads → api 프록시)
+#
+# 환경 변수 오버라이드: .env.example 의 E2E_* 참고. 미지정 시 위 기본값을 쓴다.
+name: my-blog-e2e
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${E2E_POSTGRES_USER:-blog}
+      POSTGRES_PASSWORD: ${E2E_POSTGRES_PASSWORD:-blog}
+      POSTGRES_DB: ${E2E_POSTGRES_DB:-blog_e2e}
+    ports:
+      - "${E2E_DB_PORT:-5434}:5432"
+    # 격리 스택은 매 실행마다 새 데이터로 시작 — 볼륨은 무명/임시(자동 정리)
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${E2E_POSTGRES_USER:-blog} -d ${E2E_POSTGRES_DB:-blog_e2e}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+      target: prod
+    environment:
+      DATABASE_URL: postgresql://${E2E_POSTGRES_USER:-blog}:${E2E_POSTGRES_PASSWORD:-blog}@db:5432/${E2E_POSTGRES_DB:-blog_e2e}?schema=public
+      PORT: 3000
+      # 운영자 시드는 호스트가 수행하므로 컨테이너에서는 사용하지 않음.
+      JWT_SECRET: ${E2E_JWT_SECRET:-e2e-jwt-secret-not-for-production}
+      # 업로드 파일은 컨테이너 임시 경로에 두어 호스트/dev 와 격리
+      UPLOAD_DIR: /tmp/e2e-uploads
+      UPLOAD_URL_BASE: /uploads
+      UPLOAD_MAX_BYTES: "5242880"
+    ports:
+      - "${E2E_API_PORT:-3002}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # /api 루트는 별도 헬스 엔드포인트가 없으므로 TCP 연결 가능 여부로 대신한다.
+      test: ["CMD-SHELL", "node -e \"require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))\""]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  web:
+    build:
+      context: .
+      dockerfile: packages/web/Dockerfile
+      target: prod
+    ports:
+      - "${E2E_WEB_PORT:-5174}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s

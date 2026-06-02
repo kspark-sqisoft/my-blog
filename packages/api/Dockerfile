@@ -50,4 +50,5 @@ COPY --from=build /repo/packages/api/generated ./generated
 COPY --from=build /repo/packages/api/prisma ./prisma
 COPY --from=build /repo/packages/api/package.json ./package.json
 EXPOSE 3000
-CMD ["node", "dist/main"]
+# nest build 산출물은 tsconfig.build 기준 dist/src/main.js 로 떨어진다.
+CMD ["node", "dist/src/main"]

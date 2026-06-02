@@ -131,6 +131,43 @@ API 에 깨진 바이트로 도달 → DB 에 그대로 저장(복구 불가).
 - 따라서 테스트는 개발 데이터를 절대 건드리지 않고 전역 카운트도 결정적이다.
 - 새 통합 spec 은 `process.env.DATABASE_URL ??= ...` 같은 자체 기본값을 두지 말 것(setup 이 강제함).
 
+### 5. Playwright E2E 가 공유 dev DB 를 더럽힘 → 격리 스택으로 분리
+**증상**: T-WEB-008 까지의 Playwright E2E 는 dev 스택(blog DB, 5433)에 직접 붙어 돌았다.
+- 운영자 글이 dev 데이터 위에 쌓이고 발행 목록/전역 카운트가 흔들렸다.
+- dev 작업 중이면 E2E 를 돌릴 수 없고, 반대로 E2E 가 dev 샘플을 회복 불가하게 바꿀 수 있었다.
+
+**원인**: jest 통합 테스트는 `blog_test` 로 격리되어 있는데(함정 #3) Playwright 만 dev DB 를 그대로 썼다.
+
+**해결(T-INFRA-005, 적용됨)**: 3-tier DB 격리.
+
+| 트랙 | DB | 포트 | 트리거 |
+|---|---|---|---|
+| 개발 (사람) | `blog` | 5433 | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up` |
+| jest 통합 테스트 | `blog_test` | 5433 | `pnpm --filter api test` (setup 이 DATABASE_URL 강제) |
+| Playwright E2E | `blog_e2e` | **5434** | `pnpm --filter web test:e2e` |
+
+**파일**:
+- `docker-compose.e2e.yml` — 격리 db(5434) / api(3002) / web(5174) **prod 빌드**. 별도 프로젝트 이름 `my-blog-e2e` 사용 → 컨테이너·네트워크·볼륨 충돌 0. db 는 `tmpfs` 로 매 실행 새 데이터.
+- `scripts/e2e-isolated.sh` — 한 명령(`pnpm --filter web test:e2e`)으로:
+  chromium 보장 → 격리 db up + healthy → prisma migrate deploy → 운영자 시드 →
+  api/web up + healthy → Playwright 실행 → dev DB 카운트 비교 → 자동 `down -v`.
+- `.env.example` — `E2E_DB_PORT/E2E_API_PORT/E2E_WEB_PORT/E2E_OPERATOR_*/E2E_JWT_SECRET` 등.
+
+**격리 회귀 가드**: 스크립트가 실행 전/후로 dev DB 의 `(posts:comments)` 카운트를 비교해
+다르면 비0 종료한다. T-INFRA-005 검증 중 임시 sentinel `(1:0)` 행을 dev 에 넣고 격리 E2E 를
+돌렸을 때, after 도 `(1:0)` 로 변동 0 → 가드가 진짜로 보호함을 확인 후 sentinel 제거.
+
+**디버깅 옵션**: `E2E_KEEP_STACK=1 pnpm --filter web test:e2e` 로 종료 시 `down -v` 를 생략.
+컨테이너 로그/DB 를 직접 확인한 뒤 수동 정리:
+```
+docker compose -f docker-compose.e2e.yml -p my-blog-e2e down -v
+```
+
+**부수 발견 — prod 빌드 버그 동시 수정**: `packages/api/Dockerfile` 의 `CMD ["node", "dist/main"]` 은
+`nest build` 산출 경로(`dist/src/main.js`)와 맞지 않아 prod 이미지가 부팅 즉시
+`Cannot find module '/repo/packages/api/dist/main'` 으로 죽었다. 격리 스택의 첫 실행이 이 버그를
+표면화시켜 같이 수정(`dist/src/main`). 운영 첫 배포가 동일하게 깨질 뻔한 사전 보증.
+
 ### 4. 업로드 이미지가 깨져 보임 — 저장만 하고 서빙 경로를 안 맞춤
 **증상**: 글에 올린 이미지가 브라우저에서 깨진 아이콘으로 보인다.
 `GET /uploads/<file>` 이 200 처럼 보여도 `Content-Type: text/html`(SPA fallback)을 반환한다.

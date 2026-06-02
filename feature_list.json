@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-02",
+  "updated_at": "2026-06-02 (T-INFRA-005)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -527,6 +527,26 @@
         "운영자 로그인→작성→업로드→발행",
         "독자 목록→상세→깊이2 댓글",
         "미발행 Post 독자 비노출 검증"
+      ]
+    },
+    {
+      "id": "T-INFRA-005",
+      "title": "Playwright E2E 격리 스택(blog_e2e + 전용 api/web) 분리",
+      "epic": "E6",
+      "context": "INFRA",
+      "priority": 29,
+      "deps": [
+        "T-WEB-008"
+      ],
+      "status": "done",
+      "completed_at": "2026-06-02",
+      "acceptance": [
+        "docker-compose.e2e.yml(전용 db=blog_e2e:5434, api:3002, web:5174) 추가",
+        "pnpm --filter web test:e2e 한 명령으로 격리 스택 up → migrate deploy → 운영자 시드 → Playwright 실행 → 결과 코드 보존 후 down",
+        "E2E 실행 전후 dev DB(blog) Post/Comment 카운트 불변",
+        "기존 3개 스펙(operator-flow/reader-comment/draft-hidden) 격리 스택에서 모두 통과",
+        ".env.example 에 E2E_* 변수(포트/DB/계정) 문서화",
+        "docs/harness.md 에 격리 실행 절차/포트 매핑 갱신"
       ]
     }
   ]
