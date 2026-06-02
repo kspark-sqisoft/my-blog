@@ -232,6 +232,18 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
 - status: done
 - tdd_first: true
 
+#### T-PUB-009 — 운영자 Post 단건 조회(초안 포함) GET /api/admin/posts/:id
+- priority: 15.6
+- 변경 파일: `admin-post.controller.ts`, `post.service.ts`
+- acceptance criteria:
+  1. JwtAuthGuard 보호(미인증 401).
+  2. 초안도 contentMarkdown+status 포함(PostDetailDto).
+  3. 없는 id 404.
+- 예상: 0.5h
+- 의존: T-PUB-001, T-AUTH-003
+- status: done
+- tdd_first: true
+
 ## E3. 이미지 업로드 (PUBLISHING — Upload, ADR-0012)
 
 ### S3.1 저장소 추상화

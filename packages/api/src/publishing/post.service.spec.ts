@@ -286,4 +286,24 @@ describe('PostService (통합)', () => {
     expect(first.items).toHaveLength(2);
     expect(first.total).toBe(3);
   });
+
+  it('getForAdmin은 초안도 contentMarkdown·status 포함해 반환한다', async () => {
+    const draft = await service.create({
+      title: '관리 단건 초안',
+      contentMarkdown: '# 초안 본문',
+      authorId,
+      tags: ['x'],
+    });
+    const detail = await service.getForAdmin(draft.id);
+    expect(detail.id).toBe(draft.id);
+    expect(detail.status).toBe('DRAFT');
+    expect(detail.contentMarkdown).toContain('# 초안 본문');
+    expect([...detail.tags]).toEqual(['x']);
+  });
+
+  it('getForAdmin은 없는 id → NotFoundException', async () => {
+    await expect(service.getForAdmin('no-such-id')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
 });

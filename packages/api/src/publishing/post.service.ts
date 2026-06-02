@@ -152,6 +152,12 @@ export class PostService {
     };
   }
 
+  // 운영자 단건 상세 (초안 포함). 편집 화면 로드용.
+  async getForAdmin(id: string): Promise<PostDetailDto> {
+    const post = await this.requirePost(id);
+    return this.toDetail(post);
+  }
+
   // 발행된 Post 상세 (공개). 초안/없음은 NotFound로 숨긴다.
   async getPublishedDetail(id: string): Promise<PostDetailDto> {
     const post = await this.prisma.post.findFirst({

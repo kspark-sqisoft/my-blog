@@ -85,4 +85,38 @@ describe('AdminPostController (e2e)', () => {
     expect(byId.get(draft.id)).toBe('DRAFT');
     expect(byId.get(pub.id)).toBe('PUBLISHED');
   });
+
+  it('단건: 미인증 → 401', () => {
+    return request(app.getHttpServer())
+      .get('/api/admin/posts/some-id')
+      .expect(401);
+  });
+
+  it('단건: 운영자 → 초안도 contentMarkdown·status 포함 반환', async () => {
+    const draft = await posts.create({
+      title: '편집할 초안',
+      contentMarkdown: '# 편집 본문',
+      authorId,
+      tags: ['edit'],
+    });
+    const res = await request(app.getHttpServer())
+      .get(`/api/admin/posts/${draft.id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+    const body = res.body as {
+      id: string;
+      status: string;
+      contentMarkdown: string;
+    };
+    expect(body.id).toBe(draft.id);
+    expect(body.status).toBe('DRAFT');
+    expect(body.contentMarkdown).toContain('# 편집 본문');
+  });
+
+  it('단건: 없는 id → 404', () => {
+    return request(app.getHttpServer())
+      .get('/api/admin/posts/no-such')
+      .set('Cookie', cookie)
+      .expect(404);
+  });
 });
