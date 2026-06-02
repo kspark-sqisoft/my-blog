@@ -1,0 +1,60 @@
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
+import type { AuthUserDto } from '@blog/shared';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { LoginDto } from './dto/login.dto';
+
+const ACCESS_COOKIE = 'access_token';
+const ONE_HOUR_MS = 60 * 60 * 1000;
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly auth: AuthService) {}
+
+  // 운영자 로그인 → httpOnly 쿠키로 JWT 발급 (ADR-0001)
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ user: AuthUserDto }> {
+    const { accessToken, user } = await this.auth.login(
+      dto.email,
+      dto.password,
+    );
+    res.cookie(ACCESS_COOKIE, accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: ONE_HOUR_MS,
+      path: '/',
+    });
+    return { user };
+  }
+
+  // 로그아웃 → 쿠키 만료
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Res({ passthrough: true }) res: Response): { success: true } {
+    res.clearCookie(ACCESS_COOKIE, { path: '/' });
+    return { success: true };
+  }
+
+  // 현재 운영자 확인 (인증 필요)
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  me(@Req() req: Request): { user: AuthUserDto } {
+    return { user: req.user as AuthUserDto };
+  }
+}

@@ -121,7 +121,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. `GET /api/auth/me`는 유효 쿠키 시 `{ user }`, 비로그인 시 401.
 - 예상: 1.5h
 - 의존: T-AUTH-003
-- status: todo
+- status: done
 - tdd_first: true
 
 ---
