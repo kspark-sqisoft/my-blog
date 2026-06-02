@@ -65,7 +65,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. `cookie-parser`가 적용되어 `req.cookies`를 읽는다.
 - 예상: 1h
 - 의존: T-INFRA-002
-- status: todo
+- status: done
 - tdd_first: true
 
 ---
