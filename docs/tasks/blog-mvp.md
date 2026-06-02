@@ -245,7 +245,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 성공 시 201과 `{ url, contentType, size }` 반환.
 - 예상: 1.5h
 - 의존: T-PUB-101, T-AUTH-003
-- status: todo
+- status: done
 - tdd_first: true
 
 ---
