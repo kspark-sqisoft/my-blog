@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import { CommentSection } from '../components/CommentSection';
 import { Markdown } from '../components/Markdown';
 import { usePost } from '../posts/usePost';
 
@@ -42,6 +43,7 @@ export function PostDetail() {
       <div className="mt-6">
         <Markdown content={post.contentMarkdown} />
       </div>
+      <CommentSection postId={post.id} />
     </article>
   );
 }

@@ -40,7 +40,11 @@ describe('PostDetail 페이지', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('제목, 발행일, Tag, 마크다운 본문을 렌더한다', async () => {
-    mockedApi.get.mockResolvedValueOnce({ data: detail() });
+    mockedApi.get.mockImplementation((url: string) =>
+      url.endsWith('/comments')
+        ? Promise.resolve({ data: [] })
+        : Promise.resolve({ data: detail() }),
+    );
     renderDetail('p1');
 
     expect(await screen.findByText('상세 제목')).toBeInTheDocument();

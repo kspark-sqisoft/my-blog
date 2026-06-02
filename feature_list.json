@@ -429,8 +429,8 @@
         "T-WEB-004",
         "T-CONV-003"
       ],
-      "status": "todo",
-      "completed_at": null,
+      "status": "done",
+      "completed_at": "2026-06-02",
       "acceptance": [
         "depth 0→1→2 중첩 렌더, 깊이2 답글 비활성",
         "작성 폼 → POST 후 목록 갱신",
