@@ -103,4 +103,38 @@ describe('CommentService (통합)', () => {
       service.create({ postId: 'no-such', body: 'x' }),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('listByPost는 작성순으로 depth 0→1→2 중첩 구조를 반환한다', async () => {
+    const top = await service.create({ postId: publishedId, body: 'top' });
+    const r1 = await service.create({
+      postId: publishedId,
+      body: 'r1',
+      parentId: top.id,
+    });
+    await service.create({ postId: publishedId, body: 'r2', parentId: r1.id });
+    const top2 = await service.create({ postId: publishedId, body: 'top2' });
+
+    const tree = await service.listByPost(publishedId);
+
+    expect(tree.map((c) => c.id)).toEqual([top.id, top2.id]);
+    expect(tree[0].depth).toBe(0);
+
+    expect(tree[0].replies).toHaveLength(1);
+    const reply1 = tree[0].replies[0];
+    expect(reply1.body).toBe('r1');
+    expect(reply1.depth).toBe(1);
+    expect(reply1.replies).toHaveLength(1);
+    const reply2 = reply1.replies[0];
+    expect(reply2.body).toBe('r2');
+    expect(reply2.depth).toBe(2);
+    expect(reply2.replies).toEqual([]);
+
+    expect(tree[1].id).toBe(top2.id);
+    expect(tree[1].replies).toEqual([]);
+  });
+
+  it('listByPost는 댓글이 없으면 빈 배열을 반환한다', async () => {
+    const tree = await service.listByPost(publishedId);
+    expect(tree).toEqual([]);
+  });
 });

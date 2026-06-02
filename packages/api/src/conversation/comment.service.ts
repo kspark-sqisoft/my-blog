@@ -67,6 +67,35 @@ export class CommentService {
     return this.toDto(comment, depth);
   }
 
+  // 특정 Post의 Comment를 작성순으로 depth 0→1→2 중첩(replies) 구조로 반환
+  async listByPost(postId: string): Promise<CommentDto[]> {
+    const rows = await this.prisma.comment.findMany({
+      where: { postId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const nodes = new Map<string, CommentDto>();
+    for (const row of rows) {
+      nodes.set(row.id, this.toDto(row, 0));
+    }
+
+    const roots: CommentDto[] = [];
+    // createdAt 오름차순이라 부모가 항상 자식보다 먼저 등장
+    for (const row of rows) {
+      const node = nodes.get(row.id);
+      if (!node) continue;
+      const parent = row.parentId ? nodes.get(row.parentId) : undefined;
+      if (parent) {
+        node.depth = parent.depth + 1;
+        parent.replies.push(node);
+      } else {
+        node.depth = 0;
+        roots.push(node);
+      }
+    }
+    return roots;
+  }
+
   // 부모 체인을 거슬러 올라가며 깊이(조상 수)를 계산
   private async depthOf(commentId: string): Promise<number> {
     let depth = 0;

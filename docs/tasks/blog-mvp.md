@@ -275,7 +275,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 답글이 없는 노드의 `replies`는 빈 배열이다.
 - 예상: 1.5h
 - 의존: T-CONV-001
-- status: todo
+- status: done
 - tdd_first: true
 
 ### S4.2 Comment API + 스팸 방지
