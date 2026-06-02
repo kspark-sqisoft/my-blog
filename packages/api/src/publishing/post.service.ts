@@ -1,5 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Paginated, PostDetailDto, PostSummaryDto } from '@blog/shared';
+import type {
+  AdminPostSummaryDto,
+  Paginated,
+  PostDetailDto,
+  PostSummaryDto,
+} from '@blog/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { TagService } from './tag.service';
 
@@ -122,6 +127,31 @@ export class PostService {
     };
   }
 
+  // 운영자 대시보드용 전체 목록 (초안+발행, createdAt 최신순, status 포함)
+  async listForAdmin(
+    params: { page?: number; pageSize?: number } = {},
+  ): Promise<Paginated<AdminPostSummaryDto>> {
+    const page = params.page ?? DEFAULT_PAGE;
+    const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.post.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: withTags,
+      }),
+      this.prisma.post.count(),
+    ]);
+
+    return {
+      items: items.map((p) => this.toAdminSummary(p)),
+      page,
+      pageSize,
+      total,
+    };
+  }
+
   // 발행된 Post 상세 (공개). 초안/없음은 NotFound로 숨긴다.
   async getPublishedDetail(id: string): Promise<PostDetailDto> {
     const post = await this.prisma.post.findFirst({
@@ -192,6 +222,17 @@ export class PostService {
       summary,
       tags: post.postTags.map((pt) => pt.tag.name),
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+    };
+  }
+
+  private toAdminSummary(post: PostWithTags): AdminPostSummaryDto {
+    return {
+      id: post.id,
+      title: post.title,
+      status: post.status,
+      tags: post.postTags.map((pt) => pt.tag.name),
+      publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+      createdAt: post.createdAt.toISOString(),
     };
   }
 

@@ -6,7 +6,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
-DB_URL="${DATABASE_URL:-postgresql://blog:blog@localhost:5433/blog?schema=public}"
+# 127.0.0.1 고정: localhost 가 IPv6(::1)로 풀리면 Prisma CLI 엔진이 못 붙는 경우가 있다.
+DB_URL="${DATABASE_URL:-postgresql://blog:blog@127.0.0.1:5433/blog?schema=public}"
 DB_CONTAINER="my-blog-db-1"
 
 fail() { echo "[init] ❌ $1" >&2; exit 1; }
@@ -42,6 +43,16 @@ export DATABASE_URL="$DB_URL"
 ( cd packages/api && pnpm exec prisma generate >/dev/null 2>&1 ) || fail "prisma generate 실패"
 ( cd packages/api && pnpm exec prisma migrate deploy >/dev/null 2>&1 ) || fail "prisma migrate deploy 실패"
 ok "Prisma 클라이언트·마이그레이션 적용"
+
+# 4-b) 테스트 전용 DB (blog_test) — 개발 DB 오염 없이 결정적 테스트
+docker exec "$DB_CONTAINER" psql -U "${POSTGRES_USER:-blog}" -d "${POSTGRES_DB:-blog}" \
+  -tc "SELECT 1 FROM pg_database WHERE datname='blog_test'" 2>/dev/null | grep -q 1 \
+  || docker exec "$DB_CONTAINER" psql -U "${POSTGRES_USER:-blog}" -d "${POSTGRES_DB:-blog}" \
+       -c "CREATE DATABASE blog_test" >/dev/null 2>&1 || true
+TEST_DB_URL="postgresql://${POSTGRES_USER:-blog}:${POSTGRES_PASSWORD:-blog}@127.0.0.1:5433/blog_test?schema=public"
+( cd packages/api && DATABASE_URL="$TEST_DB_URL" pnpm exec prisma migrate deploy >/dev/null 2>&1 ) \
+  || fail "blog_test 마이그레이션 실패"
+ok "테스트 DB(blog_test) 준비"
 
 # 5) 요약
 echo ""

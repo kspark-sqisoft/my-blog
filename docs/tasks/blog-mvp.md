@@ -220,6 +220,18 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
 
 ---
 
+#### T-PUB-008 — 운영자 Post 목록(초안 포함) GET /api/admin/posts
+- priority: 15.5
+- 변경 파일: `packages/api/src/publishing/admin-post.controller.ts`, `post.service.ts`, `@blog/shared`
+- acceptance criteria:
+  1. `GET /api/admin/posts` 는 JwtAuthGuard 보호(미인증 401).
+  2. 초안+발행 모두 createdAt 최신순 + status 포함 + 페이지네이션.
+  3. 응답은 AdminPostSummaryDto 형태.
+- 예상: 1h
+- 의존: T-PUB-002, T-AUTH-003
+- status: done
+- tdd_first: true
+
 ## E3. 이미지 업로드 (PUBLISHING — Upload, ADR-0012)
 
 ### S3.1 저장소 추상화

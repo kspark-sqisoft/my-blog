@@ -349,6 +349,24 @@
       ]
     },
     {
+      "id": "T-PUB-008",
+      "title": "운영자 Post 목록(초안 포함) GET /api/admin/posts",
+      "epic": "E2",
+      "context": "PUB",
+      "priority": 15.5,
+      "deps": [
+        "T-PUB-002",
+        "T-AUTH-003"
+      ],
+      "status": "done",
+      "completed_at": "2026-06-02",
+      "acceptance": [
+        "GET /api/admin/posts JwtAuthGuard(미인증 401)",
+        "초안+발행 createdAt 최신순 + status + 페이지네이션",
+        "AdminPostSummaryDto 형태"
+      ]
+    },
+    {
       "id": "T-WEB-001",
       "title": "API 클라이언트(axios) + 라우터 + Query/Tailwind",
       "epic": "E5",
@@ -445,7 +463,8 @@
       "priority": 26,
       "deps": [
         "T-WEB-002",
-        "T-PUB-006"
+        "T-PUB-006",
+        "T-PUB-008"
       ],
       "status": "todo",
       "completed_at": null,

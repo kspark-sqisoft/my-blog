@@ -252,4 +252,38 @@ describe('PostService (통합)', () => {
       service.getPublishedDetail('no-such-id'),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('listForAdmin은 초안+발행을 모두 status 포함해 최신순 반환한다', async () => {
+    const draft = await service.create({
+      title: '관리 초안',
+      contentMarkdown: 'd',
+      authorId,
+    });
+    const pub = await service.create({
+      title: '관리 발행',
+      contentMarkdown: 'p',
+      authorId,
+      tags: ['admin'],
+    });
+    await service.publish(pub.id);
+
+    const page = await service.listForAdmin({ page: 1, pageSize: 10 });
+    const ids = page.items.map((p) => p.id);
+    expect(ids).toContain(draft.id);
+    expect(ids).toContain(pub.id);
+
+    const byId = new Map(page.items.map((p) => [p.id, p]));
+    expect(byId.get(draft.id)?.status).toBe('DRAFT');
+    expect(byId.get(pub.id)?.status).toBe('PUBLISHED');
+    expect(page.total).toBeGreaterThanOrEqual(2);
+  });
+
+  it('listForAdmin은 page/pageSize 페이지네이션을 지원한다', async () => {
+    for (const t of ['a', 'b', 'c']) {
+      await service.create({ title: t, contentMarkdown: t, authorId });
+    }
+    const first = await service.listForAdmin({ page: 1, pageSize: 2 });
+    expect(first.items).toHaveLength(2);
+    expect(first.total).toBe(3);
+  });
 });

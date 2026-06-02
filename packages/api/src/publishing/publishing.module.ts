@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
+import { AdminPostController } from './admin-post.controller';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { TagController } from './tag.controller';
@@ -11,7 +12,12 @@ import { StorageProvider } from './storage/storage.provider';
 @Module({
   // AuthModule import → JwtStrategy 인스턴스화로 JwtAuthGuard 동작
   imports: [AuthModule],
-  controllers: [PostController, TagController, UploadController],
+  controllers: [
+    PostController,
+    AdminPostController,
+    TagController,
+    UploadController,
+  ],
   providers: [
     PostService,
     TagService,

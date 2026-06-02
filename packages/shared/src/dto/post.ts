@@ -23,6 +23,16 @@ export interface PostDetailDto {
   updatedAt: string; // ISO 8601
 }
 
+// 운영자 대시보드 목록 항목 (초안 포함, status 노출)
+export interface AdminPostSummaryDto {
+  id: string;
+  title: string;
+  status: PostStatus;
+  tags: string[];
+  publishedAt: string | null; // ISO 8601
+  createdAt: string; // ISO 8601
+}
+
 // 생성 (운영자)
 export interface CreatePostDto {
   title: string;

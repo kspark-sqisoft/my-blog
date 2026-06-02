@@ -3,6 +3,7 @@ export type {
   PostStatus,
   PostSummaryDto,
   PostDetailDto,
+  AdminPostSummaryDto,
   CreatePostDto,
   UpdatePostDto,
 } from './dto/post';

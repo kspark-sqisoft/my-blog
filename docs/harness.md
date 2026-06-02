@@ -118,9 +118,22 @@ API 에 깨진 바이트로 도달 → DB 에 그대로 저장(복구 불가).
 - 실제 UI(브라우저 폼)로 입력.
 이미 깨진 행은 삭제 후 재생성한다.
 
+### 3. 통합 테스트가 개발 데이터와 충돌 (전역 카운트 깨짐)
+**증상**: 브라우저로 글을 몇 개 만든 뒤 `pnpm --filter api test` 실행 →
+`total` 단언 등이 갑자기 실패. 또는 테스트가 운영자 시드/샘플 데이터를 지워버림.
+
+**원인**: 통합 테스트가 **개발 DB(`blog`)를 그대로 사용**. 테스트는 author 기준으로만 정리하는데
+`listForAdmin`/`listPublished` 의 `count()` 는 전역이라, 개발용으로 만든 데이터가 카운트에 섞인다.
+
+**해결(적용됨)**: 테스트는 **전용 DB `blog_test`** 를 쓴다.
+- `init.sh` 가 `blog_test` 생성 + 마이그레이션을 자동 처리.
+- `src/test-db.setup.ts`(unit) / `test/jest-e2e.setup.ts`(e2e) 가 `DATABASE_URL` 을 `blog_test` 로 **강제**.
+- 따라서 테스트는 개발 데이터를 절대 건드리지 않고 전역 카운트도 결정적이다.
+- 새 통합 spec 은 `process.env.DATABASE_URL ??= ...` 같은 자체 기본값을 두지 말 것(setup 이 강제함).
+
 ## 관련 파일
 
-- `init.sh` — 환경 부트스트랩
+- `init.sh` — 환경 부트스트랩(개발 DB + 테스트 DB)
 - `feature_list.json` — 진행 상태 정규 소스
 - `CLAUDE.md` — 시작 루틴·완료 규칙·절대 규칙
 - `.claude/commands/` — `ready` · `implement` · `finish` · 설계 명령들
