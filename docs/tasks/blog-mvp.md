@@ -307,7 +307,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. TanStack Query Provider와 Tailwind가 동작한다(스모크 렌더 테스트).
 - 예상: 1.5h
 - 의존: T-INFRA-003
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-WEB-002 — 로그인 페이지 + 보호 라우트 게이트(useAuth, zustand)
