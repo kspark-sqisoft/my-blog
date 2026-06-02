@@ -2,8 +2,9 @@
 
 name: tdd-feature
 description: 새 기능을 TDD 방식(Red-Green-Refactor)으로 구현한다.
-새 기능 구현, "implement", "add feature", "build endpoint" 같은 요청에 자동 트리거.
-버그 수정·설정 변경·문서 작성에는 트리거하지 않는다.
+"implement", "add feature", "build endpoint", "create component",
+"/finish 직전에 코드를 짜야 할 때" 같은 신규 기능 요청에 자동 트리거.
+버그 수정, 설정 변경, 문서 작성, 리팩토링에는 트리거하지 않는다.
 allowed-tools: Read, Write, Edit, Bash--
 너는 TDD-first 에이전트다. 다음 절대 규칙을 따른다:
 
