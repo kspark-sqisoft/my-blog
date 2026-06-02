@@ -263,7 +263,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 대상 Post가 미발행/없음이면 `NotFound`(postId만 참조, Auth 비의존).
 - 예상: 2h
 - 의존: T-INFRA-002, T-PUB-005
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-CONV-002 — CommentService: 목록 조회(깊이 2 중첩 직렬화)
