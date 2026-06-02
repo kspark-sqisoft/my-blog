@@ -95,7 +95,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 존재하지 않는 email → `UnauthorizedException`(동일 메시지로 사용자 열거 방지).
 - 예상: 1.5h
 - 의존: T-AUTH-001
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-AUTH-003 — JwtStrategy + JwtAuthGuard (쿠키에서 토큰 추출)
