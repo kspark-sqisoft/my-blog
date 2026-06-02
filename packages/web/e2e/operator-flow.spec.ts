@@ -31,4 +31,15 @@ test('운영자가 글을 작성하고 이미지를 올린 뒤 발행한다', as
   // And: 공개 목록에 노출된다
   await page.goto('/');
   await expect(page.getByRole('link', { name: title })).toBeVisible();
+
+  // And: 상세에서 업로드 이미지가 실제로 렌더된다(깨진 이미지 회귀 방지)
+  await page.getByRole('link', { name: title }).click();
+  await page.waitForURL('**/posts/**');
+  const img = page.locator('.prose img').first();
+  await expect(img).toBeVisible();
+  await expect
+    .poll(() =>
+      img.evaluate((el) => (el as HTMLImageElement).naturalWidth),
+    )
+    .toBeGreaterThan(0);
 });

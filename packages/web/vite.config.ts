@@ -17,6 +17,8 @@ export default defineConfig({
       // 개발 시 /api 요청을 백엔드로 프록시.
       // 로컬: http://localhost:3000 / Docker: http://api:3000 (VITE_API_PROXY)
       '/api': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
+      // 업로드 이미지(/uploads)도 백엔드 정적 서빙으로 프록시 (그렇지 않으면 SPA fallback HTML 반환)
+      '/uploads': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
     },
   },
   test: {

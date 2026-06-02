@@ -131,6 +131,26 @@ API 에 깨진 바이트로 도달 → DB 에 그대로 저장(복구 불가).
 - 따라서 테스트는 개발 데이터를 절대 건드리지 않고 전역 카운트도 결정적이다.
 - 새 통합 spec 은 `process.env.DATABASE_URL ??= ...` 같은 자체 기본값을 두지 말 것(setup 이 강제함).
 
+### 4. 업로드 이미지가 깨져 보임 — 저장만 하고 서빙 경로를 안 맞춤
+**증상**: 글에 올린 이미지가 브라우저에서 깨진 아이콘으로 보인다.
+`GET /uploads/<file>` 이 200 처럼 보여도 `Content-Type: text/html`(SPA fallback)을 반환한다.
+
+**원인**: 업로드는 파일을 디스크에 **저장**만 했고, 그 파일을 다시 **HTTP 로 서빙하는 경로**가 빠졌다.
+정적 리소스가 브라우저에 닿으려면 **세 곳**이 한 베이스(`/uploads`)로 정합해야 한다:
+1. **API 정적 서빙** — `configureApp` 의 `useStaticAssets(UPLOAD_DIR, { prefix: UPLOAD_URL_BASE })`
+   (저장 경로/베이스는 `LocalStorageProvider` 와 동일해야 함).
+2. **dev 프록시** — `packages/web/vite.config.ts` 의 `proxy['/uploads']` (없으면 Vite 가 index.html 폴백).
+3. **prod 프록시** — `packages/web/nginx.conf` 의 `location /uploads/ { proxy_pass http://api:3000; }`.
+
+**해결/예방**:
+- 파일·정적 리소스를 반환하는 기능은 **반환 URL 이 실제 200 + 올바른 Content-Type 으로 서빙되는지**까지
+  테스트로 검증한다(쓰기-읽기 왕복). 단위/통합에서 "URL 형식"만 보면 이 공백을 못 잡는다.
+  - 적용됨: `test/upload.e2e-spec.ts` — 업로드 후 반환 URL 을 `GET` 해 200 + 동일 바이트 확인.
+  - 적용됨: `packages/web/e2e/operator-flow.spec.ts` — 발행 글 상세에서 `img.naturalWidth > 0` 확인.
+- **config/소스 변경 후 컨테이너 미반영**: Windows 바인드 마운트에서는 `nest --watch`/Vite 가 변경을
+  못 잡는 경우가 있다. 정적 서빙·프록시 같은 부트스트랩 설정을 바꿨으면 `docker restart <svc>` 로
+  강제 재기동 후 검증한다. (의존성 변경은 함정 #1 의 `--renew-anon-volumes` 를 쓴다.)
+
 ## 관련 파일
 
 - `init.sh` — 환경 부트스트랩(개발 DB + 테스트 DB)

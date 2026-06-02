@@ -101,4 +101,21 @@ describe('UploadController (e2e)', () => {
     expect(body.contentType).toBe('image/png');
     expect(body.size).toBe(buf.length);
   });
+
+  it('업로드한 이미지는 반환된 URL로 다시 받을 수 있다(정적 서빙 200)', async () => {
+    const buf = Buffer.from('static-serve-bytes');
+    const up = await request(app.getHttpServer())
+      .post('/api/uploads')
+      .set('Cookie', cookie)
+      .attach('file', buf, {
+        filename: 'served.png',
+        contentType: 'image/png',
+      })
+      .expect(201);
+    const { url } = up.body as { url: string };
+
+    const got = await request(app.getHttpServer()).get(url).expect(200);
+    expect(got.headers['content-type']).toContain('image/png');
+    expect(Buffer.from(got.body as Buffer)).toEqual(buf);
+  });
 });
