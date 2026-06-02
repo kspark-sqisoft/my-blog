@@ -215,7 +215,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 공개 접근 가능(인증 불필요).
 - 예상: 1h
 - 의존: T-PUB-003, T-PUB-006
-- status: todo
+- status: done
 - tdd_first: true
 
 ---
