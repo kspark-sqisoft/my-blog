@@ -1,7 +1,7 @@
 import type { RouteObject } from 'react-router-dom';
 import { ProtectedRoute } from './auth/ProtectedRoute';
-import { Placeholder } from './components/Placeholder';
 import { Dashboard } from './pages/admin/Dashboard';
+import { PostEditor } from './pages/admin/PostEditor';
 import { Login } from './pages/Login';
 import { PostDetail } from './pages/PostDetail';
 import { PostList } from './pages/PostList';
@@ -25,7 +25,7 @@ export const routes: RouteObject[] = [
     path: '/admin/posts/new',
     element: (
       <ProtectedRoute>
-        <Placeholder name="post-new" />
+        <PostEditor />
       </ProtectedRoute>
     ),
   },
@@ -33,7 +33,7 @@ export const routes: RouteObject[] = [
     path: '/admin/posts/:id/edit',
     element: (
       <ProtectedRoute>
-        <Placeholder name="post-edit" />
+        <PostEditor />
       </ProtectedRoute>
     ),
   },

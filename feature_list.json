@@ -503,8 +503,8 @@
         "T-PUB-102",
         "T-PUB-009"
       ],
-      "status": "todo",
-      "completed_at": null,
+      "status": "done",
+      "completed_at": "2026-06-02",
       "acceptance": [
         "제목/본문/Tag 폼 create/update 연동",
         "이미지 업로드 후 URL 마크다운 삽입",
