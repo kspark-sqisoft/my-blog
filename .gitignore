@@ -1,0 +1,27 @@
+# 의존성
+node_modules/
+.pnpm-store/
+
+# 빌드 산출물
+dist/
+build/
+.next/
+out/
+
+# 환경 변수
+.env
+.env.*
+!.env.example
+
+# 로그
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+*.swp
+
+# OMC 상태
+.omc/
