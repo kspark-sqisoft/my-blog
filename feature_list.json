@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-02 (T-INFRA-005)",
+  "updated_at": "2026-06-02 (T-INFRA-006)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -547,6 +547,27 @@
         "기존 3개 스펙(operator-flow/reader-comment/draft-hidden) 격리 스택에서 모두 통과",
         ".env.example 에 E2E_* 변수(포트/DB/계정) 문서화",
         "docs/harness.md 에 격리 실행 절차/포트 매핑 갱신"
+      ]
+    },
+    {
+      "id": "T-INFRA-006",
+      "title": "GitHub Actions CI 파이프라인(lint/typecheck/test/api-e2e/web-e2e)",
+      "epic": "E6",
+      "context": "INFRA",
+      "priority": 30,
+      "deps": [
+        "T-INFRA-005"
+      ],
+      "status": "done",
+      "completed_at": "2026-06-02",
+      "acceptance": [
+        ".github/workflows/ci.yml 추가 — PR + push(main) 트리거",
+        "Job 1 quality: Postgres service 위에서 web/api lint + typecheck + 단위 vitest/jest + api jest-e2e(blog_test) 모두 통과",
+        "Job 2 web-e2e: scripts/e2e-isolated.sh 호출 → Playwright 3건 통과",
+        "캐시: pnpm store + Playwright browsers + docker buildx layer (재실행 단축)",
+        "실패 시 artifact 업로드: playwright-report/, test-results/, jest 로그",
+        "전 job 통과해야 머지 가능(required status checks 흐름)",
+        "docs/adr/0014-* ADR 로 GitHub Actions 선택 + Job 분리 정책 명시"
       ]
     }
   ]

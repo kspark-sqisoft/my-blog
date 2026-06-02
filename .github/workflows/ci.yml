@@ -1,0 +1,136 @@
+# my-blog CI (T-INFRA-006, ADR-0014).
+# 2 job 병렬: quality(lint/typecheck/단위/api-e2e) + web-e2e(격리 Playwright).
+# 둘 다 통과해야 머지 가능(브랜치 보호의 required status checks 로 게이트).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# 동일 ref 의 이전 워크플로 실행은 자동 취소 — 빠른 피드백
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10"
+
+jobs:
+  quality:
+    name: Quality (lint · typecheck · unit · api-e2e)
+    runs-on: ubuntu-latest
+    # Postgres service container 하나로 dev(blog) + test(blog_test) 모두 호스팅.
+    # jest setup 이 DATABASE_URL 을 blog_test 로 강제하므로 step 의 env 는 dev 만 가리킨다.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: blog
+          POSTGRES_PASSWORD: blog
+          POSTGRES_DB: blog
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blog -d blog"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://blog:blog@localhost:5432/blog?schema=public
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node + pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm --filter api exec prisma generate
+
+      - name: Create blog_test DB + migrate (dev + test)
+        env:
+          PGPASSWORD: blog
+        run: |
+          psql -h localhost -U blog -d blog -c "CREATE DATABASE blog_test"
+          pnpm --filter api exec prisma migrate deploy
+          DATABASE_URL="postgresql://blog:blog@localhost:5432/blog_test?schema=public" \
+            pnpm --filter api exec prisma migrate deploy
+
+      - name: Web — lint
+        run: pnpm --filter web lint
+
+      - name: Web — typecheck
+        run: pnpm --filter web typecheck
+
+      - name: Web — vitest
+        run: pnpm --filter web test
+
+      - name: API — lint
+        run: pnpm --filter api lint
+
+      - name: API — jest unit (blog_test)
+        run: pnpm --filter api test
+
+      - name: API — jest e2e (blog_test)
+        run: pnpm --filter api test:e2e
+
+  web-e2e:
+    name: Web E2E (Playwright, isolated stack)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node + pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 격리 스크립트는 호스트에서 prisma migrate deploy + db:seed 를 수행한다.
+      - name: Prisma generate (host runtime)
+        run: pnpm --filter api exec prisma generate
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Setup Docker Buildx (격리 스택 prod 빌드 캐시)
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run isolated Playwright E2E
+        run: pnpm --filter web test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            packages/web/playwright-report/
+            packages/web/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
