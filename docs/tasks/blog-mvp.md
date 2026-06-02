@@ -53,7 +53,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. api/web에서 `@my-blog/shared`(workspace) import가 해석된다.
 - 예상: 1h
 - 의존: 없음
-- status: todo
+- status: done
 - tdd_first: false (순수 타입 선언)
 
 #### T-INFRA-004 — 전역 ValidationPipe + 예외 응답 포맷 + cookie-parser
