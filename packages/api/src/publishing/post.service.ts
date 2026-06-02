@@ -1,7 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { PostDetailDto } from '@blog/shared';
+import type { Paginated, PostDetailDto, PostSummaryDto } from '@blog/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { TagService } from './tag.service';
+
+export interface ListPublishedParams {
+  page?: number;
+  pageSize?: number;
+  tag?: string;
+}
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 10;
+const SUMMARY_MAX = 200;
 
 export interface CreatePostInput {
   title: string;
@@ -80,6 +90,38 @@ export class PostService {
     await this.prisma.post.delete({ where: { id } });
   }
 
+  // 발행된 Post 목록 (publishedAt 최신순, offset 페이지네이션 — ADR-0010).
+  async listPublished(
+    params: ListPublishedParams = {},
+  ): Promise<Paginated<PostSummaryDto>> {
+    const page = params.page ?? DEFAULT_PAGE;
+    const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+    const where = {
+      status: 'PUBLISHED' as const,
+      ...(params.tag && {
+        postTags: { some: { tag: { name: params.tag } } },
+      }),
+    };
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.post.findMany({
+        where,
+        orderBy: { publishedAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: withTags,
+      }),
+      this.prisma.post.count({ where }),
+    ]);
+
+    return {
+      items: items.map((p) => this.toSummary(p)),
+      page,
+      pageSize,
+      total,
+    };
+  }
+
   // 발행 (ADR-0005). 멱등: 이미 발행이면 publishedAt 유지.
   async publish(id: string): Promise<PostDetailDto> {
     const existing = await this.requirePost(id);
@@ -125,6 +167,20 @@ export class PostService {
       throw new NotFoundException('Post를 찾을 수 없습니다.');
     }
     return post;
+  }
+
+  // 본문 마크다운에서 간단한 요약 생성(공백 정리 + 길이 제한)
+  private toSummary(post: PostWithTags): PostSummaryDto {
+    const plain = post.contentMarkdown.replace(/\s+/g, ' ').trim();
+    const summary =
+      plain.length > SUMMARY_MAX ? `${plain.slice(0, SUMMARY_MAX)}…` : plain;
+    return {
+      id: post.id,
+      title: post.title,
+      summary,
+      tags: post.postTags.map((pt) => pt.tag.name),
+      publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+    };
   }
 
   private toDetail(post: PostWithTags): PostDetailDto {

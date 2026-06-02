@@ -149,4 +149,74 @@ describe('PostService (통합)', () => {
       NotFoundException,
     );
   });
+
+  it('listPublished는 발행된 Post만 최신순으로 반환한다(초안 제외)', async () => {
+    const draft = await service.create({
+      title: '초안',
+      contentMarkdown: 'd',
+      authorId,
+    });
+    const a = await service.create({
+      title: 'A',
+      contentMarkdown: 'a',
+      authorId,
+    });
+    const b = await service.create({
+      title: 'B',
+      contentMarkdown: 'b',
+      authorId,
+    });
+    await service.publish(a.id);
+    await service.publish(b.id); // b가 더 늦게 발행
+
+    const page = await service.listPublished({ page: 1, pageSize: 10 });
+    const ids = page.items.map((p) => p.id);
+    expect(ids).not.toContain(draft.id);
+    expect(ids[0]).toBe(b.id); // 최신순
+    expect(ids).toContain(a.id);
+  });
+
+  it('listPublished는 page/pageSize로 페이지네이션하고 total을 포함한다', async () => {
+    for (const t of ['p1', 'p2', 'p3']) {
+      const p = await service.create({
+        title: t,
+        contentMarkdown: t,
+        authorId,
+      });
+      await service.publish(p.id);
+    }
+    const first = await service.listPublished({ page: 1, pageSize: 2 });
+    expect(first.items).toHaveLength(2);
+    expect(first.total).toBe(3);
+    expect(first.page).toBe(1);
+    const second = await service.listPublished({ page: 2, pageSize: 2 });
+    expect(second.items).toHaveLength(1);
+  });
+
+  it('listPublished는 tag로 필터링한다', async () => {
+    const withX = await service.create({
+      title: 'hasX',
+      contentMarkdown: 'x',
+      authorId,
+      tags: ['x'],
+    });
+    const withY = await service.create({
+      title: 'hasY',
+      contentMarkdown: 'y',
+      authorId,
+      tags: ['y'],
+    });
+    await service.publish(withX.id);
+    await service.publish(withY.id);
+
+    const page = await service.listPublished({
+      page: 1,
+      pageSize: 10,
+      tag: 'x',
+    });
+    const ids = page.items.map((p) => p.id);
+    expect(ids).toContain(withX.id);
+    expect(ids).not.toContain(withY.id);
+    expect(page.total).toBe(1);
+  });
 });

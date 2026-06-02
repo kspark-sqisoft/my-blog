@@ -177,7 +177,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. `tag` 지정 시 해당 Tag가 붙은 발행 Post만 반환한다.
 - 예상: 1.5h
 - 의존: T-PUB-002, T-PUB-003
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-PUB-005 — PostService: 상세 조회(초안 비노출)
