@@ -24,5 +24,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Playwright E2E(e2e/*.spec.ts)는 Vitest 대상에서 제외
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
   },
 })

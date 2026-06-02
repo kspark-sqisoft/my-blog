@@ -521,8 +521,8 @@
         "T-WEB-005",
         "T-WEB-007"
       ],
-      "status": "todo",
-      "completed_at": null,
+      "status": "done",
+      "completed_at": "2026-06-02",
       "acceptance": [
         "운영자 로그인→작성→업로드→발행",
         "독자 목록→상세→깊이2 댓글",
