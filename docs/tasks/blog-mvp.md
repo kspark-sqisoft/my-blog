@@ -41,7 +41,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 통합 테스트에서 `prisma.$queryRaw\`SELECT 1\``가 성공한다.
 - 예상: 1h
 - 의존: T-INFRA-001
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-INFRA-003 — 공유 타입 패키지 스캐폴드 (packages/shared)
