@@ -466,8 +466,8 @@
         "T-PUB-006",
         "T-PUB-008"
       ],
-      "status": "todo",
-      "completed_at": null,
+      "status": "done",
+      "completed_at": "2026-06-02",
       "acceptance": [
         "초안+발행 목록",
         "발행/취소/삭제 액션 후 갱신",

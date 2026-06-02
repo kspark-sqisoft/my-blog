@@ -1,6 +1,7 @@
 import type { RouteObject } from 'react-router-dom';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { Placeholder } from './components/Placeholder';
+import { Dashboard } from './pages/admin/Dashboard';
 import { Login } from './pages/Login';
 import { PostDetail } from './pages/PostDetail';
 import { PostList } from './pages/PostList';
@@ -16,7 +17,7 @@ export const routes: RouteObject[] = [
     path: '/admin',
     element: (
       <ProtectedRoute>
-        <Placeholder name="admin" />
+        <Dashboard />
       </ProtectedRoute>
     ),
   },

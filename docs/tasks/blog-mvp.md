@@ -383,7 +383,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. 비인증 접근 시 로그인으로 보낸다.
 - 예상: 1.5h
 - 의존: T-WEB-002, T-PUB-006
-- status: todo
+- status: done
 - tdd_first: true
 
 #### T-WEB-007 — Post 작성·수정 에디터 + 이미지 업로드 임베드
