@@ -289,7 +289,7 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
   3. `body` 누락/길이 상한 초과 → 400.
 - 예상: 1.5h
 - 의존: T-CONV-002
-- status: todo
+- status: done
 - tdd_first: true
 
 ---
