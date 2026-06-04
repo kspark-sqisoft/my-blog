@@ -49,7 +49,7 @@
 ### S9.2 회원가입·사용자 관리 (Phase 2)
 
 #### T-AUTH-009 — 회원가입 POST /api/auth/register (MEMBER, 409, 즉시 로그인)
-- priority: 41 / 의존: T-AUTH-005, T-AUTH-006, T-AUTH-007 / status: todo
+- priority: 41 / 의존: T-AUTH-005, T-AUTH-006, T-AUTH-007 / status: done (2026-06-04)
 - acceptance:
   1. RegisterDto 검증(email, password 8~72, name 1~50).
   2. MEMBER 생성 + bcrypt 해시, 중복 email 409.

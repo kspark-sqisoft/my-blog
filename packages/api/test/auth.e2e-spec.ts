@@ -17,6 +17,7 @@ describe('Auth (e2e)', () => {
 
   const email = 'login-e2e@example.com';
   const password = 'secret123';
+  const regEmail = 'register-e2e@example.com';
 
   beforeAll(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -34,7 +35,9 @@ describe('Auth (e2e)', () => {
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email } });
+    await prisma.user.deleteMany({
+      where: { email: { in: [email, regEmail] } },
+    });
     await app.close();
   });
 
@@ -89,6 +92,54 @@ describe('Auth (e2e)', () => {
 
   it('GET /api/auth/me 비로그인 → 401', () => {
     return request(app.getHttpServer()).get('/api/auth/me').expect(401);
+  });
+
+  it('POST /api/auth/register 성공 → 201, MEMBER + 즉시 로그인 쿠키', async () => {
+    await prisma.user.deleteMany({ where: { email: regEmail } });
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({ email: regEmail, password: 'memberpw1', name: '회원' })
+      .expect(201);
+    const cookie = getAccessCookie(res.headers['set-cookie']);
+    expect(cookie).toMatch(/HttpOnly/i);
+    const user = (
+      res.body as { user: { email: string; name: string; role: string } }
+    ).user;
+    expect(user.email).toBe(regEmail);
+    expect(user.name).toBe('회원');
+    expect(user.role).toBe('MEMBER');
+  });
+
+  it('POST /api/auth/register 중복 email → 409', async () => {
+    await prisma.user.deleteMany({ where: { email: regEmail } });
+    const body = { email: regEmail, password: 'memberpw1', name: '회원' };
+    await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send(body)
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send(body)
+      .expect(409);
+  });
+
+  it('POST /api/auth/register 짧은 비밀번호 → 400', () => {
+    return request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({ email: 'x2@example.com', password: 'short', name: '회원' })
+      .expect(400);
+  });
+
+  it('POST /api/auth/register는 role을 클라이언트가 지정할 수 없다(화이트리스트 400)', () => {
+    return request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({
+        email: 'x3@example.com',
+        password: 'memberpw1',
+        name: '회원',
+        role: 'ADMIN',
+      })
+      .expect(400);
   });
 
   it('POST /api/auth/logout → 200, 쿠키 만료', async () => {

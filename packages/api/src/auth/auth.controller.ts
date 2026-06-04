@@ -14,15 +14,27 @@ import type { AuthUserDto } from '@blog/shared';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 const ACCESS_COOKIE = 'access_token';
 const ONE_HOUR_MS = 60 * 60 * 1000;
+
+// JWT를 httpOnly 쿠키로 굽는다 (ADR-0001). login·register 공통.
+function setAuthCookie(res: Response, accessToken: string): void {
+  res.cookie(ACCESS_COOKIE, accessToken, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: ONE_HOUR_MS,
+    path: '/',
+  });
+}
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
-  // 운영자 로그인 → httpOnly 쿠키로 JWT 발급 (ADR-0001)
+  // 운영자/회원 로그인 → httpOnly 쿠키로 JWT 발급 (ADR-0001)
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -33,13 +45,22 @@ export class AuthController {
       dto.email,
       dto.password,
     );
-    res.cookie(ACCESS_COOKIE, accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: ONE_HOUR_MS,
-      path: '/',
-    });
+    setAuthCookie(res, accessToken);
+    return { user };
+  }
+
+  // 회원가입 → MEMBER 생성 + 즉시 로그인(쿠키) (ADR-0018). 201 반환.
+  @Post('register')
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ user: AuthUserDto }> {
+    const { accessToken, user } = await this.auth.register(
+      dto.email,
+      dto.password,
+      dto.name,
+    );
+    setAuthCookie(res, accessToken);
     return { user };
   }
 

@@ -12,7 +12,8 @@
 | 메서드 | 경로 | 설명 | 인증 |
 |---|---|---|---|
 | GET | `/api/` | 헬스/루트 | 공개 |
-| POST | `/api/auth/login` | 운영자 로그인 | 공개 |
+| POST | `/api/auth/register` | 회원가입(MEMBER 생성+로그인) | 공개 |
+| POST | `/api/auth/login` | 로그인 | 공개 |
 | POST | `/api/auth/logout` | 로그아웃 | 공개 |
 | GET | `/api/auth/me` | 세션 확인 | 쿠키 |
 | GET | `/api/posts` | 발행 글 목록(coverImageUrl 포함) | 공개 |

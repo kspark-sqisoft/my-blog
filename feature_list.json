@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (T-PUB-105, Phase 1 완료)",
+  "updated_at": "2026-06-04 (T-AUTH-009)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -773,14 +773,15 @@
         "T-AUTH-006",
         "T-AUTH-007"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "multiuser-rbac",
       "tdd_first": true,
       "acceptance": [
         "RegisterDto 검증(email, password 8~72, name 1~50)",
         "MEMBER 생성+bcrypt 해시, 중복 email 409",
         "성공 시 즉시 로그인 쿠키+user 반환 — auth.e2e"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-AUTH-010",
