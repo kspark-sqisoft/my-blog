@@ -7,6 +7,7 @@ import type {
 } from '@blog/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { extractFirstImageUrl } from './cover-image';
+import { toSummaryText } from './markdown-summary';
 import { TagService } from './tag.service';
 
 export interface ListPublishedParams {
@@ -218,15 +219,12 @@ export class PostService {
     return post;
   }
 
-  // 본문 마크다운에서 간단한 요약 생성(공백 정리 + 길이 제한)
+  // 본문 마크다운에서 요약(평문) + 대표 이미지(첫 이미지)를 생성
   private toSummary(post: PostWithTags): PostSummaryDto {
-    const plain = post.contentMarkdown.replace(/\s+/g, ' ').trim();
-    const summary =
-      plain.length > SUMMARY_MAX ? `${plain.slice(0, SUMMARY_MAX)}…` : plain;
     return {
       id: post.id,
       title: post.title,
-      summary,
+      summary: toSummaryText(post.contentMarkdown, SUMMARY_MAX),
       tags: post.postTags.map((pt) => pt.tag.name),
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       coverImageUrl: extractFirstImageUrl(post.contentMarkdown),
