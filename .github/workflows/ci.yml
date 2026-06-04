@@ -134,3 +134,34 @@ jobs:
             packages/web/test-results/
           retention-days: 7
           if-no-files-found: ignore
+
+  gc:
+    name: Garbage Collection (dead code · duplication, 비차단)
+    runs-on: ubuntu-latest
+    # 정보 제공용 센서 — 머지를 막지 않는다(required check 에서 제외).
+    # 가이드 12.5: 에이전트는 '추가'에 강하고 '삭제'에 약하다 → 미사용/중복을 지속 감지.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node + pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Unused files/exports (knip)
+        continue-on-error: true
+        run: pnpm gc:unused
+
+      - name: Duplication (jscpd)
+        continue-on-error: true
+        run: pnpm gc:dup

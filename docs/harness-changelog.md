@@ -4,6 +4,13 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.3 (2026-06-04)
+
+갭 분석 P2 2건 구현.
+
+- **추가** — 가비지 컬렉션 센서: 루트 devDeps `knip`+`jscpd`, 설정 `knip.json`/`.jscpd.json`, 스크립트 `pnpm gc`(`gc:unused`/`gc:dup`), CI `gc` job(비차단 `continue-on-error`). 베이스라인: knip 0 미사용, jscpd 1건 중복(0.41%, 임계 미만 — PostListView↔PostDetail 태그 블록).
+- **추가** — 리뷰 서브에이전트 `.claude/agents/code-reviewer.md`(읽기 전용, 절대규칙·심각도), `.claude/agents/debugger.md`(근본원인+환경 함정). 프로젝트 규칙 내장.
+
 ## v0.2 (2026-06-04)
 
 가이드(`docs/claude-code-guide/`)와의 갭 분석(`docs/harness-gap-analysis.md`) 결과 반영.

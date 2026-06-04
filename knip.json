@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "exclude": ["dependencies", "devDependencies", "unlisted", "unresolved", "binaries"],
+  "ignore": [".claude/**"],
+  "workspaces": {
+    "packages/api": {
+      "entry": [
+        "src/main.ts",
+        "src/**/*.module.ts",
+        "src/**/*.controller.ts",
+        "src/test-db.setup.ts",
+        "src/**/*.spec.ts",
+        "test/**/*.ts"
+      ],
+      "project": "src/**/*.ts"
+    },
+    "packages/web": {
+      "entry": ["index.html", "src/**/*.test.{ts,tsx}", "e2e/**/*.spec.ts"],
+      "project": "src/**/*.{ts,tsx}"
+    },
+    "packages/shared": {
+      "project": "src/**/*.ts"
+    }
+  }
+}

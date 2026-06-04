@@ -19,8 +19,8 @@
 | 9 | **편집 후 자동 포맷/린트 훅(PostToolUse)** | 7, 12 STEP5 | ✅ **추가됨(v0.2)** | 이전엔 공백 → `format-edited.mjs` |
 | 10 | **CLAUDE.md AUTO-MANAGED 구간(코드 파생)** | 12.7 | ✅ **추가됨(v0.2)** | 엔드포인트 표 + /finish 갱신 |
 | 11 | **하네스 changelog(버전·진화 기록)** | 12.5 | ✅ **추가됨(v0.2)** | `docs/harness-changelog.md` |
-| 12 | 지속적 가비지 컬렉션(unused/중복 감지) | 12.5 | ⚠️ 미보유 | knip/ts-prune/jscpd → 권고 P2 |
-| 13 | 전용 리뷰 패스(code-reviewer/debugger 서브에이전트) | 6 | ⚠️ 부분 | OMC 전역 에이전트는 있으나 프로젝트 `.claude/agents/` 없음 → 권고 P2 |
+| 12 | 지속적 가비지 컬렉션(unused/중복 감지) | 12.5 | ✅ **추가됨(v0.3)** | knip(미사용) + jscpd(중복), CI 비차단 job `gc` |
+| 13 | 전용 리뷰 패스(code-reviewer/debugger 서브에이전트) | 6 | ✅ **추가됨(v0.3)** | `.claude/agents/{code-reviewer,debugger}.md`(프로젝트 규칙 내장) |
 | 14 | git worktree 병렬·격리 작업 | 12.8 | ⚠️ 미보유 | 단일 작업 흐름 → 권고 P3 |
 | 15 | 프로젝트 전용 MCP(스키마/PII 가드) | 8.5 | ⚠️ 미보유 | prisma-helper류 → 권고 P3 |
 | 16 | 4-Phase per-task 루프 명문화 | 12.7 | ⚠️ 암묵 | 10-Phase는 있으나 태스크 단위 루프 미명문 → 권고 P1(문서) |
@@ -36,22 +36,21 @@
 3. **`/finish` 4단계 추가** — 엔드포인트 변경 시 AUTO-MANAGED 재생성 + 하네스 변경 시 changelog 기록.
 4. **`docs/harness-changelog.md`** 신설(가이드 12.5).
 
+## 2-bis. 추가 보완 (v0.3 — 적용 완료)
+
+- **가비지 컬렉션 센서** — `knip`(미사용 파일/export) + `jscpd`(중복). 루트 스크립트 `pnpm gc`(+`gc:unused`/`gc:dup`), 설정 `knip.json`·`.jscpd.json`, CI `gc` job(비차단, `continue-on-error`).
+  - 베이스라인: **knip 0 미사용**(클린). **jscpd 1건 중복**(0.41%, 임계 5% 미만 → 비차단): 태그 렌더 블록이 `PostListView.tsx` ↔ `PostDetail.tsx` 에 중복 → 후속으로 `<TagList>` 컴포넌트 추출 권장(선택).
+  - 노이즈 억제: knip 은 `.claude/**`·설정파일·프레임워크 진입점(Nest module/controller, jest setup) 처리, 의존성 검사는 제외(툴링 deps 오탐 방지). jscpd 는 `*.spec/*.test`·migrations 제외.
+- **리뷰 서브에이전트** — `.claude/agents/code-reviewer.md`(읽기 전용, 절대규칙·ADR·심각도 분류), `.claude/agents/debugger.md`(근본원인 우선, 우리 환경 함정 내장). OMC 전역 에이전트를 프로젝트 규칙으로 특화.
+
 ## 3. 남은 권고 (우선순위 · 비용 · 영향)
 
-### P1 — 4-Phase 태스크 루프 명문화 (문서, 저비용)
+### P1 — 4-Phase 태스크 루프 명문화 (문서, 저비용) — ✅ 완료(v0.2, CLAUDE.md)
 - **왜**: 가이드 12.7 은 태스크 1건을 `① 이해+계획(plan) → ② 구현(TDD) → ③ 검증(lint/type/test+자기리뷰) → ④ 문서화(handoff)` 4단계 루프로 돈다. 우리 10-Phase 는 "기능" 단위라, "태스크 1건" 단위 루프가 암묵적이다.
 - **어떻게**: `CLAUDE.md` 또는 `/implement` 에 4-Phase 루프를 1블록으로 명시(이미 `/implement`+`tdd-feature`+`verify-done-tasks` 가 메커니즘은 갖춤 — 말로만 고정하면 됨).
 - **비용**: 문서 5분.
 
-### P2 — 지속적 가비지 컬렉션 센서 (CI, 중간)
-- **왜**: 가이드 12.5 — 에이전트는 코드를 "추가"에 강하고 "삭제"에 약하다. 미사용/중복이 누적된다.
-- **어떻게**: `knip`(미사용 export/파일) + `ts-prune`, `jscpd`(중복) 를 CI 비차단 job 으로 추가하고 PR 코멘트. 임계 넘으면 경고.
-- **비용**: 반나절(도구 설정 + CI job). ADR 불필요(도구 추가).
-
-### P2 — 프로젝트 전용 리뷰 서브에이전트 (중간)
-- **왜**: 가이드 6장 — 저자/리뷰어 분리(별도 컨텍스트). 현재 OMC 전역 에이전트에 의존하고 프로젝트엔 고정 리뷰 패스가 없다.
-- **어떻게**: `.claude/agents/code-reviewer.md`(읽기 전용, git diff 기반 심각도 분류), `.claude/agents/debugger.md`(근본원인). `/finish` 검증 후 자동 호출 또는 권유.
-- **비용**: 2~3시간.
+> P2(가비지 컬렉션 센서, 리뷰 서브에이전트)은 **v0.3 에서 완료** — 위 §2-bis 참고.
 
 ### P3 — git worktree 병렬 작업 (advanced)
 - **왜**: 가이드 12.8 — 기능 2~3개를 격리 worktree+DB 로 동시에. 단일 개발자 1트랙이면 당장 불필요.

@@ -2,12 +2,18 @@
   "name": "my-blog",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "gc": "knip --no-exit-code && jscpd packages/api/src packages/web/src packages/shared/src",
+    "gc:unused": "knip",
+    "gc:dup": "jscpd packages/api/src packages/web/src packages/shared/src"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.28.2"
+  "packageManager": "pnpm@10.28.2",
+  "devDependencies": {
+    "jscpd": "^4.2.4",
+    "knip": "^6.15.0"
+  }
 }
