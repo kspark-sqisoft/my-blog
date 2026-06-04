@@ -72,15 +72,18 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
   3. 기존 e2e 회귀 0건 — unit 18/116 pass, e2e 10/64 pass. ✅
 
 #### T-WEB-301 — TipTap 기반 RichEditor 컴포넌트
-- priority: 62 / 의존: T-INFRA-301 / status: todo
+- priority: 62 / 의존: T-INFRA-301 / status: done (2026-06-05)
 - 산출:
-  - `packages/web/src/components/editor/RichEditor.tsx` 신규. StarterKit + Link + Underline + Image + Video(커스텀 노드) + TextStyle + Color + FontSize.
-  - `Toolbar.tsx` 분리(B/I/U/S/Code, H1·H2·H3, List/OrderedList, Blockquote, CodeBlock, Link, HorizontalRule, 색 8 + 크기 4, 미디어 업로드).
-  - 색/크기는 Tailwind 클래스(`text-red-500`, `text-lg` 등) 로 노드에 부착.
+  - 의존성: `@tiptap/core`, `@tiptap/react`, `@tiptap/pm`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-underline`, `@tiptap/extension-image`, `@tiptap/extension-text-style`.
+  - `components/editor/extensions.ts`: `TextColorClass` / `FontSizeClass` 커스텀 마크(인라인 style 대신 span class), `Video` 커스텀 노드(`<video controls preload="metadata" playsinline>`).
+  - `components/editor/RichEditor.tsx`: useEditor + EditorContent + Toolbar 합성. `value`/`onChange`/`onUploadMedia` 인터페이스.
+  - `components/editor/Toolbar.tsx`: 도구바 — B/I/U/S/Code, H1·H2·H3, List/OrderedList, Blockquote, CodeBlock, Link(prompt), HR, 색 8 + 크기 4(select), 미디어 업로드 input(accept image/* + video/mp4).
+  - 화이트리스트 회귀 가드: shared 의 `RICH_HTML_SPAN_CLASSES` 와 도구바 옵션이 일치하지 않으면 모듈 로드 시 throw.
+  - 단위 spec 8 케이스: 렌더, 초기 value 반영, Bold 토글, 색 select → text-rose-500, 크기 select → text-lg, 이미지 업로드 → <img>, MP4 업로드 → <video>, 인라인 style 부재 회귀 가드.
 - acceptance:
-  1. 도구바의 모든 버튼이 onClick 으로 editor 명령을 실행하고 활성 상태(isActive) 가 반영된다.
-  2. `editor.getHTML()` 가 화이트리스트 클래스만 사용(인라인 style 없음).
-  3. 미디어 업로드 버튼은 기존 useUploadImage 훅을 호출, 응답 url 로 setImage/setVideo.
+  1. 도구바 모든 버튼이 editor 명령 실행 + isActive 반영. ✅
+  2. `editor.getHTML()` 가 화이트리스트 클래스만 사용(인라인 style 없음). ✅
+  3. 미디어 업로드는 `onUploadMedia` 콜백 → setImage/setVideo. 응답 type 별 분기. ✅ — useUploadImage 훅과의 통합은 **T-WEB-302** 에서 PostEditor 가 콜백 주입.
 
 #### T-WEB-302 — PostEditor 통합 (textarea → RichEditor)
 - priority: 63 / 의존: T-WEB-301, T-PUB-301 / status: todo

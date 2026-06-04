@@ -1175,15 +1175,16 @@
       "deps": [
         "T-INFRA-301"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
-        "StarterKit + Link + Underline + Image + Video + TextStyle + Color + FontSize 확장",
+        "StarterKit + Link + Underline + Image + Video(커스텀) + TextColorClass + FontSizeClass 확장",
         "Toolbar 의 모든 버튼이 editor 명령 실행 + isActive 반영",
         "editor.getHTML() 가 화이트리스트 클래스만 사용(인라인 style 없음)",
-        "미디어 업로드 버튼이 useUploadImage 훅으로 setImage/setVideo"
-      ]
+        "미디어 업로드는 onUploadMedia 콜백 → setImage/setVideo (PostEditor 가 useUploadImage 훅 주입 — T-WEB-302)"
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-WEB-302",
