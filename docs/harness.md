@@ -185,8 +185,10 @@ docker compose -f docker-compose.e2e.yml -p my-blog-e2e down -v
   - 적용됨: `test/upload.e2e-spec.ts` — 업로드 후 반환 URL 을 `GET` 해 200 + 동일 바이트 확인.
   - 적용됨: `packages/web/e2e/operator-flow.spec.ts` — 발행 글 상세에서 `img.naturalWidth > 0` 확인.
 - **config/소스 변경 후 컨테이너 미반영**: Windows 바인드 마운트에서는 `nest --watch`/Vite 가 변경을
-  못 잡는 경우가 있다. 정적 서빙·프록시 같은 부트스트랩 설정을 바꿨으면 `docker restart <svc>` 로
-  강제 재기동 후 검증한다. (의존성 변경은 함정 #1 의 `--renew-anon-volumes` 를 쓴다.)
+  못 잡는 경우가 있다. 부트스트랩 설정뿐 아니라 **일반 서비스 로직 변경(예: DTO 매핑에 필드 추가)** 도
+  watch 가 놓칠 수 있다 — API 응답이 기대대로 안 바뀌면 먼저 라이브 응답을 `curl` 로 확인하고
+  `docker restart <svc>`(예: `docker restart my-blog-api-1`) 로 재컴파일·재기동한 뒤 검증한다.
+  (의존성 변경은 함정 #1 의 `--renew-anon-volumes` 를 쓴다.)
 
 ## 관련 파일
 

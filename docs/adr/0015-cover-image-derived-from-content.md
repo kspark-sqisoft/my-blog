@@ -2,7 +2,7 @@
 
 ## 상태 (Status)
 
-Proposed - 2026-06-04
+Accepted - 2026-06-04
 
 ## 컨텍스트 (Context)
 
