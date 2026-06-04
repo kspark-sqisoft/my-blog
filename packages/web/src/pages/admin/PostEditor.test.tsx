@@ -146,12 +146,17 @@ describe('PostEditor', () => {
 
   it('이미지 업로드 시 POST /uploads 후 본문에 마크다운 이미지가 삽입된다', async () => {
     mockedApi.post.mockResolvedValueOnce({
-      data: { url: '/uploads/abc.png', contentType: 'image/png', size: 10 },
+      data: {
+        url: '/uploads/abc.png',
+        contentType: 'image/png',
+        size: 10,
+        type: 'image',
+      },
     });
     renderEditor('/admin/posts/new');
 
     const file = new File(['x'], 'pic.png', { type: 'image/png' });
-    const input = screen.getByLabelText('이미지 업로드');
+    const input = screen.getByLabelText('미디어 업로드');
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() =>
@@ -171,5 +176,59 @@ describe('PostEditor', () => {
       ) as HTMLTextAreaElement;
       expect(textarea.value).toContain('![pic.png](/uploads/abc.png)');
     });
+  });
+
+  // T-WEB-202: 이미지+비디오 통합 미디어 업로드 UX (ADR-0020)
+  it('파일 input 은 image/* 와 video/mp4 를 모두 받는다', () => {
+    renderEditor('/admin/posts/new');
+    const input = screen.getByLabelText('미디어 업로드') as HTMLInputElement;
+    expect(input.getAttribute('accept')).toBe('image/*,video/mp4');
+  });
+
+  it('MP4 업로드 시 본문에 ![alt](url) 한 줄이 삽입된다 (이미지와 동일 형태)', async () => {
+    mockedApi.post.mockResolvedValueOnce({
+      data: {
+        url: '/uploads/clip.mp4',
+        contentType: 'video/mp4',
+        size: 1024,
+        type: 'video',
+      },
+    });
+    renderEditor('/admin/posts/new');
+
+    const file = new File(['x'], 'demo.mp4', { type: 'video/mp4' });
+    const input = screen.getByLabelText('미디어 업로드');
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      const textarea = screen.getByLabelText(
+        '본문(마크다운)',
+      ) as HTMLTextAreaElement;
+      expect(textarea.value).toContain('![demo.mp4](/uploads/clip.mp4)');
+    });
+  });
+
+  it('비허용 포맷(PDF) 은 클라이언트 단계에서 차단되고 업로드 호출되지 않는다', async () => {
+    renderEditor('/admin/posts/new');
+
+    const file = new File(['x'], 'doc.pdf', { type: 'application/pdf' });
+    const input = screen.getByLabelText('미디어 업로드');
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /이미지|비디오|허용/,
+    );
+    expect(mockedApi.post).not.toHaveBeenCalled();
+  });
+
+  it('비허용 비디오 포맷(MOV) 도 클라이언트 단계에서 차단된다', async () => {
+    renderEditor('/admin/posts/new');
+
+    const file = new File(['x'], 'a.mov', { type: 'video/quicktime' });
+    const input = screen.getByLabelText('미디어 업로드');
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(mockedApi.post).not.toHaveBeenCalled();
   });
 });

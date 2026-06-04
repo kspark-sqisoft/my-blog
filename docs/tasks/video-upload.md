@@ -60,15 +60,16 @@
   4. raw `<video>` 텍스트 입력은 sanitize/미파싱으로 차단. ✅
 
 #### T-WEB-202 — web 글 에디터 미디어 업로드 UX (이미지+비디오 통합)
-- priority: 55 / 의존: T-WEB-201 / status: todo
+- priority: 55 / 의존: T-WEB-201 / status: done (2026-06-04)
 - 산출:
-  - `pages/admin/PostEditor.tsx` 의 업로드 input `accept="image/*,video/mp4"`, 라벨 "미디어 업로드".
-  - 업로드 응답의 `type` 무관하게 본문에 `![alt](url)` 그대로 삽입.
-  - 클라이언트 검증: 비허용 MIME 즉시 차단(서버 400 전에).
+  - `PostEditor.tsx`: 패널 라벨 "커버 이미지" → "미디어", 힌트 갱신, input `id="media" aria-label="미디어 업로드" accept="image/*,video/mp4"`.
+  - `ALLOWED_UPLOAD_MIME` 화이트리스트(api 와 한 쌍): jpeg/png/gif/webp + mp4. `handleUpload` 가 `file.type` 으로 한 번 더 검증해 비허용 차단 + setError.
+  - 본문 삽입 마크다운은 이미지/비디오 동일하게 `![alt](url)`.
+  - `PostEditor.test.tsx` +4 케이스: accept 속성, MP4 ![alt](url) 삽입, PDF 차단, MOV(video/quicktime) 차단.
 - acceptance:
-  1. 파일 선택창에서 MP4 가 보이고 선택 시 업로드 성공.
-  2. 업로드 후 본문 textarea 에 `![](url)` 한 줄 삽입 (이미지/비디오 동일 형태).
-  3. 잘못된 포맷(예: PDF) 선택 시 클라이언트 단계에서 알림 + 차단.
+  1. `accept="image/*,video/mp4"` + 라벨 "미디어 업로드". ✅
+  2. MP4 업로드 → 본문에 `![demo.mp4](/uploads/clip.mp4)` 한 줄 삽입. ✅
+  3. PDF/MOV 등 비허용 → 클라이언트 알림 + 업로드 호출 없음. ✅
 
 #### T-WEB-203 — web 목록 카드 비디오 첫 프레임 커버
 - priority: 56 / 의존: T-WEB-201 / status: todo

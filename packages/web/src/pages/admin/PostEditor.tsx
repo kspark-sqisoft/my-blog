@@ -10,6 +10,16 @@ import { Icon } from '../../components/Icon';
 
 const MAX_TAGS = 5;
 
+// 미디어 업로드 화이트리스트 (ADR-0020). api/upload.controller 의 ALLOWED_MIME 과 한 쌍.
+// accept 속성은 OS 다이얼로그 필터일 뿐 강제력이 없어, 변경 시 file.type 으로 한 번 더 검증한다.
+const ALLOWED_UPLOAD_MIME = new Set<string>([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'video/mp4',
+]);
+
 function parseTags(input: string): string[] {
   return input
     .split(',')
@@ -51,8 +61,19 @@ export function PostEditor() {
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // 클라이언트 화이트리스트 검증 (서버 400 전에 차단 + 알림)
+    if (!ALLOWED_UPLOAD_MIME.has(file.type)) {
+      setError(
+        '이미지(JPG/PNG/GIF/WEBP) 또는 MP4 비디오만 업로드할 수 있습니다.',
+      );
+      e.target.value = '';
+      return;
+    }
+    setError(null);
     uploadMut.mutate(file, {
       onSuccess: (res) => {
+        // 이미지/비디오 모두 마크다운 ![alt](url) 한 줄로 동일하게 삽입 (ADR-0020).
+        // 렌더러가 url 확장자로 <img>/<video> 자동 분기.
         setBody((b) => `${b}\n![${file.name}](${res.url})`);
       },
     });
@@ -160,16 +181,18 @@ export function PostEditor() {
             </div>
 
             <div className="ab-panel">
-              <h2 className="ab-panel-title">커버 이미지</h2>
-              <p className="ab-panel-hint">본문에 마크다운 이미지로 삽입됩니다</p>
-              <label htmlFor="image" className="ab-btn outline block sm">
+              <h2 className="ab-panel-title">미디어</h2>
+              <p className="ab-panel-hint">
+                이미지 또는 MP4 비디오. 본문 마크다운에 한 줄로 삽입됩니다
+              </p>
+              <label htmlFor="media" className="ab-btn outline block sm">
                 <Icon name="image" size={15} /> 파일 선택
               </label>
               <input
-                id="image"
-                aria-label="이미지 업로드"
+                id="media"
+                aria-label="미디어 업로드"
                 type="file"
-                accept="image/*"
+                accept="image/*,video/mp4"
                 onChange={handleUpload}
                 hidden
               />

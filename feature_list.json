@@ -1043,14 +1043,15 @@
       "deps": [
         "T-WEB-201"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "video-upload",
       "tdd_first": true,
       "acceptance": [
         "input accept='image/*,video/mp4', 라벨 '미디어 업로드'",
         "업로드 후 본문에 ![alt](url) 한 줄 삽입(이미지/비디오 동일 형태)",
         "비허용 포맷(PDF 등) 클라이언트 단계에서 알림 + 차단"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-WEB-203",
