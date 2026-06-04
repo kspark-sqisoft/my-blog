@@ -12,23 +12,23 @@ export function Pagination({
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   return (
-    <nav className="mt-6 flex items-center justify-center gap-4">
+    <nav className="ab-pager">
       <button
         type="button"
         disabled={page <= 1}
         onClick={() => onChange(page - 1)}
-        className="rounded border px-3 py-1 disabled:opacity-40"
+        className="ab-btn ghost sm"
       >
         이전
       </button>
-      <span className="text-sm text-gray-600">
+      <span>
         {page} / {totalPages}
       </span>
       <button
         type="button"
         disabled={page >= totalPages}
         onClick={() => onChange(page + 1)}
-        className="rounded border px-3 py-1 disabled:opacity-40"
+        className="ab-btn ghost sm"
       >
         다음
       </button>

@@ -12,8 +12,11 @@ export function TagPosts() {
   const query = usePosts({ page, pageSize: PAGE_SIZE, tag: name });
 
   return (
-    <main className="mx-auto max-w-3xl p-6 text-left">
-      <h1 className="mb-6 text-3xl font-semibold">#{name}</h1>
+    <div className="ab-page">
+      <section className="ab-masthead small">
+        <span className="ab-eyebrow">태그</span>
+        <h1 className="ab-masthead-title">#{name}</h1>
+      </section>
       <PostListView query={query} />
       <Pagination
         page={page}
@@ -21,6 +24,6 @@ export function TagPosts() {
         total={query.data?.total ?? 0}
         onChange={(next) => setSearchParams({ page: String(next) })}
       />
-    </main>
+    </div>
   );
 }

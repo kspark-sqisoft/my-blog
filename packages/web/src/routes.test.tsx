@@ -28,7 +28,10 @@ describe('앱 라우터 + Query Provider (스모크)', () => {
   });
 
   it('TRD §5 라우트가 모두 등록되어 있다', () => {
-    const paths = routes.map((r) => r.path);
+    // 레이아웃 라우트 아래 중첩된 경로까지 재귀적으로 수집한다.
+    const collect = (rs: typeof routes): (string | undefined)[] =>
+      rs.flatMap((r) => [r.path, ...(r.children ? collect(r.children) : [])]);
+    const paths = collect(routes);
     expect(paths).toEqual(
       expect.arrayContaining([
         '/',

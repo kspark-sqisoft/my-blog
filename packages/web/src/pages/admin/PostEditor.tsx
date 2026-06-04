@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   useAdminPost,
   useCreatePost,
   useUpdatePost,
   useUploadImage,
 } from '../../admin/usePostEditor';
+import { Icon } from '../../components/Icon';
 
 const MAX_TAGS = 5;
 
@@ -70,82 +71,81 @@ export function PostEditor() {
   const saving = createMut.isPending || updateMut.isPending;
 
   return (
-    <main className="mx-auto max-w-3xl p-6 text-left">
-      <h1 className="mb-6 text-3xl font-semibold">
-        {isEdit ? '글 수정' : '새 글 작성'}
-      </h1>
-      <form onSubmit={handleSave} className="space-y-4">
-        <div>
-          <label htmlFor="title" className="mb-1 block text-sm">
-            제목
-          </label>
-          <input
-            id="title"
-            aria-label="제목"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded border px-3 py-2"
-          />
+    <form onSubmit={handleSave}>
+      <header className="ab-admin-bar">
+        <h1>{isEdit ? '글 수정' : '새 글 작성'}</h1>
+        <div className="ab-bar-actions">
+          <Link to="/admin" className="ab-btn ghost">
+            취소
+          </Link>
+          <button type="submit" disabled={saving} className="ab-btn">
+            저장
+          </button>
         </div>
+      </header>
 
-        <div>
-          <label htmlFor="body" className="mb-1 block text-sm">
-            본문(마크다운)
-          </label>
-          <textarea
-            id="body"
-            aria-label="본문(마크다운)"
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={12}
-            className="w-full rounded border px-3 py-2 font-mono text-sm"
-          />
+      <div className="ab-admin-body">
+        <div className="ab-editor">
+          <div className="ab-editor-main">
+            <input
+              aria-label="제목"
+              className="ab-title-input"
+              placeholder="제목을 입력하세요"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <label htmlFor="body" className="ab-editor-label">
+              본문(마크다운)
+            </label>
+            <textarea
+              id="body"
+              aria-label="본문(마크다운)"
+              className="ab-body-input"
+              placeholder="마크다운으로 본문을 작성하세요…"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+            />
+          </div>
+
+          <aside className="ab-editor-side">
+            <div className="ab-panel">
+              <h2 className="ab-panel-title">태그</h2>
+              <p className="ab-panel-hint">쉼표(,)로 구분 · 최대 {MAX_TAGS}개</p>
+              <input
+                aria-label="태그(쉼표로 구분)"
+                className="ab-input"
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="nestjs, blog"
+              />
+              {error && (
+                <p role="alert" className="ab-error">
+                  {error}
+                </p>
+              )}
+            </div>
+
+            <div className="ab-panel">
+              <h2 className="ab-panel-title">커버 이미지</h2>
+              <p className="ab-panel-hint">본문에 마크다운 이미지로 삽입됩니다</p>
+              <label htmlFor="image" className="ab-btn outline block sm">
+                <Icon name="image" size={15} /> 파일 선택
+              </label>
+              <input
+                id="image"
+                aria-label="이미지 업로드"
+                type="file"
+                accept="image/*"
+                onChange={handleUpload}
+                hidden
+              />
+              {uploadMut.isPending && (
+                <p className="ab-upload-row">업로드 중…</p>
+              )}
+            </div>
+          </aside>
         </div>
-
-        <div>
-          <label htmlFor="image" className="mb-1 block text-sm">
-            이미지 업로드
-          </label>
-          <input
-            id="image"
-            aria-label="이미지 업로드"
-            type="file"
-            accept="image/*"
-            onChange={handleUpload}
-          />
-          {uploadMut.isPending && (
-            <span className="ml-2 text-sm text-gray-500">업로드 중…</span>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="tags" className="mb-1 block text-sm">
-            태그(쉼표로 구분)
-          </label>
-          <input
-            id="tags"
-            aria-label="태그(쉼표로 구분)"
-            value={tagsInput}
-            onChange={(e) => setTagsInput(e.target.value)}
-            placeholder="nestjs, blog"
-            className="w-full rounded border px-3 py-2"
-          />
-        </div>
-
-        {error && (
-          <p role="alert" className="text-sm text-red-600">
-            {error}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded bg-violet-600 px-4 py-2 text-white disabled:opacity-50"
-        >
-          저장
-        </button>
-      </form>
-    </main>
+      </div>
+    </form>
   );
 }

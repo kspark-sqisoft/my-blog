@@ -1,5 +1,7 @@
 import type { RouteObject } from 'react-router-dom';
 import { ProtectedRoute } from './auth/ProtectedRoute';
+import { AdminLayout } from './components/layout/AdminLayout';
+import { PublicLayout } from './components/layout/PublicLayout';
 import { Dashboard } from './pages/admin/Dashboard';
 import { PostEditor } from './pages/admin/PostEditor';
 import { Login } from './pages/Login';
@@ -7,34 +9,28 @@ import { PostDetail } from './pages/PostDetail';
 import { PostList } from './pages/PostList';
 import { TagPosts } from './pages/TagPosts';
 
-// TRD §5 라우트 (공개 + 운영자 보호). /admin 하위는 ProtectedRoute 로 감싼다.
+// TRD §5 라우트. 공개 화면은 PublicLayout(네비+푸터), 운영자 화면은
+// ProtectedRoute + AdminLayout(사이드바) 아래에 중첩한다. 로그인은 단독 풀스크린.
 export const routes: RouteObject[] = [
-  { path: '/', element: <PostList /> },
-  { path: '/posts/:id', element: <PostDetail /> },
-  { path: '/tags/:name', element: <TagPosts /> },
+  {
+    element: <PublicLayout />,
+    children: [
+      { path: '/', element: <PostList /> },
+      { path: '/posts/:id', element: <PostDetail /> },
+      { path: '/tags/:name', element: <TagPosts /> },
+    ],
+  },
   { path: '/login', element: <Login /> },
   {
-    path: '/admin',
     element: (
       <ProtectedRoute>
-        <Dashboard />
+        <AdminLayout />
       </ProtectedRoute>
     ),
-  },
-  {
-    path: '/admin/posts/new',
-    element: (
-      <ProtectedRoute>
-        <PostEditor />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/admin/posts/:id/edit',
-    element: (
-      <ProtectedRoute>
-        <PostEditor />
-      </ProtectedRoute>
-    ),
+    children: [
+      { path: '/admin', element: <Dashboard /> },
+      { path: '/admin/posts/new', element: <PostEditor /> },
+      { path: '/admin/posts/:id/edit', element: <PostEditor /> },
+    ],
   },
 ];

@@ -51,7 +51,7 @@ describe('PostDetail 페이지', () => {
     expect(
       screen.getByRole('heading', { name: '본문 헤딩' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('2026-06-01')).toBeInTheDocument();
+    expect(screen.getByText('2026년 6월 1일')).toBeInTheDocument();
     expect(screen.getByText('#nestjs')).toBeInTheDocument();
     expect(mockedApi.get).toHaveBeenCalledWith('/posts/p1');
   });

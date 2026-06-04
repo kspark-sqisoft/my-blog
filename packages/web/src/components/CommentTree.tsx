@@ -1,6 +1,8 @@
 import type { CommentDto } from '@blog/shared';
 import { useState } from 'react';
+import { fmtDate } from '../lib/format';
 import { CommentForm } from './CommentForm';
+import { Icon } from './Icon';
 
 const MAX_DEPTH = 2; // ADR-0013
 
@@ -13,33 +15,38 @@ function CommentNode({
 }) {
   const [replying, setReplying] = useState(false);
   const canReply = comment.depth < MAX_DEPTH;
+  const name = comment.displayName ?? '익명';
 
   return (
-    <li className="py-3">
-      <div>
-        <p className="text-xs text-gray-500">
-          {comment.displayName ?? '익명'} · {comment.createdAt.slice(0, 10)}
-        </p>
-        <p className="mt-1 whitespace-pre-wrap">{comment.body}</p>
-        {canReply && (
-          <button
-            type="button"
-            onClick={() => setReplying((v) => !v)}
-            className="mt-1 text-xs text-violet-600 hover:underline"
-          >
-            답글
-          </button>
-        )}
-        {replying && (
-          <CommentForm
-            postId={postId}
-            parentId={comment.id}
-            onDone={() => setReplying(false)}
-          />
-        )}
+    <li className="ab-comment">
+      <div className="ab-comment-head">
+        <span className="ab-avatar">{name[0]}</span>
+        <div>
+          <p className="ab-comment-name">{name}</p>
+          <p className="ab-comment-date">{fmtDate(comment.createdAt)}</p>
+        </div>
       </div>
+      <p className="ab-comment-body">{comment.body}</p>
+      {canReply && (
+        <button
+          type="button"
+          onClick={() => setReplying((v) => !v)}
+          className="ab-comment-reply"
+        >
+          <Icon name="reply" size={13} /> 답글
+        </button>
+      )}
+      {replying && (
+        <CommentForm
+          postId={postId}
+          parentId={comment.id}
+          compact
+          onCancel={() => setReplying(false)}
+          onDone={() => setReplying(false)}
+        />
+      )}
       {comment.replies.length > 0 && (
-        <ul className="ml-6 border-l pl-4">
+        <ul className="ab-comment-children">
           {comment.replies.map((reply) => (
             <CommentNode key={reply.id} comment={reply} postId={postId} />
           ))}
@@ -58,10 +65,10 @@ export function CommentTree({
   postId: string;
 }) {
   if (comments.length === 0) {
-    return <p className="py-4 text-gray-500">첫 댓글을 남겨보세요.</p>;
+    return <p className="ab-empty">첫 댓글을 남겨보세요.</p>;
   }
   return (
-    <ul className="divide-y">
+    <ul className="ab-comment-list">
       {comments.map((comment) => (
         <CommentNode key={comment.id} comment={comment} postId={postId} />
       ))}
