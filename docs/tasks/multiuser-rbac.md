@@ -74,7 +74,7 @@
 ### S9.4 프론트엔드 (Phase 4)
 
 #### T-WEB-012 — 회원가입 페이지 /register + useRegister
-- priority: 44 / 의존: T-AUTH-009, T-AUTH-006 / status: todo
+- priority: 44 / 의존: T-AUTH-009, T-AUTH-006 / status: done (2026-06-04)
 - acceptance:
   1. /register RHF+Zod 폼, 성공 시 인증 + 홈 이동.
   2. 중복 409 에러 표시.

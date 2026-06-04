@@ -5,6 +5,7 @@ import { PublicLayout } from './components/layout/PublicLayout';
 import { Dashboard } from './pages/admin/Dashboard';
 import { PostEditor } from './pages/admin/PostEditor';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 import { PostDetail } from './pages/PostDetail';
 import { PostList } from './pages/PostList';
 import { TagPosts } from './pages/TagPosts';
@@ -21,6 +22,7 @@ export const routes: RouteObject[] = [
     ],
   },
   { path: '/login', element: <Login /> },
+  { path: '/register', element: <Register /> },
   {
     element: (
       <ProtectedRoute>

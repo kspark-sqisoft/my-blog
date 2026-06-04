@@ -832,14 +832,15 @@
         "T-AUTH-009",
         "T-AUTH-006"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "multiuser-rbac",
       "tdd_first": true,
       "acceptance": [
         "/register RHF+Zod 폼, 성공 시 인증+홈 이동",
         "중복 409 에러 표시",
         "NavBar 비인증 시 회원가입 링크"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-WEB-013",

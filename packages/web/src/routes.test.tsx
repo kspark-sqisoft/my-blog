@@ -27,6 +27,13 @@ describe('앱 라우터 + Query Provider (스모크)', () => {
     ).toBeInTheDocument();
   });
 
+  it('회원가입(/register) 라우트는 회원가입 폼을 렌더한다', async () => {
+    renderAt('/register');
+    expect(
+      await screen.findByRole('button', { name: '회원가입' }),
+    ).toBeInTheDocument();
+  });
+
   it('TRD §5 라우트가 모두 등록되어 있다', () => {
     // 레이아웃 라우트 아래 중첩된 경로까지 재귀적으로 수집한다.
     const collect = (rs: typeof routes): (string | undefined)[] =>

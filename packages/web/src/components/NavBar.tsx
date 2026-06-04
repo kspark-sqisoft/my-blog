@@ -37,9 +37,14 @@ export function NavBar() {
               <Icon name="grid" size={15} /> 대시보드
             </Link>
           ) : (
-            <Link to="/login" className="ab-pill-btn ghost">
-              로그인
-            </Link>
+            <>
+              <Link to="/register" className="ab-pill-btn ghost">
+                회원가입
+              </Link>
+              <Link to="/login" className="ab-pill-btn ghost">
+                로그인
+              </Link>
+            </>
           )}
         </div>
       </div>
