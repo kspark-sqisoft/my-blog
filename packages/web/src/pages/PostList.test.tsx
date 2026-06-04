@@ -29,6 +29,7 @@ const summary = (over: Record<string, unknown> = {}) => ({
   title: '첫 글',
   summary: '요약',
   tags: ['nestjs'],
+  authorName: '홍길동',
   publishedAt: '2026-06-01T00:00:00.000Z',
   ...over,
 });
@@ -42,6 +43,7 @@ describe('PostList 페이지', () => {
     });
     renderList();
     expect(await screen.findByText('첫 글')).toBeInTheDocument();
+    expect(screen.getByText('홍길동')).toBeInTheDocument();
     expect(mockedApi.get).toHaveBeenCalledWith('/posts', {
       params: { page: 1, pageSize: 10 },
     });

@@ -7,6 +7,7 @@ export interface PostSummaryDto {
   title: string;
   summary: string;
   tags: string[];
+  authorName: string; // 작성자 표시 이름 (ADR-0017)
   publishedAt: string | null; // ISO 8601
   coverImageUrl: string | null; // 본문 첫 이미지(대표 이미지) URL, 없으면 null
 }
@@ -19,6 +20,7 @@ export interface PostDetailDto {
   tags: string[];
   status: PostStatus;
   authorId: string;
+  authorName: string; // 작성자 표시 이름 (ADR-0017)
   publishedAt: string | null; // ISO 8601
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601

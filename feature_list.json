@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (T-WEB-010)",
+  "updated_at": "2026-06-04 (T-WEB-011)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -627,6 +627,43 @@
         "coverImageUrl 없으면 줄무늬 플레이스홀더(.ab-ph)로 대체",
         "제목/태그 링크·a[href^=/posts/] 등 기존 셀렉터·접근성 유지",
         "실 환경에서 본문 첫 이미지가 카드 커버로 실제 로드(naturalWidth>0)"
+      ]
+    },
+    {
+      "id": "T-PUB-104",
+      "title": "작성자 표시 이름(User.name) + 응답 authorName 노출",
+      "epic": "E2",
+      "context": "PUB",
+      "priority": 34,
+      "deps": [
+        "T-PUB-103"
+      ],
+      "status": "done",
+      "completed_at": "2026-06-04",
+      "feature": "author-display",
+      "acceptance": [
+        "User 모델에 name(NOT NULL) 추가 + 기존 행 email 로컬파트 백필 마이그레이션(ADR-0017)",
+        "seedOperator는 name 미지정 시 email 로컬파트를 기본값으로 사용(기존 호출부 무수정)",
+        "PostSummaryDto/PostDetailDto에 authorName(packages/shared 단일 정의) 추가",
+        "GET /api/posts·/api/posts/:id 응답에 authorName 포함(email 비노출)"
+      ]
+    },
+    {
+      "id": "T-WEB-011",
+      "title": "글 목록/상세에 작성자 이름 표시",
+      "epic": "E7",
+      "context": "WEB",
+      "priority": 35,
+      "deps": [
+        "T-PUB-104"
+      ],
+      "status": "done",
+      "completed_at": "2026-06-04",
+      "feature": "author-display",
+      "acceptance": [
+        "글 목록 카드 메타에 authorName 표시",
+        "글 상세 헤더 메타에 authorName 표시",
+        "기존 제목/발행일/태그 셀렉터·접근성 유지"
       ]
     }
   ]

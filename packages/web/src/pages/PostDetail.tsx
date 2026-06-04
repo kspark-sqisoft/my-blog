@@ -34,6 +34,7 @@ export function PostDetail() {
         <header className="ab-article-head">
           <h1 className="ab-article-title">{post.title}</h1>
           <div className="ab-meta">
+            <span>{post.authorName}</span>
             <span>{fmtDate(post.publishedAt)}</span>
           </div>
           {post.tags.length > 0 && (

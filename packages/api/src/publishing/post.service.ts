@@ -33,8 +33,11 @@ export interface UpdatePostInput {
   tags?: string[];
 }
 
-// 관계 포함 Post 조회 시 사용할 형태
-const withTags = { postTags: { include: { tag: true } } } as const;
+// 관계 포함 Post 조회 시 사용할 형태 (태그 + 작성자 표시 이름 — ADR-0017)
+const withTags = {
+  postTags: { include: { tag: true } },
+  author: { select: { name: true } },
+} as const;
 
 type PostWithTags = {
   id: string;
@@ -46,6 +49,7 @@ type PostWithTags = {
   createdAt: Date;
   updatedAt: Date;
   postTags: { tag: { name: string } }[];
+  author: { name: string };
 };
 
 @Injectable()
@@ -226,6 +230,7 @@ export class PostService {
       title: post.title,
       summary: toSummaryText(post.contentMarkdown, SUMMARY_MAX),
       tags: post.postTags.map((pt) => pt.tag.name),
+      authorName: post.author.name,
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       coverImageUrl: extractFirstImageUrl(post.contentMarkdown),
     };
@@ -250,6 +255,7 @@ export class PostService {
       tags: post.postTags.map((pt) => pt.tag.name),
       status: post.status,
       authorId: post.authorId,
+      authorName: post.author.name,
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),

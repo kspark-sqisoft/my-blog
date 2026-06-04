@@ -51,6 +51,7 @@ export function PostListView({
             </Link>
             {post.summary && <p className="ab-card-sum">{post.summary}</p>}
             <div className="ab-meta">
+              <span>{post.authorName}</span>
               <span>{fmtDate(post.publishedAt)}</span>
             </div>
             {post.tags.length > 0 && (

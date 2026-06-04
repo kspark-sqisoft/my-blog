@@ -28,6 +28,7 @@ describe('PostService (통합)', () => {
     const user = await seedOperator(prisma, {
       email: authorEmail,
       password: 'x',
+      name: '글쓴이',
     });
     authorId = user.id;
   });
@@ -51,6 +52,7 @@ describe('PostService (통합)', () => {
     });
     expect(post.status).toBe('DRAFT');
     expect(post.authorId).toBe(authorId);
+    expect(post.authorName).toBe('글쓴이');
     expect(post.title).toBe('첫 글');
     expect(post.publishedAt).toBeNull();
     expect([...post.tags].sort()).toEqual(['ddd', 'nestjs']);
@@ -174,6 +176,8 @@ describe('PostService (통합)', () => {
     expect(ids).not.toContain(draft.id);
     expect(ids[0]).toBe(b.id); // 최신순
     expect(ids).toContain(a.id);
+    // 목록 항목에 작성자 이름이 포함된다 (ADR-0017)
+    expect(page.items[0].authorName).toBe('글쓴이');
   });
 
   it('listPublished는 page/pageSize로 페이지네이션하고 total을 포함한다', async () => {

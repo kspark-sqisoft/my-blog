@@ -94,9 +94,15 @@ describe('PostController (e2e)', () => {
     const res = await request(app.getHttpServer())
       .get('/api/posts?page=1&pageSize=10')
       .expect(200);
-    const body = res.body as { items: { id: string }[]; total: number };
+    const body = res.body as {
+      items: { id: string; authorName: string }[];
+      total: number;
+    };
     expect(body.items.map((p) => p.id)).toContain(id);
     expect(body.total).toBeGreaterThanOrEqual(1);
+    // 목록 항목에 작성자 이름이 포함된다 (ADR-0017). seed email 로컬파트 = 'post-e2e'
+    const mine = body.items.find((p) => p.id === id);
+    expect(mine?.authorName).toBe('post-e2e');
   });
 
   it('공개 GET /api/posts/:id — 발행 200, 초안 404', async () => {
@@ -118,7 +124,9 @@ describe('PostController (e2e)', () => {
     const res = await request(app.getHttpServer())
       .get(`/api/posts/${id}`)
       .expect(200);
-    expect((res.body as { status: string }).status).toBe('PUBLISHED');
+    const detail = res.body as { status: string; authorName: string };
+    expect(detail.status).toBe('PUBLISHED');
+    expect(detail.authorName).toBe('post-e2e'); // ADR-0017
   });
 
   it('운영자 DELETE → 204', async () => {

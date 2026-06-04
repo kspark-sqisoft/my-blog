@@ -7,6 +7,7 @@ import { seedOperator } from '../src/auth/seed-operator';
 async function main(): Promise<void> {
   const email = process.env.OPERATOR_EMAIL;
   const password = process.env.OPERATOR_PASSWORD;
+  const name = process.env.OPERATOR_NAME; // 선택: 작성자 표시 이름(ADR-0017). 없으면 email 로컬파트
   if (!email || !password) {
     throw new Error(
       'OPERATOR_EMAIL과 OPERATOR_PASSWORD 환경변수가 필요합니다.',
@@ -18,8 +19,8 @@ async function main(): Promise<void> {
   });
 
   try {
-    const user = await seedOperator(prisma, { email, password });
-    console.log(`운영자 계정 준비 완료: ${user.email}`);
+    const user = await seedOperator(prisma, { email, password, name });
+    console.log(`운영자 계정 준비 완료: ${user.email} (${user.name})`);
   } finally {
     await prisma.$disconnect();
   }

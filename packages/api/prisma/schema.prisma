@@ -25,6 +25,7 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
+  name         String // 작성자 표시 이름 (ADR-0017). 공개 응답엔 email 대신 이 값을 노출
   createdAt    DateTime @default(now())
 
   posts Post[]

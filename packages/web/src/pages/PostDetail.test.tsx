@@ -30,6 +30,7 @@ const detail = (over: Record<string, unknown> = {}) => ({
   tags: ['nestjs', 'ddd'],
   status: 'PUBLISHED',
   authorId: 'u1',
+  authorName: '홍길동',
   publishedAt: '2026-06-01T09:00:00.000Z',
   createdAt: '2026-05-30T00:00:00.000Z',
   updatedAt: '2026-06-01T09:00:00.000Z',
@@ -52,6 +53,7 @@ describe('PostDetail 페이지', () => {
       screen.getByRole('heading', { name: '본문 헤딩' }),
     ).toBeInTheDocument();
     expect(screen.getByText('2026년 6월 1일')).toBeInTheDocument();
+    expect(screen.getByText('홍길동')).toBeInTheDocument();
     expect(screen.getByText('#nestjs')).toBeInTheDocument();
     expect(mockedApi.get).toHaveBeenCalledWith('/posts/p1');
   });

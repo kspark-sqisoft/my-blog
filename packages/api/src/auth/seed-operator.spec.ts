@@ -48,4 +48,14 @@ describe('seedOperator (통합)', () => {
     await seedOperator(prisma, params);
     expect(await prisma.user.count()).toBe(1);
   });
+
+  it('name 미지정 시 email 로컬파트를 표시 이름으로 사용한다 (ADR-0017)', async () => {
+    const user = await seedOperator(prisma, params);
+    expect(user.name).toBe('owner'); // owner@example.com → 'owner'
+  });
+
+  it('name을 지정하면 그 값을 표시 이름으로 저장한다 (ADR-0017)', async () => {
+    const user = await seedOperator(prisma, { ...params, name: '관리자' });
+    expect(user.name).toBe('관리자');
+  });
 });
