@@ -101,15 +101,18 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
   3. 수정 모드: contentHtml 우선 로드(없으면 contentMarkdown 폴백), PATCH 시 contentHtml 전송. ✅
 
 #### T-WEB-303 — RichContent 렌더러(상세) + 마크다운 렌더러 제거 경로 정리
-- priority: 64 / 의존: T-PUB-301 / status: todo
+- priority: 64 / 의존: T-PUB-301 / status: done (2026-06-05)
 - 산출:
-  - `components/RichContent.tsx`: dompurify 로 한 번 더 sanitize 후 `dangerouslySetInnerHTML`.
-  - PostDetail 의 본문이 `<Markdown>` → `<RichContent>` 로 교체.
-  - 색/크기 클래스가 Tailwind 안에 매핑되어 시각 적용.
+  - 의존성 `dompurify` 추가.
+  - `components/RichContent.tsx` 신규: dompurify 로 한 번 더 sanitize(태그 화이트리스트 + URI 스킴) + `dangerouslySetInnerHTML`.
+  - 모듈 로드 시 dompurify `uponSanitizeAttribute` hook 으로 video 의 controls/preload/playsinline/muted 강제 보존(ADR-0020).
+  - `pages/PostDetail.tsx` 가 `<Markdown>` → `<RichContent html={post.contentHtml || post.contentMarkdown}>` 교체(과도기 폴백).
+  - 단위 spec 7 케이스: 헤딩/단락 렌더, span 클래스 보존, script 제거, onerror 제거, javascript: href 제거, video 속성 보존, 빈 입력.
 - acceptance:
-  1. 발행 상세에서 색/크기/링크/미디어 본문이 정확히 보임.
-  2. dompurify 통과 후 raw HTML 이 직접 주입되지 않는다(잘못된 입력이 들어와도 화이트리스트 외 모두 제거).
-  3. 비디오 노드는 컨트롤 + preload=metadata 로 렌더.
+  1. PostDetail 본문이 <Markdown> → <RichContent>. ✅
+  2. 색/크기/링크/미디어가 발행 상세에서 정확히 보임(클래스 보존 + 비디오 controls/preload). ✅
+  3. 위험 입력(script/iframe/onerror/javascript:) 은 클라 dompurify 가 제거 + 서버 sanitize 가 최종 게이트. ✅
+- 비고: 클라 dompurify 는 **태그 화이트리스트** 만 강제 — 정밀 속성 화이트리스트는 서버 sanitize-html(`richHtmlSchema`)이 책임. dompurify 의 element-specific 속성 처리(video preload 임의 차단)와 충돌하기 때문.
 
 #### T-WEB-304 — Playwright e2e: 작성자 WYSIWYG 시연
 - priority: 65 / 의존: T-WEB-302, T-WEB-303 / status: todo

@@ -1216,14 +1216,15 @@
       "deps": [
         "T-PUB-301"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
         "PostDetail 본문이 <Markdown> → <RichContent> (dompurify + dangerouslySetInnerHTML)",
         "색/크기/링크/미디어가 발행 상세에서 정확히 보임",
-        "잘못된 입력에 대해 화이트리스트 외 모두 제거"
-      ]
+        "잘못된 입력에 대해 위험 태그(script/iframe 등) 제거(클라 dompurify) + 서버 sanitize 가 최종 게이트"
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-WEB-304",

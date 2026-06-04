@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { CommentSection } from '../components/CommentSection';
 import { Icon } from '../components/Icon';
-import { Markdown } from '../components/Markdown';
+import { RichContent } from '../components/RichContent';
 import { fmtDate } from '../lib/format';
 import { usePost } from '../posts/usePost';
 
@@ -48,7 +48,8 @@ export function PostDetail() {
           )}
         </header>
         <div className="ab-article-body">
-          <Markdown content={post.contentMarkdown} />
+          {/* ADR-0021: contentHtml 우선, 과도기 contentMarkdown 폴백 */}
+          <RichContent html={post.contentHtml || post.contentMarkdown} />
         </div>
       </article>
       <CommentSection postId={post.id} />

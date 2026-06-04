@@ -27,6 +27,7 @@ const detail = (over: Record<string, unknown> = {}) => ({
   id: 'p1',
   title: '상세 제목',
   contentMarkdown: '# 본문 헤딩\n\n내용 단락',
+  contentHtml: '<h1>본문 헤딩</h1><p>내용 단락</p>',
   tags: ['nestjs', 'ddd'],
   status: 'PUBLISHED',
   authorId: 'u1',
