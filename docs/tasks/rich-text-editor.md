@@ -86,14 +86,19 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
   3. 미디어 업로드는 `onUploadMedia` 콜백 → setImage/setVideo. 응답 type 별 분기. ✅ — useUploadImage 훅과의 통합은 **T-WEB-302** 에서 PostEditor 가 콜백 주입.
 
 #### T-WEB-302 — PostEditor 통합 (textarea → RichEditor)
-- priority: 63 / 의존: T-WEB-301, T-PUB-301 / status: todo
+- priority: 63 / 의존: T-WEB-301, T-PUB-301 / status: done (2026-06-05)
 - 산출:
-  - `pages/admin/PostEditor.tsx` 의 본문 textarea 를 RichEditor 로 교체. 기존 invalidField/검증 로직 유지.
-  - 저장 시 `editor.getHTML()` 을 contentHtml 로 전송.
+  - `pages/admin/PostEditor.tsx` 전체 재작성: 본문 textarea 제거, `<RichEditor value/onChange/onUploadMedia/ariaLabel/invalid />` 사용.
+  - `body` 상태가 HTML 문자열. 저장 payload `{ title, contentHtml: body, tags }`.
+  - `isBlankHtmlBody(html)` 헬퍼로 빈 본문(공백/빈 단락/&nbsp;) 클라이언트 차단.
+  - 수정 모드: `contentHtml || contentMarkdown` 폴백 로드(과도기).
+  - 미디어 업로드 콜백: `ALLOWED_UPLOAD_MIME` 화이트리스트 + useUploadImage.mutateAsync.
+  - 사이드바 "미디어" 패널 제거(도구바 통합).
+  - spec 재작성: RichEditor 를 textarea+미디어 input 으로 mock. 9 케이스(payload, 수정 로드 + 폴백, 빈 본문, 제목 검증, 이미지/MP4 업로드, PDF 차단, 태그 6개).
 - acceptance:
-  1. 본문 textarea 가 사라지고 RichEditor 렌더.
-  2. 빈 본문(공백·빈 단락만) 저장 시 클라이언트 검증으로 차단.
-  3. 수정 모드: 기존 글의 contentHtml 을 editor 에 로드, 변경 후 PATCH.
+  1. 본문 textarea 가 사라지고 RichEditor 렌더. ✅
+  2. 빈 본문(공백·빈 단락만) 저장 시 클라이언트 검증으로 차단. ✅
+  3. 수정 모드: contentHtml 우선 로드(없으면 contentMarkdown 폴백), PATCH 시 contentHtml 전송. ✅
 
 #### T-WEB-303 — RichContent 렌더러(상세) + 마크다운 렌더러 제거 경로 정리
 - priority: 64 / 의존: T-PUB-301 / status: todo
