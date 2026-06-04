@@ -81,7 +81,7 @@
   3. NavBar 비인증 시 회원가입 링크.
 
 #### T-WEB-013 — 역할별 라우트 게이팅 RoleRoute
-- priority: 45 / 의존: T-WEB-012 / status: todo
+- priority: 45 / 의존: T-WEB-012 / status: done (2026-06-04)
 - acceptance:
   1. `RoleRoute(roles)` 컴포넌트.
   2. /admin/*→(AUTHOR,ADMIN), /admin/users→ADMIN.

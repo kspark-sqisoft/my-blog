@@ -1,5 +1,5 @@
 import type { RouteObject } from 'react-router-dom';
-import { ProtectedRoute } from './auth/ProtectedRoute';
+import { RoleRoute } from './auth/RoleRoute';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { Dashboard } from './pages/admin/Dashboard';
@@ -25,9 +25,9 @@ export const routes: RouteObject[] = [
   { path: '/register', element: <Register /> },
   {
     element: (
-      <ProtectedRoute>
+      <RoleRoute roles={['AUTHOR', 'ADMIN']}>
         <AdminLayout />
-      </ProtectedRoute>
+      </RoleRoute>
     ),
     children: [
       { path: '/admin', element: <Dashboard /> },

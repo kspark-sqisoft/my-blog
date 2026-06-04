@@ -851,14 +851,15 @@
       "deps": [
         "T-WEB-012"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "multiuser-rbac",
       "tdd_first": true,
       "acceptance": [
         "RoleRoute(roles) 컴포넌트",
         "/admin/*→(AUTHOR,ADMIN), /admin/users→ADMIN",
         "MEMBER는 / 로 리다이렉트 — routes.test"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-WEB-014",
