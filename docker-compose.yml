@@ -29,6 +29,9 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-blog}:${POSTGRES_PASSWORD:-blog}@db:5432/${POSTGRES_DB:-blog}?schema=public
       PORT: 3000
+      # JWT 서명 시크릿. 폴백 없이 부팅 시점에 강제(requireJwtSecret — C1).
+      # 미설정이면 compose 자체가 실패해 운영에서 'change-me' 같은 위험 폴백 사용을 차단한다.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required (set in .env)}
     depends_on:
       db:
         # db healthcheck가 통과해야 api 시작
