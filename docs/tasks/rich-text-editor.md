@@ -33,15 +33,18 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
   3. blog_test DB 도 마이그레이션 통과: api 통합/e2e(`pnpm test` 102/102, `pnpm test:e2e` 10/61) 회귀 0. ✅
 
 #### T-INFRA-303 — 일회성 마이그레이션 스크립트 (markdown → html)
-- priority: 59 / 의존: T-INFRA-302 / status: todo
+- priority: 59 / 의존: T-INFRA-302 / status: done (2026-06-05)
 - 산출:
-  - `scripts/migrate-md-to-html.ts`: `markdown-it` 으로 contentMarkdown → HTML, `.mp4` 확장자 `<img>` 를 `<video controls preload="metadata" playsInline>` 로 후처리, `sanitize-html(richHtmlSchema)` 통과 후 contentHtml 채움.
-  - pnpm 스크립트 등록(`pnpm migrate:md-to-html`).
+  - 의존성: `markdown-it`, `sanitize-html` (+ types).
+  - 변환 헬퍼 `packages/api/src/publishing/markdown-to-html.ts`: `convertMarkdownToHtml`, `sanitizeRichHtml` export. markdown-it(html+linkify) → mp4 img→video 후처리 → sanitize-html(richHtmlSchema, a 태그에 target/rel 자동 부착).
+  - 단위 spec `markdown-to-html.spec.ts` (10 케이스): 기본 변환, jpg/mp4 분기, script/onerror 제거, javascript: 차단(마크다운+raw a 양쪽), 외부 a 의 target/rel 자동, 멱등, 빈 입력.
+  - 일회성 스크립트 `scripts/migrate-md-to-html.ts` + pnpm 명령 `migrate:md-to-html` (dry-run 지원).
+  - 실제 dev DB 적용: 2 글 변환 완료. 2차 실행 멱등 검증(changed=0/skipped=2).
 - acceptance:
-  1. 스크립트 실행 후 모든 Post 의 contentHtml 이 비지 않는다(빈 본문 제외).
-  2. `.mp4` 이미지 임베드가 `<video>` 노드로 보존.
-  3. `<script>`/`onerror`/`javascript:` 등 위험 입력이 있더라도 모두 제거.
-  4. 두 번 실행해도 멱등(이미 채워진 contentHtml 은 그대로 두거나 같은 결과 산출).
+  1. 스크립트 실행 후 모든 Post 의 contentHtml 이 비지 않는다. ✅
+  2. `.mp4` 이미지 임베드 → `<video src controls preload="metadata" playsinline>` 보존. ✅ (실제 DB 결과로 확인)
+  3. `<script>`/onerror/javascript: 등 위험 입력 제거. ✅ (단위 spec 4건)
+  4. 멱등. ✅ (실제 2차 실행 결과 + 단위 spec)
 
 #### T-PUB-301 — api PostService: contentHtml 입력 + sanitize + 응답 형식
 - priority: 60 / 의존: T-INFRA-302 / status: todo

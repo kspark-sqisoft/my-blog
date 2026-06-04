@@ -1117,7 +1117,7 @@
       "deps": [
         "T-INFRA-302"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
@@ -1125,7 +1125,8 @@
         ".mp4 이미지 임베드는 <video> 노드로 보존",
         "script/onerror/javascript: 등 위험 입력 모두 제거",
         "두 번 실행해도 멱등"
-      ]
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-PUB-301",
