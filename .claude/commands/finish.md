@@ -11,7 +11,10 @@ argument-hint: [태스크ID]--
    docs/tasks/ 에서 $ARGUMENTS 의 acceptance 배열을 가져와,
    각 항목이 위 검증 출력 또는 직접 호출(curl, Playwright)로 확인되었는지 표시
    누락이 있으면 멈추고 사용자에게 알림
-3. feature_list.json 갱신- $ARGUMENTS 의 status → "done"- completed_at → 오늘 날짜
+3. feature_list.json 갱신 + docs/tasks 동기화 (절대 규칙 #10)
+   - `feature_list.json`: $ARGUMENTS 의 status → "done", completed_at → 오늘 날짜
+   - **같은 작업으로** `docs/tasks/{feature}.md` 의 대응 태스크도 갱신한다
+     (없으면 해당 에픽 섹션에 추가, 있으면 status/내용 일치). JSON 만 바꾸고 .md 를 빠뜨리지 않는다.
 4. 자동 관리 구간 갱신 (코드 기준)
    - **엔드포인트가 추가/변경/삭제되었으면** `CLAUDE.md` 의 `<!-- AUTO-MANAGED:endpoints:start ~ end -->`
      구간을 `packages/api/src/**/*.controller.ts` 기준으로 다시 생성한다(직접 손으로 적지 말고 코드에서 파생).

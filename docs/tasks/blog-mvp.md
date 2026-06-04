@@ -244,6 +244,21 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
 - status: done
 - tdd_first: true
 
+### S2.4 작성자 표시 (author-display)
+
+#### T-PUB-104 — 작성자 표시 이름(User.name) + 응답 authorName 노출
+- priority: 34
+- 변경 파일: `packages/api/prisma/schema.prisma`, `prisma/migrations/*_add_user_display_name/`, `src/auth/seed-operator.ts`, `prisma/seed.ts`, `src/publishing/post.service.ts`, `@blog/shared`
+- acceptance criteria:
+  1. User 모델에 `name`(NOT NULL) 추가 + 기존 행 email 로컬파트 백필 마이그레이션(ADR-0017).
+  2. `seedOperator`는 name 미지정 시 email 로컬파트를 기본값으로 사용(기존 호출부 무수정).
+  3. `PostSummaryDto`/`PostDetailDto`에 `authorName`(packages/shared 단일 정의) 추가.
+  4. `GET /api/posts`·`/api/posts/:id` 응답에 `authorName` 포함(email 비노출).
+- 예상: 1.5h
+- 의존: T-PUB-103
+- status: done
+- tdd_first: true
+
 ## E3. 이미지 업로드 (PUBLISHING — Upload, ADR-0012)
 
 ### S3.1 저장소 추상화
@@ -424,6 +439,20 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
 - status: done
 - tdd_first: true (E2E 시나리오 우선 작성)
 
+### S5.5 작성자 표시 (author-display)
+
+#### T-WEB-011 — 글 목록/상세에 작성자 이름 표시
+- priority: 35
+- 변경 파일: `packages/web/src/components/PostListView.tsx`, `src/pages/PostDetail.tsx`, `*.test.tsx`
+- acceptance criteria:
+  1. 글 목록 카드 메타에 `authorName` 표시.
+  2. 글 상세 헤더 메타에 `authorName` 표시.
+  3. 기존 제목/발행일/태그 셀렉터·접근성 유지.
+- 예상: 0.5h
+- 의존: T-PUB-104
+- status: done
+- tdd_first: true
+
 ---
 
 ## 요약
@@ -441,3 +470,6 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
 - 크리티컬 패스: T-INFRA-001 → 002 → AUTH-001~004 → PUB-001~006 → CONV-001~003.
 - 병렬 가능: shared(T-INFRA-003)는 초기 병렬, WEB은 대응 API 완료 후 병렬.
 - 모든 신규 기능 태스크는 `tdd_first: true` — acceptance criteria가 곧 Red 단계 입력.
+
+> ⚠️ 위 표의 개수는 초기 MVP 스냅샷이다. **진행 상태/태스크 개수의 정규 소스는 `feature_list.json`** 이며,
+> 이 문서는 사람이 읽는 미러다. 두 파일은 항상 동기화되어야 한다(절대 규칙 #10, `/finish`가 강제).

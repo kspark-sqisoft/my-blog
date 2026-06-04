@@ -4,6 +4,14 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.5 (2026-06-04)
+
+`feature_list.json` ↔ `docs/tasks/{feature}.md` 동기화 강제.
+
+- **추가** — 절대 규칙 #10(`CLAUDE.md`): JSON 태스크를 추가/완료/수정하면 같은 커밋에서 `docs/tasks/{feature}.md` 미러도 갱신. JSON 이 정규 소스, .md 는 미러.
+- **변경** — `/finish`(`.claude/commands/finish.md`) step 3: feature_list 갱신과 함께 `docs/tasks` 동기화를 강제 단계로 명문화. `CLAUDE.md` `/finish` 절차 설명도 동일 반영.
+- **보정** — 그간 미러에서 누락됐던 작성자 표시 태스크(T-PUB-104·T-WEB-011)를 `docs/tasks/blog-mvp.md` 에 반영. (선행 누락분 T-PUB-103·T-WEB-009·T-WEB-010 은 후속 보정 대상)
+
 ## v0.4 (2026-06-04)
 
 갭 분석 P3 2건 구현.
