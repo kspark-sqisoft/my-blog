@@ -1098,14 +1098,15 @@
       "deps": [
         "T-INFRA-301"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
-        "posts.content_html 컬럼 추가, default ''",
+        "posts.contentHtml 컬럼 추가, default ''",
         "기존 row 의 contentHtml 은 빈 문자열(T-INFRA-303 가 채움)",
         "blog_test DB 도 마이그레이션 통과(통합 spec 깨지지 않음)"
-      ]
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-INFRA-303",
