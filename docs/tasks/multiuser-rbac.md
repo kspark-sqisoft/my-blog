@@ -11,7 +11,7 @@
 ### S9.1 스키마·역할·가드 (Phase 1 — 백엔드 기반)
 
 #### T-AUTH-005 — User.role(UserRole) + Comment.userId 스키마·마이그레이션 + seed ADMIN
-- priority: 36 / 의존: T-WEB-011 / status: todo
+- priority: 36 / 의존: T-WEB-011 / status: done (2026-06-04)
 - acceptance:
   1. schema.prisma에 `UserRole` enum, `User.role`(NOT NULL default MEMBER), `Comment.userId` nullable + FK(`onDelete: SetNull`).
   2. 마이그레이션이 기존 user를 ADMIN 백필(이 시점 DB엔 시드 운영자만 — ADR-0018 전제).

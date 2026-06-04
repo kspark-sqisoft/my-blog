@@ -49,6 +49,22 @@ describe('seedOperator (통합)', () => {
     expect(await prisma.user.count()).toBe(1);
   });
 
+  it('운영자 계정은 role=ADMIN으로 생성된다 (ADR-0018)', async () => {
+    const user = await seedOperator(prisma, params);
+    expect(user.role).toBe('ADMIN');
+  });
+
+  it('재실행 시 기존 계정도 role=ADMIN으로 보강된다 (ADR-0018)', async () => {
+    // 먼저 MEMBER로 강등된 상태를 만든 뒤 재시드
+    await seedOperator(prisma, params);
+    await prisma.user.update({
+      where: { email: params.email },
+      data: { role: 'MEMBER' },
+    });
+    const user = await seedOperator(prisma, params);
+    expect(user.role).toBe('ADMIN');
+  });
+
   it('name 미지정 시 email 로컬파트를 표시 이름으로 사용한다 (ADR-0017)', async () => {
     const user = await seedOperator(prisma, params);
     expect(user.name).toBe('owner'); // owner@example.com → 'owner'

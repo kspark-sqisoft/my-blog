@@ -19,7 +19,8 @@ export async function seedOperator(
   const displayName = name ?? email.split('@')[0]; // 미지정 시 @ 앞부분
   return prisma.user.upsert({
     where: { email },
-    update: {}, // 기존 계정 유지(비밀번호 변경은 별도 절차)
-    create: { email, passwordHash, name: displayName },
+    // 기존 계정 유지하되 운영자 권한(ADMIN)은 재실행마다 보강한다 (ADR-0018)
+    update: { role: 'ADMIN' },
+    create: { email, passwordHash, name: displayName, role: 'ADMIN' },
   });
 }

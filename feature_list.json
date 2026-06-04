@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (T-AUTH-006)",
+  "updated_at": "2026-06-04 (T-AUTH-005)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -675,7 +675,7 @@
       "deps": [
         "T-WEB-011"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "multiuser-rbac",
       "tdd_first": true,
       "acceptance": [
@@ -683,7 +683,8 @@
         "마이그레이션이 기존 user를 ADMIN 백필(이 시점 시드 운영자만 존재)",
         "seedOperator가 create/update 모두 role=ADMIN 부여(seed-operator.spec)",
         "dev blog + test blog_test 양쪽 migrate 적용"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-AUTH-006",

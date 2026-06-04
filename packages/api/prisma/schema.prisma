@@ -20,15 +20,24 @@ enum PostStatus {
   PUBLISHED
 }
 
-// 운영자 (Auth Context)
+// 사용자 역할 (ADR-0018). ADMIN=슈퍼관리자, AUTHOR=본인 글 작성, MEMBER=로그인 독자
+enum UserRole {
+  ADMIN
+  AUTHOR
+  MEMBER
+}
+
+// 사용자 (Auth Context)
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
   name         String // 작성자 표시 이름 (ADR-0017). 공개 응답엔 email 대신 이 값을 노출
+  role         UserRole @default(MEMBER) // 권한 (ADR-0018). 가입 기본 MEMBER, 운영자는 ADMIN
   createdAt    DateTime @default(now())
 
-  posts Post[]
+  posts    Post[]
+  comments Comment[] // 로그인 회원이 작성한 댓글 (ADR-0018)
 
   @@map("users")
 }
@@ -79,10 +88,13 @@ model Comment {
   parentId    String? // 답글 관계 (깊이 2까지 — 서비스 계층에서 강제, ADR-0013)
   parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies     Comment[] @relation("CommentReplies")
+  userId      String? // 로그인 회원 작성자 (ADR-0018). 비로그인은 null + displayName
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   displayName String? // 익명 독자 표시 이름(선택)
   body        String
   createdAt   DateTime  @default(now())
 
   @@index([postId])
+  @@index([userId])
   @@map("comments")
 }
