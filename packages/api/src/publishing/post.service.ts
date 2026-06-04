@@ -10,8 +10,10 @@ import type {
   PostSummaryDto,
   UserRole,
 } from '@blog/shared';
+import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { extractFirstImageUrl } from './cover-image';
+import { convertMarkdownToHtml, sanitizeRichHtml } from './markdown-to-html';
 import { toSummaryText } from './markdown-summary';
 import { TagService } from './tag.service';
 
@@ -25,9 +27,12 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
 const SUMMARY_MAX = 200;
 
+// ADR-0021 과도기: contentHtml 우선, 없으면 contentMarkdown 을 변환·sanitize.
+// 둘 다 비어 있으면 BadRequest. T-WEB-303 이후 후속에서 contentMarkdown 입력 제거.
 export interface CreatePostInput {
   title: string;
-  contentMarkdown: string;
+  contentMarkdown?: string;
+  contentHtml?: string;
   authorId: string;
   tags?: string[];
 }
@@ -35,6 +40,7 @@ export interface CreatePostInput {
 export interface UpdatePostInput {
   title?: string;
   contentMarkdown?: string;
+  contentHtml?: string;
   tags?: string[];
 }
 
@@ -54,6 +60,7 @@ type PostWithTags = {
   id: string;
   title: string;
   contentMarkdown: string;
+  contentHtml: string;
   status: 'DRAFT' | 'PUBLISHED';
   publishedAt: Date | null;
   authorId: string;
@@ -73,16 +80,42 @@ export class PostService {
   async create(input: CreatePostInput): Promise<PostDetailDto> {
     const tagNames = input.tags ?? [];
     this.tags.assertWithinLimit(tagNames);
+    const { contentMarkdown, contentHtml } = this.resolveBody(input);
     const post = await this.prisma.post.create({
       data: {
         title: input.title,
-        contentMarkdown: input.contentMarkdown,
+        contentMarkdown,
+        contentHtml,
         authorId: input.authorId,
         postTags: this.tags.createInput(tagNames),
       },
       include: withTags,
     });
     return this.toDetail(post);
+  }
+
+  // ADR-0021: contentHtml 우선 sanitize, 없으면 contentMarkdown 을 markdown-it → sanitize.
+  // 양쪽 모두 비면 400. 본 메서드의 호출처는 create/update 만이며 update 는 부분 수정이므로
+  // resolveBody 는 create 의 "필수" 의미로만 호출하고, update 는 별도로 처리한다.
+  private resolveBody(input: {
+    contentMarkdown?: string;
+    contentHtml?: string;
+  }): { contentMarkdown: string; contentHtml: string } {
+    if (input.contentHtml && input.contentHtml.trim().length > 0) {
+      return {
+        contentMarkdown: input.contentMarkdown ?? '',
+        contentHtml: sanitizeRichHtml(input.contentHtml),
+      };
+    }
+    if (input.contentMarkdown && input.contentMarkdown.trim().length > 0) {
+      return {
+        contentMarkdown: input.contentMarkdown,
+        contentHtml: convertMarkdownToHtml(input.contentMarkdown),
+      };
+    }
+    throw new BadRequestException(
+      'contentHtml 또는 contentMarkdown 중 하나는 필요합니다.',
+    );
   }
 
   async update(
@@ -95,13 +128,24 @@ export class PostService {
     if (input.tags !== undefined) {
       this.tags.assertWithinLimit(input.tags);
     }
+    // update: 부분 수정이라 body 가 함께 오면 둘 다 갱신, 한쪽만 오면 그쪽 기준으로 양쪽 동기.
+    const bodyPatch =
+      input.contentHtml !== undefined
+        ? {
+            contentMarkdown: input.contentMarkdown ?? existing.contentMarkdown,
+            contentHtml: sanitizeRichHtml(input.contentHtml),
+          }
+        : input.contentMarkdown !== undefined
+          ? {
+              contentMarkdown: input.contentMarkdown,
+              contentHtml: convertMarkdownToHtml(input.contentMarkdown),
+            }
+          : null;
     const post = await this.prisma.post.update({
       where: { id },
       data: {
         ...(input.title !== undefined && { title: input.title }),
-        ...(input.contentMarkdown !== undefined && {
-          contentMarkdown: input.contentMarkdown,
-        }),
+        ...(bodyPatch && bodyPatch),
         // tags가 주어지면 집합을 교체
         ...(input.tags !== undefined && {
           postTags: this.tags.replaceInput(input.tags),
@@ -278,6 +322,7 @@ export class PostService {
       id: post.id,
       title: post.title,
       contentMarkdown: post.contentMarkdown,
+      contentHtml: post.contentHtml,
       tags: post.postTags.map((pt) => pt.tag.name),
       status: post.status,
       authorId: post.authorId,

@@ -1137,14 +1137,15 @@
       "deps": [
         "T-INFRA-302"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
         "POST/PATCH /api/posts 가 contentHtml 받아 sanitize-html 통과 후 저장",
         "<script> 등 위험 태그는 응답·DB 모두에서 제거",
-        "GET /api/posts/:id 응답에 contentHtml 포함, contentMarkdown 키 없음"
-      ]
+        "GET /api/posts/:id 응답에 contentHtml 포함, contentMarkdown 키는 과도기 유지(후속 ADR 에서 제거)"
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-PUB-302",

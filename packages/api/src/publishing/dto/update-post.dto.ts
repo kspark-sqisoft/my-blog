@@ -6,7 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-// Post 수정 요청 (모든 필드 선택)
+// Post 수정 요청 (모든 필드 선택). ADR-0021: contentHtml 도 받음(서비스가 sanitize).
 export class UpdatePostDto {
   @IsOptional()
   @IsString()
@@ -16,6 +16,10 @@ export class UpdatePostDto {
   @IsOptional()
   @IsString()
   contentMarkdown?: string;
+
+  @IsOptional()
+  @IsString()
+  contentHtml?: string;
 
   @IsOptional()
   @IsArray()

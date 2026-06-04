@@ -243,4 +243,65 @@ describe('PostController (e2e)', () => {
       .send({ title: '관리자 개입' })
       .expect(200);
   });
+
+  // T-PUB-301: 본문 모델 전환(ADR-0021). contentHtml 입력 + 서버 sanitize.
+  it('contentHtml 입력 시 응답에 contentHtml 포함 + sanitize 통과 결과로 저장', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({
+        title: '리치 본문',
+        contentHtml: '<h2>제목</h2><p><strong>굵게</strong></p>',
+        tags: ['rich'],
+      })
+      .expect(201);
+    const body = res.body as { id: string; contentHtml?: string };
+    expect(body.contentHtml).toBeTruthy();
+    expect(body.contentHtml).toMatch(/<h2>제목<\/h2>/);
+    expect(body.contentHtml).toMatch(/<strong>굵게<\/strong>/);
+  });
+
+  it('<script>/onerror 등 위험 입력은 응답·DB 에서 제거된다 (서버 sanitize)', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({
+        title: '위험 본문',
+        contentHtml:
+          '<p>안녕</p><script>alert(1)</script><img src="x" onerror="alert(1)" />',
+        tags: [],
+      })
+      .expect(201);
+    const body = created.body as { id: string; contentHtml?: string };
+    expect(body.contentHtml).not.toMatch(/<script/i);
+    expect(body.contentHtml).not.toMatch(/onerror/i);
+    expect(body.contentHtml).toContain('안녕');
+
+    // 상세 GET 응답에도 동일
+    await request(app.getHttpServer())
+      .post(`/api/posts/${body.id}/publish`)
+      .set('Cookie', cookie)
+      .expect(200);
+    const detail = await request(app.getHttpServer())
+      .get(`/api/posts/${body.id}`)
+      .expect(200);
+    const detailBody = detail.body as { contentHtml?: string };
+    expect(detailBody.contentHtml).not.toMatch(/<script/i);
+    expect(detailBody.contentHtml).not.toMatch(/onerror/i);
+  });
+
+  it('contentMarkdown 만 보내도 호환된다 (서비스가 변환·sanitize 통과 후 저장)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({
+        title: 'md only',
+        contentMarkdown: '# 헤딩\n\n본문',
+        tags: [],
+      })
+      .expect(201);
+    const body = res.body as { id: string; contentHtml?: string };
+    // contentHtml 가 자동으로 채워진다(서버가 마크다운 변환·sanitize)
+    expect(body.contentHtml).toMatch(/<h1>헤딩<\/h1>/);
+  });
 });

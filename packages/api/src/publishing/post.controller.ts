@@ -64,6 +64,7 @@ export class PostController {
     return this.posts.create({
       title: dto.title,
       contentMarkdown: dto.contentMarkdown,
+      contentHtml: dto.contentHtml,
       authorId: actorOf(req).id,
       tags: dto.tags,
     });
