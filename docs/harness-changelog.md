@@ -10,7 +10,7 @@
 
 - **추가** — 절대 규칙 #10(`CLAUDE.md`): JSON 태스크를 추가/완료/수정하면 같은 커밋에서 `docs/tasks/{feature}.md` 미러도 갱신. JSON 이 정규 소스, .md 는 미러.
 - **변경** — `/finish`(`.claude/commands/finish.md`) step 3: feature_list 갱신과 함께 `docs/tasks` 동기화를 강제 단계로 명문화. `CLAUDE.md` `/finish` 절차 설명도 동일 반영.
-- **보정** — 그간 미러에서 누락됐던 작성자 표시 태스크(T-PUB-104·T-WEB-011)를 `docs/tasks/blog-mvp.md` 에 반영. (선행 누락분 T-PUB-103·T-WEB-009·T-WEB-010 은 후속 보정 대상)
+- **보정** — `docs/tasks/blog-mvp.md` 를 `feature_list.json`(37 태스크)과 **완전 동기화**. 미러에서 빠져 있던 5건(E6 INFRA: T-INFRA-005·006 / E7 apple-redesign: T-WEB-009·T-PUB-103·T-WEB-010) 정의 블록 추가 + 신규 작성자 표시(E8: T-PUB-104·T-WEB-011) 반영. JSON 의 author-display 태스크 epic 을 E8 로 정규화(미러 epic 구조 정합). 검증: JSON↔MD 정의 블록 37=37, 누락·초과 0.
 
 ## v0.4 (2026-06-04)
 

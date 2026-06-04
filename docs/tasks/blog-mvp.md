@@ -10,8 +10,9 @@
 ```
 E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Conversation(Comment)
                                        └────────────→ E5 Web(읽기/운영자/댓글/이미지)
+E5 이후 → E6 테스트 격리·CI(INFRA) → E7 애플 리뉴얼·대표 이미지(WEB·PUB) → E8 작성자 표시(PUB·WEB)
 ```
-프론트(E5)는 해당 API 스토리가 끝난 뒤 병렬 진행 가능.
+프론트(E5)는 해당 API 스토리가 끝난 뒤 병렬 진행 가능. E6~E8 은 MVP(E0~E5) 이후 보강 작업.
 
 ---
 
@@ -244,21 +245,6 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
 - status: done
 - tdd_first: true
 
-### S2.4 작성자 표시 (author-display)
-
-#### T-PUB-104 — 작성자 표시 이름(User.name) + 응답 authorName 노출
-- priority: 34
-- 변경 파일: `packages/api/prisma/schema.prisma`, `prisma/migrations/*_add_user_display_name/`, `src/auth/seed-operator.ts`, `prisma/seed.ts`, `src/publishing/post.service.ts`, `@blog/shared`
-- acceptance criteria:
-  1. User 모델에 `name`(NOT NULL) 추가 + 기존 행 email 로컬파트 백필 마이그레이션(ADR-0017).
-  2. `seedOperator`는 name 미지정 시 email 로컬파트를 기본값으로 사용(기존 호출부 무수정).
-  3. `PostSummaryDto`/`PostDetailDto`에 `authorName`(packages/shared 단일 정의) 추가.
-  4. `GET /api/posts`·`/api/posts/:id` 응답에 `authorName` 포함(email 비노출).
-- 예상: 1.5h
-- 의존: T-PUB-103
-- status: done
-- tdd_first: true
-
 ## E3. 이미지 업로드 (PUBLISHING — Upload, ADR-0012)
 
 ### S3.1 저장소 추상화
@@ -439,7 +425,106 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
 - status: done
 - tdd_first: true (E2E 시나리오 우선 작성)
 
-### S5.5 작성자 표시 (author-display)
+---
+
+## E6. 테스트 격리 + CI (INFRA)
+
+### S6.1 E2E 격리 스택 · CI 파이프라인
+
+#### T-INFRA-005 — Playwright E2E 격리 스택(blog_e2e + 전용 api/web) 분리
+- priority: 29
+- 변경 파일: `docker-compose.e2e.yml`, `scripts/e2e-isolated.sh`, `.env.example`, `docs/harness.md`
+- acceptance criteria:
+  1. `docker-compose.e2e.yml`(전용 db=blog_e2e:5434, api:3002, web:5174) 추가.
+  2. `pnpm --filter web test:e2e` 한 명령으로 격리 스택 up → migrate deploy → 운영자 시드 → Playwright 실행 → 결과 코드 보존 후 down.
+  3. E2E 실행 전후 dev DB(blog) Post/Comment 카운트 불변.
+  4. 기존 3개 스펙(operator-flow/reader-comment/draft-hidden) 격리 스택에서 모두 통과.
+  5. `.env.example`에 E2E_* 변수(포트/DB/계정) 문서화.
+  6. `docs/harness.md`에 격리 실행 절차/포트 매핑 갱신.
+- 예상: 2h
+- 의존: T-WEB-008
+- status: done
+- tdd_first: true
+
+#### T-INFRA-006 — GitHub Actions CI 파이프라인(lint/typecheck/test/api-e2e/web-e2e)
+- priority: 30
+- 변경 파일: `.github/workflows/ci.yml`, `docs/adr/0014-ci-github-actions.md`
+- acceptance criteria:
+  1. `.github/workflows/ci.yml` 추가 — PR + push(main) 트리거.
+  2. Job 1 quality: Postgres service 위에서 web/api lint + typecheck + 단위(vitest/jest) + api jest-e2e(blog_test) 모두 통과.
+  3. Job 2 web-e2e: `scripts/e2e-isolated.sh` 호출 → Playwright 3건 통과.
+  4. 캐시: pnpm store + Playwright browsers + docker buildx layer.
+  5. 실패 시 artifact 업로드: `playwright-report/`, `test-results/`, jest 로그.
+  6. 전 job 통과해야 머지 가능(required status checks).
+  7. ADR-0014로 GitHub Actions 선택 + Job 분리 정책 명시.
+- 예상: 2h
+- 의존: T-INFRA-005
+- status: done
+- tdd_first: true
+
+---
+
+## E7. 애플 리뉴얼 + 대표 이미지 (apple-redesign)
+
+### S7.1 디자인 시스템 · 대표 이미지
+
+#### T-WEB-009 — 애플 스타일 디자인 시스템 + 레이아웃 + 테마 토글
+- priority: 31
+- 변경 파일: `packages/web/src/index.css`, `src/components/layout/*`, `src/theme/useTheme.ts`, `*.test.tsx`
+- acceptance criteria:
+  1. 시맨틱 CSS 토큰 + `ab-*` 클래스로 공개·운영자 화면 렌더(인라인 style 없음).
+  2. 라이트/다크 테마 토글 `[data-theme]`·localStorage 반영 + 새로고침 유지(useTheme.test RED→GREEN).
+  3. 공개/운영자/로그인 레이아웃 중첩 라우트 분리 + 기존 라우트 경로 전부 등록.
+  4. 기존 단위 테스트·E2E 셀렉터 회귀 없이 통과.
+- 예상: 2h
+- 의존: T-WEB-007, T-WEB-008
+- status: done
+- tdd_first: true
+
+#### T-PUB-103 — 목록 요약 평문화 + 대표 이미지 파생(coverImageUrl)
+- priority: 32
+- 변경 파일: `packages/api/src/publishing/cover-image.ts`, `markdown-summary.ts`, `post.service.ts`, `@blog/shared`, `*.spec.ts`
+- acceptance criteria:
+  1. `extractFirstImageUrl()`: 본문 마크다운/HTML 첫 이미지 URL 반환, 없으면 null(cover-image.spec).
+  2. `toSummaryText()`: 이미지/코드/링크/헤딩/강조 제거 평문(markdown-summary.spec).
+  3. `PostSummaryDto.coverImageUrl` 추가 + listPublished 파생(추가 DB 조회 없음).
+  4. 라이브 `GET /api/posts` 응답에 coverImageUrl 포함 + 요약 평문.
+- 예상: 1.5h
+- 의존: T-PUB-009
+- status: done
+- tdd_first: true
+
+#### T-WEB-010 — 글 목록 카드 대표 이미지 표시
+- priority: 33
+- 변경 파일: `packages/web/src/components/PostListView.tsx`, `*.test.tsx`
+- acceptance criteria:
+  1. coverImageUrl 있으면 `img.ab-card-cover`(3:2, object-fit cover) 렌더.
+  2. coverImageUrl 없으면 줄무늬 플레이스홀더(`.ab-ph`)로 대체.
+  3. 제목/태그 링크·`a[href^=/posts/]` 등 기존 셀렉터·접근성 유지.
+  4. 실 환경에서 본문 첫 이미지가 카드 커버로 실제 로드(naturalWidth>0).
+- 예상: 1h
+- 의존: T-PUB-103, T-WEB-009
+- status: done
+- tdd_first: true
+
+---
+
+## E8. 작성자 표시 (author-display)
+
+### S8.1 작성자 이름 노출
+
+#### T-PUB-104 — 작성자 표시 이름(User.name) + 응답 authorName 노출
+- priority: 34
+- 변경 파일: `packages/api/prisma/schema.prisma`, `prisma/migrations/*_add_user_display_name/`, `src/auth/seed-operator.ts`, `prisma/seed.ts`, `src/publishing/post.service.ts`, `@blog/shared`
+- acceptance criteria:
+  1. User 모델에 `name`(NOT NULL) 추가 + 기존 행 email 로컬파트 백필 마이그레이션(ADR-0017).
+  2. `seedOperator`는 name 미지정 시 email 로컬파트를 기본값으로 사용(기존 호출부 무수정).
+  3. `PostSummaryDto`/`PostDetailDto`에 `authorName`(packages/shared 단일 정의) 추가.
+  4. `GET /api/posts`·`/api/posts/:id` 응답에 `authorName` 포함(email 비노출).
+- 예상: 1.5h
+- 의존: T-PUB-103
+- status: done
+- tdd_first: true
 
 #### T-WEB-011 — 글 목록/상세에 작성자 이름 표시
 - priority: 35
@@ -461,15 +546,19 @@ E0 기반(INFRA) → E1 Auth → E2 Publishing(Post/Tag) → E3 Upload → E4 Co
 |---|---|---|---|
 | E0 기반 | INFRA | 1 | 4 |
 | E1 인증 | AUTH | 2 | 4 |
-| E2 발행 | PUB | 3 | 7 |
+| E2 발행 | PUB | 4 | 9 |
 | E3 업로드 | PUB | 1 | 2 |
 | E4 소통 | CONV | 2 | 3 |
 | E5 프론트 | WEB | 4 | 8 |
-| **합계** | | **13** | **28** |
+| E6 테스트/CI | INFRA | 1 | 2 |
+| E7 애플 리뉴얼 | WEB·PUB | 1 | 3 |
+| E8 작성자 표시 | PUB·WEB | 1 | 2 |
+| **합계** | | **17** | **37** |
 
 - 크리티컬 패스: T-INFRA-001 → 002 → AUTH-001~004 → PUB-001~006 → CONV-001~003.
 - 병렬 가능: shared(T-INFRA-003)는 초기 병렬, WEB은 대응 API 완료 후 병렬.
 - 모든 신규 기능 태스크는 `tdd_first: true` — acceptance criteria가 곧 Red 단계 입력.
 
-> ⚠️ 위 표의 개수는 초기 MVP 스냅샷이다. **진행 상태/태스크 개수의 정규 소스는 `feature_list.json`** 이며,
-> 이 문서는 사람이 읽는 미러다. 두 파일은 항상 동기화되어야 한다(절대 규칙 #10, `/finish`가 강제).
+> ℹ️ 위 표는 `feature_list.json`(37 태스크)과 동기화되어 있다. **진행 상태/태스크 개수의 정규 소스는
+> `feature_list.json`** 이고 이 문서는 사람이 읽는 미러다. 두 파일은 항상 동기화한다(절대 규칙 #10, `/finish`가 강제).
+> (스토리 수는 표제 단위 근사값이며, 정확한 태스크 집계는 JSON 기준.)

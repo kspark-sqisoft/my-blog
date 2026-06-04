@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (T-WEB-011)",
+  "updated_at": "2026-06-04 (docs/tasks 완전 동기화)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -632,7 +632,7 @@
     {
       "id": "T-PUB-104",
       "title": "작성자 표시 이름(User.name) + 응답 authorName 노출",
-      "epic": "E2",
+      "epic": "E8",
       "context": "PUB",
       "priority": 34,
       "deps": [
@@ -651,7 +651,7 @@
     {
       "id": "T-WEB-011",
       "title": "글 목록/상세에 작성자 이름 표시",
-      "epic": "E7",
+      "epic": "E8",
       "context": "WEB",
       "priority": 35,
       "deps": [
