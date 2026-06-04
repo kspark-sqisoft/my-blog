@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (T-AUTH-010, Phase 2 완료)",
+  "updated_at": "2026-06-04 (video-upload 기획 산출물 + RBAC 회귀 패치)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -957,6 +957,114 @@
         "공백만 입력한 제목도 검증으로 막는다"
       ],
       "completed_at": "2026-06-04"
+    },
+    {
+      "id": "T-PUB-201",
+      "title": "shared UploadResult 확장 + UPLOAD_MAX_BYTES_VIDEO 환경변수",
+      "epic": "E10",
+      "context": "PUB",
+      "priority": 51,
+      "deps": [],
+      "status": "todo",
+      "feature": "video-upload",
+      "tdd_first": true,
+      "acceptance": [
+        "packages/shared 의 UploadResult 가 { url, contentType, size, type: 'image'|'video' } 로 export",
+        ".env.example 에 UPLOAD_MAX_BYTES_VIDEO=52428800 추가",
+        "docker-compose api environment 에 UPLOAD_MAX_BYTES_VIDEO 주입"
+      ]
+    },
+    {
+      "id": "T-PUB-202",
+      "title": "/api/uploads 가 MP4 수락 + MIME/크기 분리 검증",
+      "epic": "E10",
+      "context": "PUB",
+      "priority": 52,
+      "deps": [
+        "T-PUB-201"
+      ],
+      "status": "todo",
+      "feature": "video-upload",
+      "tdd_first": true,
+      "acceptance": [
+        "50MB 이하 MP4 업로드 → 201 + contentType 'video/mp4' + type 'video'",
+        "51MB MP4 → 413, 6MB JPG → 413(이미지 한도 유지)",
+        "ZIP/MOV/WebM 등 비허용 MIME → 400",
+        "비인증/MEMBER 권한 → 401/403"
+      ]
+    },
+    {
+      "id": "T-PUB-203",
+      "title": "api e2e: 비디오 정적 서빙 Range 응답 + Content-Type",
+      "epic": "E10",
+      "context": "PUB",
+      "priority": 53,
+      "deps": [
+        "T-PUB-202"
+      ],
+      "status": "todo",
+      "feature": "video-upload",
+      "tdd_first": true,
+      "acceptance": [
+        "업로드된 비디오 URL GET → 200 + Content-Type 'video/mp4' + Accept-Ranges: bytes",
+        "Range: bytes=0-99 → 206 Partial Content + 100바이트",
+        "절대 규칙 #9 쓰기-읽기 왕복 통과"
+      ]
+    },
+    {
+      "id": "T-WEB-201",
+      "title": "마크다운 렌더러: .mp4 URL 자동 <video> 분기",
+      "epic": "E10",
+      "context": "WEB",
+      "priority": 54,
+      "deps": [
+        "T-PUB-202"
+      ],
+      "status": "todo",
+      "feature": "video-upload",
+      "tdd_first": true,
+      "acceptance": [
+        "![alt](*.mp4) 는 <video controls preload='metadata' playsInline>",
+        "![alt](*.jpg|png|gif|webp) 는 기존 <img>",
+        "autoplay 없음 (사용자 클릭 후 재생)",
+        "raw <video> 텍스트 입력은 sanitize 가 차단(우회 경로 없음)"
+      ]
+    },
+    {
+      "id": "T-WEB-202",
+      "title": "글 에디터 미디어 업로드 UX (이미지+비디오 통합)",
+      "epic": "E10",
+      "context": "WEB",
+      "priority": 55,
+      "deps": [
+        "T-WEB-201"
+      ],
+      "status": "todo",
+      "feature": "video-upload",
+      "tdd_first": true,
+      "acceptance": [
+        "input accept='image/*,video/mp4', 라벨 '미디어 업로드'",
+        "업로드 후 본문에 ![alt](url) 한 줄 삽입(이미지/비디오 동일 형태)",
+        "비허용 포맷(PDF 등) 클라이언트 단계에서 알림 + 차단"
+      ]
+    },
+    {
+      "id": "T-WEB-203",
+      "title": "목록 카드 비디오 첫 프레임 커버",
+      "epic": "E10",
+      "context": "WEB",
+      "priority": 56,
+      "deps": [
+        "T-WEB-201"
+      ],
+      "status": "todo",
+      "feature": "video-upload",
+      "tdd_first": true,
+      "acceptance": [
+        "coverImageUrl 확장자 .mp4 면 <video preload='metadata' muted playsInline> 첫 프레임",
+        "카드 안에서는 재생되지 않고 클릭 시 상세 이동",
+        "이미지 커버는 기존 <img> 그대로"
+      ]
     }
   ]
 }

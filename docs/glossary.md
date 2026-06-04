@@ -21,6 +21,12 @@
 
 ## 회원가입 (Register)- 정의: 비회원이 email·password·이름으로 계정을 만드는 행위. 기본 역할은 **`AUTHOR`** 라 가입 즉시 본인 글을 쓸 수 있다(ADR-0019, ADR-0018의 기본 `MEMBER`를 갱신). 공개 엔드포인트, 클라이언트가 role 지정 불가, 이메일 인증은 범위 외- 소속 Context: Auth- 코드 표현: `POST /api/auth/register`, `RegisterDto`(`packages/shared`)- UI 표현: "회원가입"- 동의어 금지: Sign up(문서는 "회원가입"으로 통일), 등록(Enroll)
 
-## 대표 이미지 (Cover Image)- 정의: Post 목록에서 각 글을 대표하는 이미지. 본문 마크다운의 **첫 번째 이미지**를 대표 이미지로 삼는다(별도 지정 UI 없음). 본문에 이미지가 없으면 대표 이미지는 없다(null).- 소속 Context: Publishing (Post 요약 읽기 모델에서 본문으로부터 파생, 별도 저장하지 않음 — ADR-0015)- 코드 표현: `PostSummaryDto.coverImageUrl: string | null` (`packages/shared`). 파생은 api `extractFirstImageUrl()`- UI 표현: 글 목록 카드 상단의 커버 이미지 (없으면 줄무늬 플레이스홀더)- 동의어 금지: 썸네일(Thumbnail), 히어로(Hero), 배너(Banner) — "대표 이미지"로 통일
+## 대표 이미지 (Cover Image)- 정의: Post 목록에서 각 글을 대표하는 이미지. 본문 마크다운의 **첫 번째 미디어**를 대표로 삼는다(별도 지정 UI 없음). 본문에 미디어가 없으면 대표는 없다(null). 첫 미디어가 비디오(`.mp4`)면 카드에서는 비디오의 첫 프레임을 같은 역할로 사용한다(ADR-0020).- 소속 Context: Publishing (Post 요약 읽기 모델에서 본문으로부터 파생, 별도 저장하지 않음 — ADR-0015)- 코드 표현: `PostSummaryDto.coverImageUrl: string | null` (`packages/shared`, 이름은 호환 유지). 파생은 api `extractFirstImageUrl()`- UI 표현: 글 목록 카드 상단의 커버 (없으면 줄무늬 플레이스홀더)- 동의어 금지: 썸네일(Thumbnail), 히어로(Hero), 배너(Banner) — "대표 이미지"로 통일
+
+## 미디어 (Media)- 정의: 본문에 임베드되는 시각 자산의 총칭. 현재는 **이미지**(jpeg/png/gif/webp) 와 **비디오**(mp4) 두 종류(ADR-0012, ADR-0020). 본문 마크다운에서는 형태 구분 없이 `![alt](url)` 로 임베드되고, 클라이언트 렌더러가 URL 확장자로 `<img>`/`<video>` 를 분기한다.- 소속 Context: Publishing- 코드 표현: 단일 엔드포인트 `POST /api/uploads`, 응답 `UploadResult.type: 'image'|'video'`- UI 표현: 작성 화면의 "미디어 업로드" 버튼
+
+## 비디오 (Video)- 정의: 본문에 임베드되는 짧은 MP4 클립. 50MB 이하, `video/mp4` 만 허용(ADR-0020). 자동재생하지 않으며, 상세 화면에서만 컨트롤로 재생한다. 목록 카드에는 첫 프레임만 멈춰 표시된다.- 소속 Context: Publishing- 코드 표현: 마크다운 본문의 `![alt](*.mp4)` (별도 모델 없음)- UI 표현: 상세에서는 `<video controls>`, 목록 카드에서는 `<video preload="metadata" muted playsInline>` 의 첫 프레임- 동의어 금지: Movie, Clip(코드/문서는 "비디오"로 통일)
+
+## 포스터 프레임 (Poster Frame)- 정의: 비디오가 재생되기 전 정지 상태로 보이는 첫 화면. 별도 이미지 업로드 없이 비디오 메타데이터의 첫 프레임을 그대로 사용한다(ADR-0020, ffmpeg 의존 0).- 소속 Context: Publishing (프레젠테이션 파생)- 코드 표현: `<video preload="metadata">` 의 기본 동작- UI 표현: 글 목록 카드 커버에서 비디오일 때 보이는 정지 화면
 
 ## 테마 (Theme)- 정의: 화면 색상 모드. 라이트/다크 두 가지. 사용자가 토글로 전환하며 선택은 브라우저에 보존된다.- 소속 Context: WEB(프레젠테이션 — 도메인 Bounded Context 아님)- 코드 표현: `useTheme`(zustand), `document.documentElement[data-theme]`, localStorage `blog-theme`- UI 표현: 상단 네비게이션의 해/달 아이콘 토글- 동의어 금지: 스킨(Skin), 다크모드(단독 사용) — 모드 일반은 "테마"로 통일

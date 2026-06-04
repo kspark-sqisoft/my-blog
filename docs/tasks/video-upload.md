@@ -1,0 +1,83 @@
+# video-upload — 본문 비디오(MP4) 업로드
+
+> 정규 소스는 `feature_list.json`. 이 문서는 미러다(절대 규칙 #10).
+> 근거: ADR-0020 / PRD: `docs/prd/video-upload.md` / TRD: `docs/trd/video-upload.md`.
+
+## 배경
+이미지 업로드(ADR-0012) 의 패턴을 그대로 확장해 MP4 비디오를 같은 엔드포인트로 받는다.
+서버에 ffmpeg 등 의존을 추가하지 않고, 마크다운/스키마/Domain Event 도 그대로 둔다.
+클라이언트가 URL 확장자로 `<video>`/`<img>` 를 분기한다.
+
+## 태스크
+
+#### T-PUB-201 — shared UploadResult 확장 + 환경변수 추가
+- priority: 51 / 의존: 없음 / status: todo
+- 산출:
+  - `packages/shared` 에 `UploadResult` 명시 export (있다면 `type: 'image'|'video'` 추가).
+  - `.env.example` 에 `UPLOAD_MAX_BYTES_VIDEO=52428800` 추가, `docker-compose.yml`/`.dev` 가 api 컨테이너에 주입.
+- acceptance:
+  1. `packages/shared` 에서 `UploadResult` 가 `{ url, contentType, size, type: 'image'|'video' }` 로 export.
+  2. `.env.example` 에 `UPLOAD_MAX_BYTES_VIDEO` 라인 추가, 기본값 52428800.
+  3. docker-compose api environment 에 `UPLOAD_MAX_BYTES_VIDEO: ${UPLOAD_MAX_BYTES_VIDEO}` 매핑.
+
+#### T-PUB-202 — api `/api/uploads` 가 MP4 수락 + MIME/크기 분리 검증
+- priority: 52 / 의존: T-PUB-201 / status: todo
+- 산출:
+  - `upload.controller.ts` 의 `fileFilter` 가 `video/mp4` 도 통과시킴.
+  - 응답에 `type` 필드 추가 (MIME 첫 토큰 기반: `image|video`).
+  - 크기 검증을 MIME 별로 분기: 이미지 `UPLOAD_MAX_BYTES`, 비디오 `UPLOAD_MAX_BYTES_VIDEO`.
+- acceptance:
+  1. 50MB 이하 MP4 업로드 → 201 + `contentType: 'video/mp4'` + `type: 'video'`.
+  2. 51MB MP4 업로드 → 413.
+  3. 6MB JPG 업로드 → 413 (이미지 한도 유지).
+  4. ZIP/MOV/WebM 등 비허용 MIME → 400.
+  5. 비인증/미권한(MEMBER) → 401/403.
+
+#### T-PUB-203 — api e2e: 정적 서빙 Range 응답 + Content-Type
+- priority: 53 / 의존: T-PUB-202 / status: todo
+- 산출:
+  - `test/upload.e2e-spec.ts` 에 비디오 왕복(쓰기→읽기) + `Range` 검증 추가.
+- acceptance:
+  1. 업로드된 비디오 URL `GET` → 200 + `Content-Type: video/mp4` + `Accept-Ranges: bytes`.
+  2. `Range: bytes=0-99` 요청 → 206 + 100바이트 응답.
+  3. 절대 규칙 #9 (쓰기-읽기 왕복) 통과.
+
+#### T-WEB-201 — web 마크다운 렌더러 `.mp4` → `<video>` 자동 분기
+- priority: 54 / 의존: T-PUB-202 / status: todo
+- 산출:
+  - `packages/web/src/markdown/` 의 렌더러가 이미지 노드의 url 확장자(`.mp4`)를 감지해
+    `<video controls preload="metadata" playsInline>` 로 치환.
+  - alt 텍스트는 `aria-label` 로 매핑.
+- acceptance:
+  1. `![demo](/uploads/x.mp4)` 가 `<video controls>` 로 렌더링.
+  2. `![photo](/uploads/x.jpg)` 는 기존대로 `<img>` 로 렌더링.
+  3. 자동재생되지 않음 (autoplay 속성 없음).
+  4. sanitize 정책에 새 우회 경로 없음 — raw `<video>` 텍스트 입력은 여전히 차단.
+
+#### T-WEB-202 — web 글 에디터 미디어 업로드 UX (이미지+비디오 통합)
+- priority: 55 / 의존: T-WEB-201 / status: todo
+- 산출:
+  - `pages/admin/PostEditor.tsx` 의 업로드 input `accept="image/*,video/mp4"`, 라벨 "미디어 업로드".
+  - 업로드 응답의 `type` 무관하게 본문에 `![alt](url)` 그대로 삽입.
+  - 클라이언트 검증: 비허용 MIME 즉시 차단(서버 400 전에).
+- acceptance:
+  1. 파일 선택창에서 MP4 가 보이고 선택 시 업로드 성공.
+  2. 업로드 후 본문 textarea 에 `![](url)` 한 줄 삽입 (이미지/비디오 동일 형태).
+  3. 잘못된 포맷(예: PDF) 선택 시 클라이언트 단계에서 알림 + 차단.
+
+#### T-WEB-203 — web 목록 카드 비디오 첫 프레임 커버
+- priority: 56 / 의존: T-WEB-201 / status: todo
+- 산출:
+  - 글 목록 카드(`PostCard` 또는 동등 컴포넌트)가 `coverImageUrl` 의 확장자가 `.mp4` 면
+    `<video src preload="metadata" muted playsInline>` 로 렌더(controls 없음, 카드 인라인 재생 X).
+  - 그 외 확장자는 기존 `<img>` 그대로.
+- acceptance:
+  1. 본문 첫 미디어가 `.mp4` 인 글은 카드에 첫 프레임이 멈춰 보인다.
+  2. 카드 클릭 시 상세로 이동 — 카드 인라인 재생 안 함.
+  3. 본문 첫 미디어가 이미지면 기존 동작 그대로.
+
+## 범위 외
+- WebM/MOV 포맷, 트랜스코딩, HLS·DASH.
+- 서버 ffmpeg 썸네일 추출.
+- 자동재생, 자막/track, 외부 비디오 임베드(YouTube).
+- 비디오-Post 연관 추적/미사용 파일 정리(이미지와 통합 후속).
