@@ -984,7 +984,7 @@
       "deps": [
         "T-PUB-201"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "video-upload",
       "tdd_first": true,
       "acceptance": [
@@ -992,7 +992,8 @@
         "51MB MP4 → 413, 6MB JPG → 413(이미지 한도 유지)",
         "ZIP/MOV/WebM 등 비허용 MIME → 400",
         "비인증/MEMBER 권한 → 401/403"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-PUB-203",

@@ -24,17 +24,17 @@
   3. docker-compose api environment 에 `UPLOAD_MAX_BYTES_VIDEO: ${UPLOAD_MAX_BYTES_VIDEO}` 매핑. ✅
 
 #### T-PUB-202 — api `/api/uploads` 가 MP4 수락 + MIME/크기 분리 검증
-- priority: 52 / 의존: T-PUB-201 / status: todo
+- priority: 52 / 의존: T-PUB-201 / status: done (2026-06-04)
 - 산출:
-  - `upload.controller.ts` 의 `fileFilter` 가 `video/mp4` 도 통과시킴.
-  - 응답에 `type` 필드 추가 (MIME 첫 토큰 기반: `image|video`).
-  - 크기 검증을 MIME 별로 분기: 이미지 `UPLOAD_MAX_BYTES`, 비디오 `UPLOAD_MAX_BYTES_VIDEO`.
+  - `upload.controller.ts`: `ALLOWED_MIME` 에 `video/mp4` 추가, `mediaFileFilter` 로 리네이밍.
+  - `resolveMediaType()` 헬퍼: MIME 첫 토큰 → `type: 'image'|'video'`.
+  - 크기 한도 분기: 비디오 `UPLOAD_MAX_BYTES_VIDEO`(env / fallback 50MB), 이미지 `UPLOAD_MAX_BYTES`(env / fallback 5MB).
+  - `upload.e2e-spec.ts` 5 신규 케이스: MP4 201/type, 비디오 413, **MIME 별 분리 한도 회귀 가드**, MOV 400, MEMBER 403.
 - acceptance:
-  1. 50MB 이하 MP4 업로드 → 201 + `contentType: 'video/mp4'` + `type: 'video'`.
-  2. 51MB MP4 업로드 → 413.
-  3. 6MB JPG 업로드 → 413 (이미지 한도 유지).
-  4. ZIP/MOV/WebM 등 비허용 MIME → 400.
-  5. 비인증/미권한(MEMBER) → 401/403.
+  1. 50MB 이하 MP4 업로드 → 201 + `contentType: 'video/mp4'` + `type: 'video'`. ✅
+  2. 비디오 한도 초과 → 413, 이미지 한도 6MB JPG → 413 (분리 유지). ✅
+  3. ZIP/MOV/WebM 등 비허용 MIME → 400. ✅
+  4. 비인증 401 (기존), MEMBER 403 (강등 후 검증). ✅
 
 #### T-PUB-203 — api e2e: 정적 서빙 Range 응답 + Content-Type
 - priority: 53 / 의존: T-PUB-202 / status: todo

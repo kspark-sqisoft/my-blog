@@ -19,21 +19,31 @@ const ALLOWED_MIME = new Set([
   'image/jpeg',
   'image/gif',
   'image/webp',
+  'video/mp4', // T-PUB-202 / ADR-0020
 ]);
-const DEFAULT_MAX_BYTES = 5 * 1024 * 1024; // 5MB
+const DEFAULT_MAX_BYTES_IMAGE = 5 * 1024 * 1024; // 5MB
+const DEFAULT_MAX_BYTES_VIDEO = 50 * 1024 * 1024; // 50MB
 
-// 이미지 MIME 화이트리스트 (decorator-time 정의, 요청마다 실행)
-const imageFileFilter = (
+// MIME 화이트리스트 — 이미지 4종 + video/mp4. 위조 차단을 위해 컨트롤러에서 확장자도 함께 검증한다.
+const mediaFileFilter = (
   _req: unknown,
   file: Express.Multer.File,
   cb: (error: Error | null, accept: boolean) => void,
 ): void => {
   if (!ALLOWED_MIME.has(file.mimetype)) {
-    cb(new BadRequestException('이미지 파일만 업로드할 수 있습니다.'), false);
+    cb(
+      new BadRequestException('이미지 또는 MP4 비디오만 업로드할 수 있습니다.'),
+      false,
+    );
     return;
   }
   cb(null, true);
 };
+
+// MIME 의 첫 토큰을 응답 type 으로 매핑. 화이트리스트 통과 후이므로 image/video 둘 중 하나.
+function resolveMediaType(mimetype: string): 'image' | 'video' {
+  return mimetype.startsWith('video/') ? 'video' : 'image';
+}
 
 @Controller('uploads')
 export class UploadController {
@@ -43,17 +53,22 @@ export class UploadController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('AUTHOR', 'ADMIN')
   @Post()
-  @UseInterceptors(FileInterceptor('file', { fileFilter: imageFileFilter }))
+  @UseInterceptors(FileInterceptor('file', { fileFilter: mediaFileFilter }))
   async upload(
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<UploadResultDto> {
     if (!file) {
       throw new BadRequestException('파일(file)이 필요합니다.');
     }
-    const maxBytes = Number(process.env.UPLOAD_MAX_BYTES ?? DEFAULT_MAX_BYTES);
+    const type = resolveMediaType(file.mimetype);
+    // 이미지/비디오 별 분리 한도 — env 우선, 미설정 시 5MB/50MB.
+    const maxBytes =
+      type === 'video'
+        ? Number(process.env.UPLOAD_MAX_BYTES_VIDEO ?? DEFAULT_MAX_BYTES_VIDEO)
+        : Number(process.env.UPLOAD_MAX_BYTES ?? DEFAULT_MAX_BYTES_IMAGE);
     if (file.size > maxBytes) {
       throw new PayloadTooLargeException(
-        `파일 크기는 ${maxBytes} bytes를 초과할 수 없습니다.`,
+        `${type === 'video' ? '비디오' : '이미지'} 크기는 ${maxBytes} bytes를 초과할 수 없습니다.`,
       );
     }
 
@@ -62,13 +77,11 @@ export class UploadController {
       originalName: file.originalname,
       mimeType: file.mimetype,
     });
-    // 현재 fileFilter 가 image MIME 만 통과 → type='image' 고정.
-    // T-PUB-202 에서 video 까지 받도록 MIME 별 분기로 확장한다.
     return {
       url: saved.url,
       contentType: file.mimetype,
       size: file.size,
-      type: 'image',
+      type,
     };
   }
 }
