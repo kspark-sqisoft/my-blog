@@ -13,10 +13,14 @@ export interface PostSummaryDto {
 }
 
 // 상세
+// ADR-0021: 본문은 sanitize 된 HTML(`contentHtml`) 이 정규 모델로 전환된다.
+// 과도기(T-INFRA-301 ~ T-PUB-301) 동안 contentHtml 은 optional 이고 contentMarkdown 도 남는다.
+// T-PUB-301 이 contentHtml 을 required 로 회수하고 contentMarkdown 을 응답에서 제거한다.
 export interface PostDetailDto {
   id: string;
   title: string;
-  contentMarkdown: string;
+  contentMarkdown: string; // @deprecated T-PUB-301 에서 응답·DB drop
+  contentHtml?: string; // sanitize 통과한 본문 HTML (ADR-0021) — T-PUB-301 에서 required 전환
   tags: string[];
   status: PostStatus;
   authorId: string;
@@ -36,10 +40,13 @@ export interface AdminPostSummaryDto {
   createdAt: string; // ISO 8601
 }
 
-// 생성 (운영자)
+// 생성 (작성자/운영자).
+// ADR-0021: 정규 입력은 contentHtml. 과도기에는 contentMarkdown 도 임시 허용 —
+// T-PUB-301 이 contentHtml 을 required 로 회수하고 contentMarkdown 입력을 제거한다.
 export interface CreatePostDto {
   title: string;
-  contentMarkdown: string;
+  contentMarkdown?: string; // @deprecated 과도기 입력. T-PUB-301 에서 제거
+  contentHtml?: string; // T-PUB-301 에서 required 전환
   tags: string[]; // 0~5개 (ADR-0006, 서버에서 강제)
 }
 

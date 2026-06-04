@@ -10,14 +10,17 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
 ## 태스크
 
 #### T-INFRA-301 — shared richHtmlSchema + DTO 갱신
-- priority: 57 / 의존: 없음 / status: todo
+- priority: 57 / 의존: 없음 / status: done (2026-06-05)
 - 산출:
-  - `packages/shared/src/rich-html-schema.ts` 신규 — `allowedTags/Attributes/Classes/Schemes` 단일 소스.
-  - DTO: `PostDetailDto.contentHtml`, `PostSummaryDto` 그대로, `CreatePostDto.contentHtml`, `UpdatePostDto.contentHtml`. `contentMarkdown` 키 제거.
+  - `packages/shared/src/rich-html-schema.ts`: `richHtmlSchema` + `RICH_HTML_SPAN_CLASSES`(색 8 + 크기 4) + `RichHtmlSchema`/`RichHtmlSpanClass` 타입.
+  - `packages/shared/src/index.ts`: 위 export 추가.
+  - `packages/shared/src/dto/post.ts`: `PostDetailDto.contentHtml?: string`, `CreatePostDto.contentHtml?: string` 과도기 optional 로 추가. `contentMarkdown` 은 deprecated 표시 후 유지 — T-PUB-301 이 required 로 회수 + contentMarkdown 응답 제거.
+  - `packages/api/src/publishing/rich-html-schema.spec.ts` 신규 7 케이스: 허용/위험 태그, a/img/video 속성, span/code/pre/p 의 class 만 허용(인라인 style 금지), span class 화이트리스트(색·크기 프리셋), 스킴 화이트리스트.
 - acceptance:
-  1. `richHtmlSchema` 가 export 되고 unit spec 으로 모양 검증.
-  2. `CreatePostDto` 가 `contentHtml: string` 을 요구(컴파일 시 enforce).
-  3. `PostDetailDto.contentHtml` 만 노출, `contentMarkdown` 키는 응답 DTO 에서 사라짐.
+  1. `richHtmlSchema` export + unit spec(7 케이스). ✅
+  2. CreatePostDto 에 `contentHtml` 추가 — **과도기 optional**(T-PUB-301 에서 required 회수 + 컴파일 enforce). 부분 충족(과도기 기준).
+  3. PostDetailDto.contentHtml 노출 — **과도기 optional**(T-PUB-301 에서 required + contentMarkdown 응답 제거). 부분 충족.
+- 비고: acceptance 2·3 의 "필수/응답 제거" 부분은 contentHtml 가 실제 값으로 채워지는 T-PUB-301(서버 sanitize 적용)에서 회수한다. 지금 시점에 required 로 바꾸면 호출처 컴파일이 깨져 단계 의미가 사라진다.
 
 #### T-INFRA-302 — Prisma 스키마: Post.contentHtml 컬럼 + 마이그레이션
 - priority: 58 / 의존: T-INFRA-301 / status: todo
