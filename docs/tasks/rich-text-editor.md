@@ -59,15 +59,17 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
   3. `GET /api/posts/:id` 응답에 contentHtml 포함. ✅ / `contentMarkdown` 키 응답에서 제거는 **T-WEB-303(클라가 contentHtml 사용 전환) 이후 별도 ADR/태스크에서 회수** — 점진 전환을 위해 과도기 동안 양쪽 노출.
 
 #### T-PUB-302 — 파생값(summary/coverImageUrl) HTML 입력 대응
-- priority: 61 / 의존: T-PUB-301 / status: todo
+- priority: 61 / 의존: T-PUB-301 / status: done (2026-06-05)
 - 산출:
-  - `cover-image.ts` / `markdown-summary.ts` 가 HTML 입력에서 동작하도록 교체.
-    `extractFirstMediaUrl(html)` (cheerio 사용) — 첫 `<img src>` 또는 `<video src>` URL.
-    `toSummaryText(html, max)` — 평문 200자.
+  - 의존성 `cheerio` 추가.
+  - `cover-image.ts`: `extractFirstImageUrl(html)` 을 cheerio 기반으로 재작성 — DOM 순회로 첫 `<img>`/`<video>` 중 더 먼저 등장하는 src 반환. 함수명 호환 유지(슈퍼셋 의미).
+  - `markdown-summary.ts`: `toSummaryText(html, max)` 를 cheerio.text() 기반 평문 추출.
+  - `post.service.ts` `toSummary`: contentHtml 우선 사용(빈 경우 contentMarkdown 폴백).
+  - spec 갱신: cover-image 8 + summary 6 케이스 모두 HTML 입력 기준.
 - acceptance:
-  1. HTML 본문에서 첫 미디어 URL 정확히 추출(.mp4 첫 노드면 그 URL).
-  2. 평문 요약이 헤딩/마크업 없이 200자 trim.
-  3. 기존 e2e 회귀 0건.
+  1. HTML 본문에서 첫 미디어 URL 정확히 추출(.mp4 첫 노드면 그 URL). ✅
+  2. 평문 요약이 헤딩/마크업 없이 200자 trim. ✅
+  3. 기존 e2e 회귀 0건 — unit 18/116 pass, e2e 10/64 pass. ✅
 
 #### T-WEB-301 — TipTap 기반 RichEditor 컴포넌트
 - priority: 62 / 의존: T-INFRA-301 / status: todo
