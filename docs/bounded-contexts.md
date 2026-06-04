@@ -23,6 +23,9 @@ blog-mvp는 3개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 
 - 발행 상태(초안/발행)는 Post Aggregate 내부 상태로 관리한다.
 - Tag는 Post를 통해서만 다뤄진다 (Tag 자체 생명주기를 독립 관리하지 않음).
+- **목록 읽기 모델(PostSummary)** 은 Post 본문에서 두 값을 **파생**한다: 평문 요약과 대표 이미지(본문 첫 이미지). 둘 다 저장 컬럼이 아니라 조회 시 본문에서 계산한다(ADR-0015). 따라서 Aggregate·스키마·Domain Event는 바뀌지 않는다.
+
+> 프론트(WEB)는 이 Context들을 소비하는 **프레젠테이션 계층**이며 별도 Bounded Context가 아니다. 시각 디자인 시스템·테마(라이트/다크)는 도메인 모델에 영향을 주지 않는다(ADR-0016).
 
 ### Conversation
 

@@ -5,6 +5,9 @@ Accepted ADR은 IMMUTABLE — 결정이 바뀌면 새 ADR이 기존 것을 super
 
 | 번호 | 제목 | 상태 | 작성일 | 한 줄 요약 | 링크 |
 |---|---|---|---|---|---|
+| 0016 | 프론트 디자인 시스템을 CSS 변수 토큰 + data-theme 수동 토글로 구성 | Proposed | 2026-06-04 | 시맨틱 토큰+`ab-*` 클래스, 다크는 `[data-theme]`, useTheme로 토글·보존 | [링크](0016-frontend-design-tokens-theme.md) |
+| 0015 | 목록 요약·대표 이미지를 저장 컬럼 없이 본문에서 파생 | Proposed | 2026-06-04 | 본문 첫 이미지=대표 이미지, 요약 평문화. 읽기 시 파생(마이그레이션 없음) | [링크](0015-cover-image-derived-from-content.md) |
+| 0014 | CI 파이프라인으로 GitHub Actions 채택 | Accepted | 2026-06-02 | PR/푸시에 lint·typecheck·단위·api-e2e·web-e2e Job 분리 자동화 | [링크](0014-ci-github-actions.md) |
 | 0013 | Comment 답글을 2단계(깊이 2)까지 허용 | Accepted | 2026-06-02 | 답글의 답글까지 허용, 깊이 2 초과 거부. ADR-0007을 supersede | [링크](0013-comment-two-level-replies.md) |
 | 0012 | 이미지 업로드를 저장소 추상화로 구현 (로컬 → S3) | Accepted | 2026-06-02 | StorageProvider 추상화로 로컬 저장, 마크다운 URL 임베드, S3 확장 가능 | [링크](0012-image-upload-storage-abstraction.md) |
 | 0011 | Docker Compose를 베이스 + dev/prod 오버라이드로 분리하고 멀티스테이지 빌드 채택 | Accepted | 2026-06-02 | 베이스+dev/prod 3파일, 멀티스테이지, DB healthcheck로 api 기동 게이트 | [링크](0011-docker-compose-base-dev-prod-overrides.md) |
