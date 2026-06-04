@@ -37,13 +37,14 @@
   4. 비인증 401 (기존), MEMBER 403 (강등 후 검증). ✅
 
 #### T-PUB-203 — api e2e: 정적 서빙 Range 응답 + Content-Type
-- priority: 53 / 의존: T-PUB-202 / status: todo
+- priority: 53 / 의존: T-PUB-202 / status: done (2026-06-04)
 - 산출:
-  - `test/upload.e2e-spec.ts` 에 비디오 왕복(쓰기→읽기) + `Range` 검증 추가.
+  - `test/upload.e2e-spec.ts` 2 신규 케이스: 비디오 왕복(쓰기→읽기 + Content-Type + Accept-Ranges) / Range bytes=0-99 → 206 + 100바이트.
+  - 코드 변경 0 — `useStaticAssets`(express.static) 의 기본 동작이 그대로 통과. 회귀 가드만 추가.
 - acceptance:
-  1. 업로드된 비디오 URL `GET` → 200 + `Content-Type: video/mp4` + `Accept-Ranges: bytes`.
-  2. `Range: bytes=0-99` 요청 → 206 + 100바이트 응답.
-  3. 절대 규칙 #9 (쓰기-읽기 왕복) 통과.
+  1. 업로드된 비디오 URL `GET` → 200 + `Content-Type: video/mp4` + `Accept-Ranges: bytes`. ✅
+  2. `Range: bytes=0-99` 요청 → 206 Partial Content + `Content-Length: 100` + 100바이트. ✅
+  3. 절대 규칙 #9 (쓰기-읽기 왕복) 통과. ✅
 
 #### T-WEB-201 — web 마크다운 렌더러 `.mp4` → `<video>` 자동 분기
 - priority: 54 / 의존: T-PUB-202 / status: todo

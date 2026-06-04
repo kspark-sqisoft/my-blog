@@ -201,4 +201,45 @@ describe('UploadController (e2e)', () => {
     expect(got.headers['content-type']).toContain('image/png');
     expect(Buffer.from(got.body as Buffer)).toEqual(buf);
   });
+
+  // T-PUB-203: 비디오 정적 서빙은 video/mp4 + Accept-Ranges: bytes 로 응답해야 한다.
+  // <video> 요소가 seek/일시정지 후 재개를 위해 Range 요청을 보내므로 206 Partial Content 응답이 필수.
+  it('업로드한 MP4 는 video/mp4 + Accept-Ranges 로 서빙된다 (왕복 + 절대규칙 #9)', async () => {
+    const buf = Buffer.alloc(512, 7);
+    const up = await request(app.getHttpServer())
+      .post('/api/uploads')
+      .set('Cookie', cookie)
+      .attach('file', buf, {
+        filename: 'served.mp4',
+        contentType: 'video/mp4',
+      })
+      .expect(201);
+    const { url } = up.body as { url: string };
+
+    const full = await request(app.getHttpServer()).get(url).expect(200);
+    expect(full.headers['content-type']).toContain('video/mp4');
+    expect(full.headers['accept-ranges']).toBe('bytes');
+    expect(Buffer.from(full.body as Buffer)).toEqual(buf);
+  });
+
+  it('Range: bytes=0-99 → 206 Partial Content + 100 바이트', async () => {
+    const buf = Buffer.alloc(512, 9);
+    const up = await request(app.getHttpServer())
+      .post('/api/uploads')
+      .set('Cookie', cookie)
+      .attach('file', buf, {
+        filename: 'range.mp4',
+        contentType: 'video/mp4',
+      })
+      .expect(201);
+    const { url } = up.body as { url: string };
+
+    const range = await request(app.getHttpServer())
+      .get(url)
+      .set('Range', 'bytes=0-99')
+      .expect(206);
+    expect(range.headers['content-range']).toMatch(/^bytes 0-99\/512$/);
+    expect(range.headers['content-length']).toBe('100');
+    expect((range.body as Buffer).length).toBe(100);
+  });
 });

@@ -1004,14 +1004,15 @@
       "deps": [
         "T-PUB-202"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "video-upload",
       "tdd_first": true,
       "acceptance": [
         "업로드된 비디오 URL GET → 200 + Content-Type 'video/mp4' + Accept-Ranges: bytes",
         "Range: bytes=0-99 → 206 Partial Content + 100바이트",
         "절대 규칙 #9 쓰기-읽기 왕복 통과"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-WEB-201",
