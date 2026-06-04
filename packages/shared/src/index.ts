@@ -9,6 +9,7 @@ export type {
 } from './dto/post';
 export type { CommentDto, CreateCommentDto } from './dto/comment';
 export type { TagDto } from './dto/tag';
-export type { AuthUserDto } from './dto/auth';
+export type { AuthUserDto, UserRole, RegisterDto } from './dto/auth';
+export type { AdminUserDto, UpdateUserRoleDto } from './dto/user';
 export type { UploadResultDto } from './dto/upload';
 export type { Paginated } from './dto/pagination';

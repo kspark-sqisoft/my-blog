@@ -19,7 +19,7 @@
   4. dev `blog` + test `blog_test` 양쪽 migrate 적용.
 
 #### T-AUTH-006 — shared 타입: UserRole + AuthUserDto(role,name) + Register/AdminUser/UpdateUserRole DTO
-- priority: 37 / 의존: — / status: todo / tdd_first: false(순수 타입)
+- priority: 37 / 의존: — / status: done (2026-06-04) / tdd_first: false(순수 타입)
 - acceptance:
   1. `UserRole` 타입, `AuthUserDto`에 `role`·`name` 추가.
   2. `RegisterDto`/`AdminUserDto`/`UpdateUserRoleDto` export.
