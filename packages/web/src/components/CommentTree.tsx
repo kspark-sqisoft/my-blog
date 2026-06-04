@@ -15,7 +15,8 @@ function CommentNode({
 }) {
   const [replying, setReplying] = useState(false);
   const canReply = comment.depth < MAX_DEPTH;
-  const name = comment.displayName ?? '익명';
+  // 표시 이름: authorName(로그인=계정 이름) 우선, 없으면 displayName(익명 입력) (T-WEB-015)
+  const name = comment.authorName ?? comment.displayName ?? '익명';
 
   return (
     <li className="ab-comment">

@@ -10,7 +10,8 @@ export const OPERATOR = {
 export async function loginAsOperator(page: Page): Promise<void> {
   await page.goto('/login');
   await page.getByLabel('이메일').fill(OPERATOR.email);
-  await page.getByLabel('비밀번호').fill(OPERATOR.password);
+  // '비밀번호 표시' 토글 버튼과 구분하기 위해 정확히 일치하는 라벨만 선택한다.
+  await page.getByLabel('비밀번호', { exact: true }).fill(OPERATOR.password);
   await page.getByRole('button', { name: '로그인' }).click();
   await page.waitForURL('**/admin');
   await expect(

@@ -891,14 +891,15 @@
         "T-CONV-004",
         "T-WEB-012"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "multiuser-rbac",
       "tdd_first": true,
       "acceptance": [
         "로그인 시 이름 입력 숨기고 user.name 표시, displayName 미전송",
         "CommentTree authorName 표시",
         "e2e GWT: 가입→승격→작성 소유권, 실명 댓글"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     }
   ]
 }

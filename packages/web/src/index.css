@@ -701,6 +701,12 @@ a {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
+.ab-cform-asname {
+  flex: 1;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+}
 .ab-cform-actions {
   display: flex;
   gap: 8px;

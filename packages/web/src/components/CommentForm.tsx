@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../auth/useAuth';
 import {
   type CreateCommentInput,
   useCreateComment,
@@ -20,13 +21,15 @@ export function CommentForm({
 }) {
   const [body, setBody] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const user = useAuth((s) => s.user);
   const mutation = useCreateComment(postId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!body.trim()) return;
     const input: CreateCommentInput = { body: body.trim() };
-    if (displayName.trim()) input.displayName = displayName.trim();
+    // 로그인 회원은 계정 이름으로 작성되므로 displayName 을 보내지 않는다(T-WEB-015).
+    if (!user && displayName.trim()) input.displayName = displayName.trim();
     if (parentId) input.parentId = parentId;
     mutation.mutate(input, {
       onSuccess: () => {
@@ -51,13 +54,17 @@ export function CommentForm({
         className="ab-textarea"
       />
       <div className="ab-cform-row">
-        <input
-          aria-label="이름(선택)"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="이름 (선택)"
-          className="ab-input"
-        />
+        {user ? (
+          <span className="ab-cform-asname">{user.name}</span>
+        ) : (
+          <input
+            aria-label="이름(선택)"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="이름 (선택)"
+            className="ab-input"
+          />
+        )}
         <div className="ab-cform-actions">
           {onCancel && (
             <button type="button" className="ab-btn ghost sm" onClick={onCancel}>

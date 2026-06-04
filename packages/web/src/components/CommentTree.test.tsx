@@ -69,4 +69,55 @@ describe('CommentTree', () => {
     renderTree();
     expect(screen.getAllByRole('button', { name: '답글' })).toHaveLength(2);
   });
+
+  // T-WEB-015 AC2: 표시 이름은 authorName 을 우선 사용한다
+  it('authorName 을 작성자 이름으로 표시한다', () => {
+    const qc = new QueryClient();
+    const comments: CommentDto[] = [
+      {
+        id: 'm0',
+        postId: 'p1',
+        parentId: null,
+        depth: 0,
+        userId: 'u1',
+        authorName: '박기순',
+        displayName: null,
+        body: '회원 댓글',
+        createdAt: '2026-06-01T10:00:00.000Z',
+        replies: [],
+      },
+    ];
+    render(
+      <QueryClientProvider client={qc}>
+        <CommentTree comments={comments} postId="p1" />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByText('박기순')).toBeInTheDocument();
+  });
+
+  // T-WEB-015 AC2: authorName 이 displayName 보다 우선한다
+  it('authorName 이 있으면 displayName 대신 authorName 을 표시한다', () => {
+    const qc = new QueryClient();
+    const comments: CommentDto[] = [
+      {
+        id: 'm1',
+        postId: 'p1',
+        parentId: null,
+        depth: 0,
+        userId: 'u1',
+        authorName: '실명사용자',
+        displayName: '익명입력',
+        body: '우선순위 댓글',
+        createdAt: '2026-06-01T10:00:00.000Z',
+        replies: [],
+      },
+    ];
+    render(
+      <QueryClientProvider client={qc}>
+        <CommentTree comments={comments} postId="p1" />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByText('실명사용자')).toBeInTheDocument();
+    expect(screen.queryByText('익명입력')).not.toBeInTheDocument();
+  });
 });

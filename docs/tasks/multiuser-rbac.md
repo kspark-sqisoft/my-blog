@@ -95,7 +95,7 @@
   3. ADMIN만 사이드바 사용자 링크.
 
 #### T-WEB-015 — 댓글 폼 실명 자동 + CommentTree authorName
-- priority: 47 / 의존: T-CONV-004, T-WEB-012 / status: todo
+- priority: 47 / 의존: T-CONV-004, T-WEB-012 / status: done (2026-06-04)
 - acceptance:
   1. 로그인 시 이름 입력 숨기고 user.name 표시, displayName 미전송.
   2. CommentTree authorName 표시.
