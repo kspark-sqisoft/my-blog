@@ -6,6 +6,7 @@ import type {
   PostSummaryDto,
 } from '@blog/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { extractFirstImageUrl } from './cover-image';
 import { TagService } from './tag.service';
 
 export interface ListPublishedParams {
@@ -228,6 +229,7 @@ export class PostService {
       summary,
       tags: post.postTags.map((pt) => pt.tag.name),
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+      coverImageUrl: extractFirstImageUrl(post.contentMarkdown),
     };
   }
 

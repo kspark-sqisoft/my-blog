@@ -220,6 +220,26 @@ describe('PostService (통합)', () => {
     expect(page.total).toBe(1);
   });
 
+  it('listPublished는 본문 첫 이미지를 coverImageUrl로 노출한다(없으면 null)', async () => {
+    const withImg = await service.create({
+      title: '커버 있음',
+      contentMarkdown: '소개\n\n![대표](/uploads/cover.png)\n\n본문',
+      authorId,
+    });
+    const noImg = await service.create({
+      title: '커버 없음',
+      contentMarkdown: '이미지 없는 본문',
+      authorId,
+    });
+    await service.publish(withImg.id);
+    await service.publish(noImg.id);
+
+    const page = await service.listPublished({ page: 1, pageSize: 10 });
+    const byId = new Map(page.items.map((p) => [p.id, p]));
+    expect(byId.get(withImg.id)?.coverImageUrl).toBe('/uploads/cover.png');
+    expect(byId.get(noImg.id)?.coverImageUrl).toBeNull();
+  });
+
   it('getPublishedDetail은 발행된 Post 상세를 tags 포함해 반환한다', async () => {
     const created = await service.create({
       title: '상세',

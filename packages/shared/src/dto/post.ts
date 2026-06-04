@@ -8,6 +8,7 @@ export interface PostSummaryDto {
   summary: string;
   tags: string[];
   publishedAt: string | null; // ISO 8601
+  coverImageUrl: string | null; // 본문 첫 이미지(대표 이미지) URL, 없으면 null
 }
 
 // 상세

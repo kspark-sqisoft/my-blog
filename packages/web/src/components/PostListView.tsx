@@ -33,6 +33,18 @@ export function PostListView({
     <ul className="ab-grid">
       {items.map((post) => (
         <li key={post.id} className="ab-card">
+          <Link to={`/posts/${post.id}`} className="ab-card-cover-link">
+            {post.coverImageUrl ? (
+              <img
+                className="ab-card-cover"
+                src={post.coverImageUrl}
+                alt=""
+                loading="lazy"
+              />
+            ) : (
+              <div className="ab-ph ab-card-cover" />
+            )}
+          </Link>
           <div className="ab-card-body">
             <Link to={`/posts/${post.id}`}>
               <h2 className="ab-card-title">{post.title}</h2>

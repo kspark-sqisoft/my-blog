@@ -385,6 +385,21 @@ a {
 .ab-card:hover .ab-ph {
   box-shadow: var(--shadow-md);
 }
+.ab-card-cover-link {
+  display: block;
+}
+.ab-card-cover {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--r-md);
+  object-fit: cover;
+  display: block;
+  border: 1px solid var(--border-2);
+  transition: 0.3s;
+}
+.ab-card:hover .ab-card-cover {
+  box-shadow: var(--shadow-md);
+}
 .ab-card-body {
   padding: 18px 4px 0;
 }
