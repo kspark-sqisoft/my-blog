@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (video-upload 기획 산출물 + RBAC 회귀 패치)",
+  "updated_at": "2026-06-04 (rich-text-editor 기획 + video-upload 시리즈 완료 + RBAC 패치)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -1071,6 +1071,170 @@
         "이미지 커버는 기존 <img> 그대로"
       ],
       "completed_at": "2026-06-04"
+    },
+    {
+      "id": "T-INFRA-301",
+      "title": "shared richHtmlSchema + DTO 갱신 (contentHtml)",
+      "epic": "E11",
+      "context": "INFRA",
+      "priority": 57,
+      "deps": [],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "packages/shared 에 richHtmlSchema 단일 소스 export + unit spec",
+        "CreatePostDto/UpdatePostDto 가 contentHtml: string 요구(컴파일 enforce)",
+        "PostDetailDto.contentHtml 노출, contentMarkdown 키 응답에서 사라짐"
+      ]
+    },
+    {
+      "id": "T-INFRA-302",
+      "title": "Prisma Post.contentHtml 컬럼 + 마이그레이션",
+      "epic": "E11",
+      "context": "INFRA",
+      "priority": 58,
+      "deps": [
+        "T-INFRA-301"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "posts.content_html 컬럼 추가, default ''",
+        "기존 row 의 contentHtml 은 빈 문자열(T-INFRA-303 가 채움)",
+        "blog_test DB 도 마이그레이션 통과(통합 spec 깨지지 않음)"
+      ]
+    },
+    {
+      "id": "T-INFRA-303",
+      "title": "일회성 마이그레이션 스크립트 (markdown → html)",
+      "epic": "E11",
+      "context": "INFRA",
+      "priority": 59,
+      "deps": [
+        "T-INFRA-302"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "스크립트 실행 후 모든 Post 의 contentHtml 이 비지 않음",
+        ".mp4 이미지 임베드는 <video> 노드로 보존",
+        "script/onerror/javascript: 등 위험 입력 모두 제거",
+        "두 번 실행해도 멱등"
+      ]
+    },
+    {
+      "id": "T-PUB-301",
+      "title": "PostService: contentHtml 입력 + 서버 sanitize",
+      "epic": "E11",
+      "context": "PUB",
+      "priority": 60,
+      "deps": [
+        "T-INFRA-302"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "POST/PATCH /api/posts 가 contentHtml 받아 sanitize-html 통과 후 저장",
+        "<script> 등 위험 태그는 응답·DB 모두에서 제거",
+        "GET /api/posts/:id 응답에 contentHtml 포함, contentMarkdown 키 없음"
+      ]
+    },
+    {
+      "id": "T-PUB-302",
+      "title": "파생값(summary/coverImageUrl) HTML 입력 대응",
+      "epic": "E11",
+      "context": "PUB",
+      "priority": 61,
+      "deps": [
+        "T-PUB-301"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "extractFirstMediaUrl(html) cheerio 로 첫 <img>/<video> src 추출",
+        "toSummaryText(html, 200) 평문 200자 trim",
+        "기존 e2e 회귀 0건"
+      ]
+    },
+    {
+      "id": "T-WEB-301",
+      "title": "TipTap 기반 RichEditor + Toolbar",
+      "epic": "E11",
+      "context": "WEB",
+      "priority": 62,
+      "deps": [
+        "T-INFRA-301"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "StarterKit + Link + Underline + Image + Video + TextStyle + Color + FontSize 확장",
+        "Toolbar 의 모든 버튼이 editor 명령 실행 + isActive 반영",
+        "editor.getHTML() 가 화이트리스트 클래스만 사용(인라인 style 없음)",
+        "미디어 업로드 버튼이 useUploadImage 훅으로 setImage/setVideo"
+      ]
+    },
+    {
+      "id": "T-WEB-302",
+      "title": "PostEditor 통합 (textarea → RichEditor)",
+      "epic": "E11",
+      "context": "WEB",
+      "priority": 63,
+      "deps": [
+        "T-WEB-301",
+        "T-PUB-301"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "본문 textarea 가 사라지고 RichEditor 렌더",
+        "빈 본문(공백/빈 단락) 저장 시 클라이언트 검증으로 차단",
+        "수정 모드: 기존 contentHtml 을 editor 에 로드, PATCH 시 editor.getHTML() 전송"
+      ]
+    },
+    {
+      "id": "T-WEB-303",
+      "title": "RichContent 렌더러(상세) + Markdown 렌더 제거",
+      "epic": "E11",
+      "context": "WEB",
+      "priority": 64,
+      "deps": [
+        "T-PUB-301"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "PostDetail 본문이 <Markdown> → <RichContent> (dompurify + dangerouslySetInnerHTML)",
+        "색/크기/링크/미디어가 발행 상세에서 정확히 보임",
+        "잘못된 입력에 대해 화이트리스트 외 모두 제거"
+      ]
+    },
+    {
+      "id": "T-WEB-304",
+      "title": "Playwright e2e: 작성자 WYSIWYG 시연",
+      "epic": "E11",
+      "context": "WEB",
+      "priority": 65,
+      "deps": [
+        "T-WEB-302",
+        "T-WEB-303"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "도구바 상호작용으로 색/크기/이미지/비디오 본문 반영",
+        "발행 후 상세에서 동일 시각 표시",
+        "dev DB 격리 위반 0"
+      ]
     }
   ]
 }

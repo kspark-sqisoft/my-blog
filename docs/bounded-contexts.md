@@ -15,7 +15,7 @@ blog-mvp는 3개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 
 | 항목 | 내용 |
 |---|---|
-| **책임** | 운영자가 Post를 작성·수정·삭제·발행하고 Tag로 분류한다. 본문용 미디어(이미지/비디오)를 업로드한다(ADR-0012, ADR-0020). 발행된 Post를 독자에게 노출한다. |
+| **책임** | 운영자/작성자가 Post를 작성·수정·삭제·발행하고 Tag로 분류한다. 본문은 sanitize 된 HTML(`contentHtml`, ADR-0021 — ADR-0003 supersede)이며 WYSIWYG 에디터(TipTap)로 작성된다. 본문용 미디어(이미지/비디오)는 같은 엔드포인트로 업로드한다(ADR-0012, ADR-0020). 발행된 Post를 독자에게 노출한다. |
 | **Aggregate Root** | `Post` (Entity) |
 | **다른 객체** | `Tag` (Value Object — Post당 0~5개, 독립 Aggregate 아님). 이미지는 별도 엔티티 없이 마크다운 URL로 임베드(ADR-0012) |
 | **Domain Events** | `PostPublished`, `PostUnpublished`, `PostDeleted` |

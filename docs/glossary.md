@@ -29,4 +29,8 @@
 
 ## 포스터 프레임 (Poster Frame)- 정의: 비디오가 재생되기 전 정지 상태로 보이는 첫 화면. 별도 이미지 업로드 없이 비디오 메타데이터의 첫 프레임을 그대로 사용한다(ADR-0020, ffmpeg 의존 0).- 소속 Context: Publishing (프레젠테이션 파생)- 코드 표현: `<video preload="metadata">` 의 기본 동작- UI 표현: 글 목록 카드 커버에서 비디오일 때 보이는 정지 화면
 
+## 본문 HTML (Content HTML)- 정의: Post 의 본문 텍스트. **WYSIWYG 에디터(TipTap)** 로 작성되고 **sanitize 된 HTML** 로 저장된다(ADR-0021, ADR-0003 supersede). 화이트리스트(`richHtmlSchema`, `packages/shared`)에 포함된 태그·속성·Tailwind 클래스만 허용.- 소속 Context: Publishing- 코드 표현: `Post.contentHtml: string` (Prisma), `PostDetailDto.contentHtml` (`packages/shared`). 서버 sanitize 는 `sanitize-html`, 클라 추가 sanitize 는 `dompurify`- UI 표현: 작성 화면의 리치 에디터, 상세 화면의 `<RichContent>` 렌더러- 동의어 금지: Markdown(본문은 더 이상 마크다운이 아님), Rich Text(통칭 — 코드/문서는 "본문 HTML")
+
+## 리치 에디터 (Rich Editor)- 정의: 본문 작성용 WYSIWYG 에디터(TipTap 기반, ProseMirror 위). 표준 서식 + 색·크기 프리셋 + 미디어 업로드를 한 화면에서 제공한다(ADR-0021).- 소속 Context: Publishing (프레젠테이션)- 코드 표현: `packages/web/src/components/editor/RichEditor.tsx` + `Toolbar.tsx`. 확장: `StarterKit`, `Link`, `Underline`, `Image`, 커스텀 `Video`, `TextStyle`, `Color`, 커스텀 `FontSize`- UI 표현: `/admin/posts/new` 와 `/admin/posts/:id/edit` 의 본문 입력 영역- 동의어 금지: WYSIWYG(통칭), Editor(범용) — 코드/문서는 "리치 에디터"
+
 ## 테마 (Theme)- 정의: 화면 색상 모드. 라이트/다크 두 가지. 사용자가 토글로 전환하며 선택은 브라우저에 보존된다.- 소속 Context: WEB(프레젠테이션 — 도메인 Bounded Context 아님)- 코드 표현: `useTheme`(zustand), `document.documentElement[data-theme]`, localStorage `blog-theme`- UI 표현: 상단 네비게이션의 해/달 아이콘 토글- 동의어 금지: 스킨(Skin), 다크모드(단독 사용) — 모드 일반은 "테마"로 통일
