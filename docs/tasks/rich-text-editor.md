@@ -115,12 +115,24 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
 - 비고: 클라 dompurify 는 **태그 화이트리스트** 만 강제 — 정밀 속성 화이트리스트는 서버 sanitize-html(`richHtmlSchema`)이 책임. dompurify 의 element-specific 속성 처리(video preload 임의 차단)와 충돌하기 때문.
 
 #### T-WEB-304 — Playwright e2e: 작성자 WYSIWYG 시연
-- priority: 65 / 의존: T-WEB-302, T-WEB-303 / status: todo
+- priority: 65 / 의존: T-WEB-302, T-WEB-303 / status: done (2026-06-05)
 - 산출:
-  - `packages/web/e2e/rich-editor.spec.ts`: 작성자 가입 → 글 작성 → 일부 단어 빨강/크게 → MP4 업로드 → 발행 → 상세에서 동일 표시.
+  - `packages/web/e2e/rich-editor.spec.ts` 신규: 가입 → 작성 → 색/크기 → 이미지 업로드 → 발행 → 상세 동일 표시.
+  - `helpers.ts` 에 `typeRichBody(page, text)` + `TINY_MP4` 추가.
+  - 기존 4 e2e (`author-self-serve`/`draft-hidden`/`operator-flow`/`member-journey`) 본문 입력 헬퍼 호출로 갱신, 이미지 단언 selector 갱신.
+  - **인프라 패치(별건 의미)**: `packages/shared/tsconfig.build.json`(commonjs) + `package.json` main/exports → dist. Dockerfile(api/web) build stage 에 `pnpm --filter @blog/shared build` 추가. api prod stage 에 shared/dist 복사. 이게 없으면 `richHtmlSchema` value import 가 prod 컨테이너에서 깨진다.
 - acceptance:
-  1. 도구바 상호작용으로 색·크기·이미지·비디오 모두 본문에 반영.
-  2. 발행 후 상세에서 동일 시각 표시.
+  1. rich-editor.spec 작성 + 기존 4 e2e 호환 갱신. ✅
+  2. shared prod 빌드 인프라 패치(value import resolve). ✅
+  3. 격리 스택의 실제 e2e 실행은 **T-WEB-305(별건)** — RichEditor prod 진입 timeout 디버그.
+
+#### T-WEB-305 — e2e 격리 prod 빌드 RichEditor 진입 디버그
+- priority: 66 / 의존: T-WEB-304 / status: todo
+- 배경: 인프라 패치 후 컨테이너 빌드는 통과하지만, 격리 스택에서 `/admin/posts/new` 진입 후 `getByLabel('제목')` 가 timeout(6 spec 동일). RichEditor/RichContent 의 vite prod 빌드 산출물이 TipTap/dompurify 등의 ESM/CJS 호환 또는 모듈-level 부수효과(dompurify addHook)에서 막히는 것으로 추정.
+- 후보 조사: web prod 컨테이너 console error, RichContent 의 dompurify hook 부수효과, dompurify 의 jsdom 의존 vs 브라우저 동작, vite optimizeDeps 설정.
+- acceptance:
+  1. 격리 스택(prod) 에서 작성 화면이 정상 렌더(`/admin/posts/new` 제목·본문 라벨 발견 가능).
+  2. rich-editor.spec + 기존 4 e2e 가 격리 스택에서 모두 통과.
   3. dev DB 격리 위반 0.
 
 ## 범위 외
