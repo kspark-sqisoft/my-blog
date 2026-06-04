@@ -15,6 +15,20 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-edited.mjs\"",
+            "timeout": 70,
+            "statusMessage": "편집 파일 자동 포맷/린트(eslint --fix)"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

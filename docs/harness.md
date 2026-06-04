@@ -198,3 +198,6 @@ docker compose -f docker-compose.e2e.yml -p my-blog-e2e down -v
 - `.claude/commands/` — `ready` · `implement` · `finish` · 설계 명령들
 - `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks`
 - `docs/handoff/` — 세션 간 인계 노트
+- `docs/harness-gap-analysis.md` — 가이드(claude-code-guide) 대비 하네스 갭/보강 권고
+- `docs/harness-changelog.md` — 하네스 자체 변경 이력(가이드 12.5)
+- `.claude/hooks/format-edited.mjs` — 편집 후 자동 포맷/린트(PostToolUse, 가이드 12 STEP5)
