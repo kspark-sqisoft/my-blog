@@ -46,21 +46,27 @@ export class UserAdminService {
     return { items: items.map((u) => this.toDto(u)), page, pageSize, total };
   }
 
-  // 역할 변경. 마지막 ADMIN 강등은 차단(트랜잭션 내 count로 레이스 방지).
+  // 역할 변경. 마지막 ADMIN 강등은 차단한다.
+  // PostgreSQL 기본 격리수준(READ COMMITTED)에서는 두 동시 강등이 모두 count=2 를
+  // 보고 통과될 수 있다(write skew). Serializable 로 격상해 직렬화 충돌 시 한쪽이
+  // 재시도/실패하게 한다 (H1).
   async updateRole(id: string, role: UserRole): Promise<AdminUserDto> {
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const target = await tx.user.findUnique({ where: { id } });
-      if (!target) {
-        throw new NotFoundException('사용자를 찾을 수 없습니다.');
-      }
-      if (target.role === 'ADMIN' && role !== 'ADMIN') {
-        const adminCount = await tx.user.count({ where: { role: 'ADMIN' } });
-        if (adminCount <= 1) {
-          throw new ConflictException('마지막 관리자는 강등할 수 없습니다.');
+    const updated = await this.prisma.$transaction(
+      async (tx) => {
+        const target = await tx.user.findUnique({ where: { id } });
+        if (!target) {
+          throw new NotFoundException('사용자를 찾을 수 없습니다.');
         }
-      }
-      return tx.user.update({ where: { id }, data: { role } });
-    });
+        if (target.role === 'ADMIN' && role !== 'ADMIN') {
+          const adminCount = await tx.user.count({ where: { role: 'ADMIN' } });
+          if (adminCount <= 1) {
+            throw new ConflictException('마지막 관리자는 강등할 수 없습니다.');
+          }
+        }
+        return tx.user.update({ where: { id }, data: { role } });
+      },
+      { isolationLevel: 'Serializable' },
+    );
     return this.toDto(updated);
   }
 

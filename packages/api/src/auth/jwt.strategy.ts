@@ -4,6 +4,7 @@ import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { AuthUserDto } from '@blog/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { requireJwtSecret } from './jwt-secret';
 
 interface JwtPayload {
   sub: string;
@@ -22,7 +23,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET ?? 'change-me',
+      // JWT_SECRET 미설정 시 부팅 차단 (C1)
+      secretOrKey: requireJwtSecret(),
     });
   }
 

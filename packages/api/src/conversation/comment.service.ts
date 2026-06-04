@@ -47,14 +47,28 @@ export class CommentService {
 
     let depth = 0;
     if (input.parentId) {
+      // 부모 + 조부모의 parentId 까지 한 번에 select 해서 깊이를 동기 결정한다 (H2).
+      // 깊이 2 제한이므로 두 단계 위까지만 알면 충분하다.
       const parent = await this.prisma.comment.findUnique({
         where: { id: input.parentId },
-        select: { id: true, postId: true, parentId: true },
+        select: {
+          id: true,
+          postId: true,
+          parentId: true,
+          parent: { select: { parentId: true } },
+        },
       });
       if (!parent || parent.postId !== input.postId) {
         throw new NotFoundException('상위 댓글을 찾을 수 없습니다.');
       }
-      depth = (await this.depthOf(parent.id)) + 1;
+      // 부모의 깊이: 최상위(parentId=null)=0, 1단 답글(조부모=null)=1, 그 외=2 이상
+      const parentDepth =
+        parent.parentId === null
+          ? 0
+          : (parent.parent?.parentId ?? null) === null
+            ? 1
+            : 2;
+      depth = parentDepth + 1;
       if (depth > MAX_DEPTH) {
         throw new BadRequestException(
           `답글은 깊이 ${MAX_DEPTH}까지만 달 수 있습니다.`,
@@ -104,23 +118,6 @@ export class CommentService {
       }
     }
     return roots;
-  }
-
-  // 부모 체인을 거슬러 올라가며 깊이(조상 수)를 계산
-  private async depthOf(commentId: string): Promise<number> {
-    let depth = 0;
-    let current: string | null = commentId;
-    while (current) {
-      const node: { parentId: string | null } | null =
-        await this.prisma.comment.findUnique({
-          where: { id: current },
-          select: { parentId: true },
-        });
-      current = node?.parentId ?? null;
-      if (current) depth++;
-      if (depth > MAX_DEPTH + 1) break; // 안전장치
-    }
-    return depth;
   }
 
   private toDto(comment: CommentRow, depth: number): CommentDto {
