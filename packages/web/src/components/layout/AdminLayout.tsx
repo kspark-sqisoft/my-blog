@@ -27,6 +27,11 @@ export function AdminLayout() {
           <NavLink to="/admin/posts/new">
             <Icon name="plus" size={17} /> 새 글 작성
           </NavLink>
+          {user?.role === 'ADMIN' && (
+            <NavLink to="/admin/users">
+              <Icon name="user" size={17} /> 사용자 관리
+            </NavLink>
+          )}
           <Link to="/">
             <Icon name="eye" size={17} /> 사이트 보기
           </Link>

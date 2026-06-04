@@ -88,7 +88,7 @@
   3. MEMBER는 / 로 리다이렉트 — routes.test.
 
 #### T-WEB-014 — 사용자 관리 화면 /admin/users (ADMIN)
-- priority: 46 / 의존: T-WEB-013, T-AUTH-010 / status: todo
+- priority: 46 / 의존: T-WEB-013, T-AUTH-010 / status: done (2026-06-04)
 - acceptance:
   1. 목록 + 역할 변경 셀렉트(useAdminUsers/useUpdateUserRole).
   2. 마지막 ADMIN 409 처리(토스트/에러).

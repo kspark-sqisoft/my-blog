@@ -48,6 +48,7 @@ describe('앱 라우터 + Query Provider (스모크)', () => {
         '/admin',
         '/admin/posts/new',
         '/admin/posts/:id/edit',
+        '/admin/users',
       ]),
     );
   });

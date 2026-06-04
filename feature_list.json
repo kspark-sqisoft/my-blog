@@ -871,14 +871,15 @@
         "T-WEB-013",
         "T-AUTH-010"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "multiuser-rbac",
       "tdd_first": true,
       "acceptance": [
         "목록+역할 변경 셀렉트(useAdminUsers/useUpdateUserRole)",
         "마지막 ADMIN 409 처리(토스트/에러)",
         "ADMIN만 사이드바 사용자 링크"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-WEB-015",
