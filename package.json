@@ -6,14 +6,19 @@
   "scripts": {
     "gc": "knip --no-exit-code && jscpd packages/api/src packages/web/src packages/shared/src",
     "gc:unused": "knip",
-    "gc:dup": "jscpd packages/api/src packages/web/src packages/shared/src"
+    "gc:dup": "jscpd packages/api/src packages/web/src packages/shared/src",
+    "mcp:test": "tsx --test tools/mcp/prisma-helper/lib.test.ts",
+    "mcp:smoke": "tsx tools/mcp/prisma-helper/smoke.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.28.2",
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "jscpd": "^4.2.4",
-    "knip": "^6.15.0"
+    "knip": "^6.15.0",
+    "tsx": "^4.22.4",
+    "zod": "^4.4.3"
   }
 }

@@ -1,8 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "exclude": ["dependencies", "devDependencies", "unlisted", "unresolved", "binaries"],
-  "ignore": [".claude/**"],
   "workspaces": {
+    ".": {
+      "entry": ["tools/mcp/**/*.ts"],
+      "project": "tools/**/*.ts"
+    },
     "packages/api": {
       "entry": [
         "src/main.ts",

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "prisma-helper": {
+      "type": "stdio",
+      "command": "pnpm",
+      "args": ["exec", "tsx", "tools/mcp/prisma-helper/server.ts"]
+    }
+  }
+}

@@ -4,6 +4,14 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.4 (2026-06-04)
+
+갭 분석 P3 2건 구현.
+
+- **추가** — 프로젝트 전용 MCP `prisma-helper`(TypeScript, `tools/mcp/prisma-helper/`): `check_index`·`check_migration_destructive`·`scan_pii_logging` 3툴. 순수 로직 TDD(9 테스트, `pnpm mcp:test` → CI quality 단계), end-to-end 스모크(`pnpm mcp:smoke`) 통과. 루트 `.mcp.json` 등록. 루트 devDeps `@modelcontextprotocol/sdk`·`tsx`·`zod` 추가.
+- **추가** — git worktree 헬퍼 `scripts/worktree-new.sh`(격리 worktree + DB 분리 안내).
+- **변경** — `knip.json` 에 루트 워크스페이스(`tools/**`) 엔트리 추가(MCP 파일 오탐 제거, knip 완전 클린).
+
 ## v0.3 (2026-06-04)
 
 갭 분석 P2 2건 구현.

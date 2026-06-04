@@ -201,3 +201,7 @@ docker compose -f docker-compose.e2e.yml -p my-blog-e2e down -v
 - `docs/harness-gap-analysis.md` — 가이드(claude-code-guide) 대비 하네스 갭/보강 권고
 - `docs/harness-changelog.md` — 하네스 자체 변경 이력(가이드 12.5)
 - `.claude/hooks/format-edited.mjs` — 편집 후 자동 포맷/린트(PostToolUse, 가이드 12 STEP5)
+- `.claude/agents/{code-reviewer,debugger}.md` — 프로젝트 규칙 내장 리뷰/디버깅 서브에이전트
+- `knip.json` / `.jscpd.json` — 가비지 컬렉션 센서(미사용·중복, `pnpm gc`)
+- `tools/mcp/prisma-helper/` — 전용 MCP 가드 툴(인덱스/마이그레이션/PII), 루트 `.mcp.json` 등록
+- `scripts/worktree-new.sh` — 격리 worktree 생성 헬퍼(가이드 12.8)
