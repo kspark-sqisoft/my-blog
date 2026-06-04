@@ -47,15 +47,16 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
   4. 멱등. ✅ (실제 2차 실행 결과 + 단위 spec)
 
 #### T-PUB-301 — api PostService: contentHtml 입력 + sanitize + 응답 형식
-- priority: 60 / 의존: T-INFRA-302 / status: todo
+- priority: 60 / 의존: T-INFRA-302 / status: done (2026-06-05)
 - 산출:
-  - `post.service.ts`: create/update 가 `contentHtml` 을 받아 서버 sanitize 통과 후 저장.
-  - 응답 DTO 매핑(`toDetail`/`toSummary`) 가 contentHtml 노출.
-  - 파생값 계산은 후속 T-PUB-302 가 담당(이 태스크는 입력/저장만).
+  - `dto/create-post.dto.ts`, `dto/update-post.dto.ts`: `contentMarkdown`/`contentHtml` 모두 optional. 서비스가 정합성 강제.
+  - `post.service.ts`: `resolveBody(input)` 헬퍼(contentHtml 우선 sanitize, 없으면 markdown → html), create/update 가 contentMarkdown+contentHtml 양쪽에 저장, `toDetail` 에 contentHtml 노출.
+  - `post.controller.ts` 가 `dto.contentHtml` 도 전달.
+  - e2e 3 신규: contentHtml 입력 OK + 응답 contentHtml, `<script>`/onerror 제거(응답+상세), contentMarkdown 호환.
 - acceptance:
-  1. `POST /api/posts { contentHtml }` → DB 의 contentHtml 가 sanitize 결과로 저장.
-  2. `<script>` 같은 위험 태그는 응답·DB 모두에서 제거.
-  3. `GET /api/posts/:id` 응답에 contentHtml 포함, contentMarkdown 키 없음.
+  1. `POST/PATCH /api/posts { contentHtml }` → sanitize 결과로 DB 저장. ✅
+  2. `<script>`/`onerror` 등 위험 태그 응답·DB 에서 제거. ✅
+  3. `GET /api/posts/:id` 응답에 contentHtml 포함. ✅ / `contentMarkdown` 키 응답에서 제거는 **T-WEB-303(클라가 contentHtml 사용 전환) 이후 별도 ADR/태스크에서 회수** — 점진 전환을 위해 과도기 동안 양쪽 노출.
 
 #### T-PUB-302 — 파생값(summary/coverImageUrl) HTML 입력 대응
 - priority: 61 / 의존: T-PUB-301 / status: todo
