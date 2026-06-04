@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (docs/tasks 완전 동기화)",
+  "updated_at": "2026-06-04 (multiuser-rbac 태스크 등록)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -664,6 +664,229 @@
         "글 목록 카드 메타에 authorName 표시",
         "글 상세 헤더 메타에 authorName 표시",
         "기존 제목/발행일/태그 셀렉터·접근성 유지"
+      ]
+    },
+    {
+      "id": "T-AUTH-005",
+      "title": "User.role(UserRole) + Comment.userId 스키마·마이그레이션 + seed ADMIN",
+      "epic": "E9",
+      "context": "AUTH",
+      "priority": 36,
+      "deps": [
+        "T-WEB-011"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "schema.prisma에 UserRole enum, User.role(NOT NULL default MEMBER), Comment.userId nullable+FK(onDelete SetNull)",
+        "마이그레이션이 기존 user를 ADMIN 백필(이 시점 시드 운영자만 존재)",
+        "seedOperator가 create/update 모두 role=ADMIN 부여(seed-operator.spec)",
+        "dev blog + test blog_test 양쪽 migrate 적용"
+      ]
+    },
+    {
+      "id": "T-AUTH-006",
+      "title": "shared 타입: UserRole + AuthUserDto(role,name) + Register/AdminUser/UpdateUserRole DTO",
+      "epic": "E9",
+      "context": "AUTH",
+      "priority": 37,
+      "deps": [],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": false,
+      "acceptance": [
+        "UserRole 타입, AuthUserDto에 role·name 추가",
+        "RegisterDto/AdminUserDto/UpdateUserRoleDto export",
+        "shared 빌드 통과 + 기존 사용처 타입 통과"
+      ]
+    },
+    {
+      "id": "T-AUTH-007",
+      "title": "JwtStrategy DB 재조회로 role 주입(즉시 반영) + 삭제계정 401",
+      "epic": "E9",
+      "context": "AUTH",
+      "priority": 38,
+      "deps": [
+        "T-AUTH-005",
+        "T-AUTH-006"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "validate가 PrismaService로 user 재조회해 {id,email,name,role} 반환",
+        "삭제된 계정 토큰은 401",
+        "login/me 응답 user에 name·role 포함"
+      ]
+    },
+    {
+      "id": "T-AUTH-008",
+      "title": "RBAC 가드: @Roles + RolesGuard(Reflector) + OptionalJwtAuthGuard",
+      "epic": "E9",
+      "context": "AUTH",
+      "priority": 39,
+      "deps": [
+        "T-AUTH-006"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "@Roles, RolesGuard 구현(메타 없으면 통과, 역할 불일치 403) — roles.guard.spec",
+        "OptionalJwtAuthGuard(토큰 없거나 무효여도 통과)",
+        "AuthModule이 RolesGuard providers+exports"
+      ]
+    },
+    {
+      "id": "T-PUB-105",
+      "title": "Post 소유권(Actor) + 컨트롤러 @Roles 부착",
+      "epic": "E9",
+      "context": "PUB",
+      "priority": 40,
+      "deps": [
+        "T-AUTH-007",
+        "T-AUTH-008"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "post.service update/remove/publish/unpublish가 Actor 수용, ADMIN 전체/AUTHOR 본인/타인 403 — post.service.spec",
+        "post.controller 쓰기 @Roles(AUTHOR,ADMIN)+actor 전달, admin-post @Roles(ADMIN), upload @Roles(AUTHOR,ADMIN)",
+        "post.e2e 역할별 200/403"
+      ]
+    },
+    {
+      "id": "T-AUTH-009",
+      "title": "회원가입 POST /api/auth/register (MEMBER, 409, 즉시 로그인)",
+      "epic": "E9",
+      "context": "AUTH",
+      "priority": 41,
+      "deps": [
+        "T-AUTH-005",
+        "T-AUTH-006",
+        "T-AUTH-007"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "RegisterDto 검증(email, password 8~72, name 1~50)",
+        "MEMBER 생성+bcrypt 해시, 중복 email 409",
+        "성공 시 즉시 로그인 쿠키+user 반환 — auth.e2e"
+      ]
+    },
+    {
+      "id": "T-AUTH-010",
+      "title": "사용자 관리 API: GET /api/admin/users, PATCH /:id/role (마지막 ADMIN 보호)",
+      "epic": "E9",
+      "context": "AUTH",
+      "priority": 42,
+      "deps": [
+        "T-AUTH-008"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "GET 목록(ADMIN, Paginated<AdminUserDto>)",
+        "PATCH role 변경(ADMIN), @IsIn 검증",
+        "마지막 ADMIN 강등 409(트랜잭션 count) — admin-users.e2e"
+      ]
+    },
+    {
+      "id": "T-CONV-004",
+      "title": "댓글 회원 연동: OptionalJwt + userId/실명, CommentDto authorName",
+      "epic": "E9",
+      "context": "CONV",
+      "priority": 43,
+      "deps": [
+        "T-AUTH-007",
+        "T-AUTH-008"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "로그인 댓글 userId 연결+실명(user.name), 비로그인 익명(displayName) 병행",
+        "CommentDto에 authorName·userId 추가(displayName 하위호환)",
+        "ConversationModule이 AuthModule import — comment.e2e"
+      ]
+    },
+    {
+      "id": "T-WEB-012",
+      "title": "회원가입 페이지 /register + useRegister",
+      "epic": "E9",
+      "context": "WEB",
+      "priority": 44,
+      "deps": [
+        "T-AUTH-009",
+        "T-AUTH-006"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "/register RHF+Zod 폼, 성공 시 인증+홈 이동",
+        "중복 409 에러 표시",
+        "NavBar 비인증 시 회원가입 링크"
+      ]
+    },
+    {
+      "id": "T-WEB-013",
+      "title": "역할별 라우트 게이팅 RoleRoute",
+      "epic": "E9",
+      "context": "WEB",
+      "priority": 45,
+      "deps": [
+        "T-WEB-012"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "RoleRoute(roles) 컴포넌트",
+        "/admin/*→(AUTHOR,ADMIN), /admin/users→ADMIN",
+        "MEMBER는 / 로 리다이렉트 — routes.test"
+      ]
+    },
+    {
+      "id": "T-WEB-014",
+      "title": "사용자 관리 화면 /admin/users (ADMIN)",
+      "epic": "E9",
+      "context": "WEB",
+      "priority": 46,
+      "deps": [
+        "T-WEB-013",
+        "T-AUTH-010"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "목록+역할 변경 셀렉트(useAdminUsers/useUpdateUserRole)",
+        "마지막 ADMIN 409 처리(토스트/에러)",
+        "ADMIN만 사이드바 사용자 링크"
+      ]
+    },
+    {
+      "id": "T-WEB-015",
+      "title": "댓글 폼 실명 자동 + CommentTree authorName",
+      "epic": "E9",
+      "context": "WEB",
+      "priority": 47,
+      "deps": [
+        "T-CONV-004",
+        "T-WEB-012"
+      ],
+      "status": "todo",
+      "feature": "multiuser-rbac",
+      "tdd_first": true,
+      "acceptance": [
+        "로그인 시 이름 입력 숨기고 user.name 표시, displayName 미전송",
+        "CommentTree authorName 표시",
+        "e2e GWT: 가입→승격→작성 소유권, 실명 댓글"
       ]
     }
   ]
