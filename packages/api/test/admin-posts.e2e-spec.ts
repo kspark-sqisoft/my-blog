@@ -71,7 +71,7 @@ describe('AdminPostController (e2e)', () => {
       contentMarkdown: 'p',
       authorId,
     });
-    await posts.publish(pub.id);
+    await posts.publish(pub.id, { id: authorId, role: 'ADMIN' });
 
     const res = await request(app.getHttpServer())
       .get('/api/admin/posts?page=1&pageSize=10')

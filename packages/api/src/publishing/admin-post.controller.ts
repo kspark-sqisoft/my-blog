@@ -5,11 +5,14 @@ import type {
   PostDetailDto,
 } from '@blog/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { ListPostsQueryDto } from './dto/list-posts.query';
 import { PostService } from './post.service';
 
-// 운영자 전용 Post API (초안 포함). JwtAuthGuard 보호.
-@UseGuards(JwtAuthGuard)
+// 운영자 전용 Post API (초안 포함). 다른 작성자 초안까지 노출되므로 ADMIN 한정 (ADR-0018).
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('admin/posts')
 export class AdminPostController {
   constructor(private readonly posts: PostService) {}

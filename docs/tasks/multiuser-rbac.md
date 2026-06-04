@@ -40,7 +40,7 @@
   3. AuthModule이 RolesGuard providers+exports.
 
 #### T-PUB-105 — Post 소유권(Actor) + 컨트롤러 @Roles 부착
-- priority: 40 / 의존: T-AUTH-007, T-AUTH-008 / status: todo
+- priority: 40 / 의존: T-AUTH-007, T-AUTH-008 / status: done (2026-06-04)
 - acceptance:
   1. post.service update/remove/publish/unpublish가 Actor 수용, ADMIN 전체/AUTHOR 본인/타인 403 — post.service.spec.
   2. post.controller 쓰기 `@Roles(AUTHOR,ADMIN)`+actor 전달, admin-post `@Roles(ADMIN)`, upload `@Roles(AUTHOR,ADMIN)`.

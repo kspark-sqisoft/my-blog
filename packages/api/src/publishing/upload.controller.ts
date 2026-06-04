@@ -10,6 +10,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { UploadResultDto } from '@blog/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { StorageProvider } from './storage/storage.provider';
 
 const ALLOWED_MIME = new Set([
@@ -37,8 +39,9 @@ const imageFileFilter = (
 export class UploadController {
   constructor(private readonly storage: StorageProvider) {}
 
-  // 운영자 전용 이미지 업로드 (ADR-0012, NF6)
-  @UseGuards(JwtAuthGuard)
+  // 작성자/운영자 이미지 업로드 (ADR-0012, NF6 / ADR-0018)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('AUTHOR', 'ADMIN')
   @Post()
   @UseInterceptors(FileInterceptor('file', { fileFilter: imageFileFilter }))
   async upload(

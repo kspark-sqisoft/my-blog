@@ -61,8 +61,8 @@ describe('TagController (e2e)', () => {
       authorId,
       tags: ['z'], // 초안에만 쓰인 태그 → 제외 대상
     });
-    await posts.publish(p1.id);
-    await posts.publish(p2.id);
+    await posts.publish(p1.id, { id: authorId, role: 'ADMIN' });
+    await posts.publish(p2.id, { id: authorId, role: 'ADMIN' });
 
     const res = await request(app.getHttpServer()).get('/api/tags').expect(200);
     const body = res.body as { name: string; postCount: number }[];

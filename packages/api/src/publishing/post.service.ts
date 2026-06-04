@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type {
   AdminPostSummaryDto,
   Paginated,
   PostDetailDto,
   PostSummaryDto,
+  UserRole,
 } from '@blog/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { extractFirstImageUrl } from './cover-image';
@@ -31,6 +36,12 @@ export interface UpdatePostInput {
   title?: string;
   contentMarkdown?: string;
   tags?: string[];
+}
+
+// 글을 변경하려는 주체 (ADR-0018). ADMIN은 전체, AUTHOR는 본인 글만.
+export interface Actor {
+  id: string;
+  role: UserRole;
 }
 
 // 관계 포함 Post 조회 시 사용할 형태 (태그 + 작성자 표시 이름 — ADR-0017)
@@ -74,8 +85,13 @@ export class PostService {
     return this.toDetail(post);
   }
 
-  async update(id: string, input: UpdatePostInput): Promise<PostDetailDto> {
-    await this.ensureExists(id);
+  async update(
+    id: string,
+    input: UpdatePostInput,
+    actor: Actor,
+  ): Promise<PostDetailDto> {
+    const existing = await this.requirePost(id);
+    this.assertCanMutate(existing, actor);
     if (input.tags !== undefined) {
       this.tags.assertWithinLimit(input.tags);
     }
@@ -96,8 +112,9 @@ export class PostService {
     return this.toDetail(post);
   }
 
-  async remove(id: string): Promise<void> {
-    await this.ensureExists(id);
+  async remove(id: string, actor: Actor): Promise<void> {
+    const existing = await this.requirePost(id);
+    this.assertCanMutate(existing, actor);
     await this.prisma.post.delete({ where: { id } });
   }
 
@@ -177,8 +194,9 @@ export class PostService {
   }
 
   // 발행 (ADR-0005). 멱등: 이미 발행이면 publishedAt 유지.
-  async publish(id: string): Promise<PostDetailDto> {
+  async publish(id: string, actor: Actor): Promise<PostDetailDto> {
     const existing = await this.requirePost(id);
+    this.assertCanMutate(existing, actor);
     if (existing.status === 'PUBLISHED') {
       return this.toDetail(existing);
     }
@@ -191,8 +209,9 @@ export class PostService {
   }
 
   // 발행 취소. 멱등: 이미 초안이면 그대로. 초안은 publishedAt 없음으로 정리.
-  async unpublish(id: string): Promise<PostDetailDto> {
+  async unpublish(id: string, actor: Actor): Promise<PostDetailDto> {
     const existing = await this.requirePost(id);
+    this.assertCanMutate(existing, actor);
     if (existing.status === 'DRAFT') {
       return this.toDetail(existing);
     }
@@ -204,11 +223,12 @@ export class PostService {
     return this.toDetail(post);
   }
 
-  private async ensureExists(id: string): Promise<void> {
-    const exists = await this.prisma.post.findUnique({ where: { id } });
-    if (!exists) {
-      throw new NotFoundException('Post를 찾을 수 없습니다.');
-    }
+  // 소유권 검사 (ADR-0018): ADMIN은 전체, AUTHOR는 본인 글만. 위반 시 403.
+  // (존재 여부는 호출 전 requirePost가 404로 먼저 처리한다 — 404 → 403 순서)
+  private assertCanMutate(post: { authorId: string }, actor: Actor): void {
+    if (actor.role === 'ADMIN') return;
+    if (post.authorId === actor.id) return;
+    throw new ForbiddenException('본인 글만 수정·삭제·발행할 수 있습니다.');
   }
 
   // 관계 포함 조회 + 존재 보장

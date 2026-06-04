@@ -1,9 +1,9 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { seedOperator } from '../auth/seed-operator';
-import { PostService } from './post.service';
+import { PostService, type Actor } from './post.service';
 import { TagService } from './tag.service';
 
 process.env.DATABASE_URL ??=
@@ -14,6 +14,7 @@ describe('PostService (통합)', () => {
   let service: PostService;
   let prisma: PrismaService;
   let authorId: string;
+  let adminActor: Actor;
 
   const authorEmail = 'pub-author@example.com';
 
@@ -31,6 +32,7 @@ describe('PostService (통합)', () => {
       name: '글쓴이',
     });
     authorId = user.id;
+    adminActor = { id: authorId, role: 'ADMIN' };
   });
 
   beforeEach(async () => {
@@ -58,6 +60,65 @@ describe('PostService (통합)', () => {
     expect([...post.tags].sort()).toEqual(['ddd', 'nestjs']);
   });
 
+  // 소유권 (ADR-0018)
+  it('AUTHOR는 본인 글을 수정/발행/삭제할 수 있다', async () => {
+    const created = await service.create({
+      title: '내 글',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    const owner: Actor = { id: authorId, role: 'AUTHOR' };
+    const upd = await service.update(created.id, { title: '수정' }, owner);
+    expect(upd.title).toBe('수정');
+    const pub = await service.publish(created.id, owner);
+    expect(pub.status).toBe('PUBLISHED');
+    await service.remove(created.id, owner);
+    expect(
+      await prisma.post.findUnique({ where: { id: created.id } }),
+    ).toBeNull();
+  });
+
+  it('AUTHOR가 타인 글을 수정/발행/삭제하면 ForbiddenException(403)', async () => {
+    const created = await service.create({
+      title: '남의 글',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    const stranger: Actor = { id: 'stranger-id', role: 'AUTHOR' };
+    await expect(
+      service.update(created.id, { title: 'x' }, stranger),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.publish(created.id, stranger)).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
+    await expect(service.remove(created.id, stranger)).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
+  });
+
+  it('ADMIN은 타인 글도 수정/삭제할 수 있다', async () => {
+    const created = await service.create({
+      title: '타인 글',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    const otherAdmin: Actor = { id: 'admin-2', role: 'ADMIN' };
+    const upd = await service.update(
+      created.id,
+      { title: '관리자 수정' },
+      otherAdmin,
+    );
+    expect(upd.title).toBe('관리자 수정');
+    await service.remove(created.id, otherAdmin);
+  });
+
+  it('없는 글은 권한 판정보다 먼저 NotFound(404)로 처리된다', async () => {
+    const stranger: Actor = { id: 'x', role: 'AUTHOR' };
+    await expect(
+      service.update('no-such-id', { title: 'x' }, stranger),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
   it('update는 title/contentMarkdown/tags 부분 수정을 반영한다', async () => {
     const created = await service.create({
       title: '원본',
@@ -65,11 +126,15 @@ describe('PostService (통합)', () => {
       authorId,
       tags: ['a'],
     });
-    const updated = await service.update(created.id, {
-      title: '수정됨',
-      contentMarkdown: '수정 본문',
-      tags: ['b', 'c'],
-    });
+    const updated = await service.update(
+      created.id,
+      {
+        title: '수정됨',
+        contentMarkdown: '수정 본문',
+        tags: ['b', 'c'],
+      },
+      adminActor,
+    );
     expect(updated.title).toBe('수정됨');
     expect(updated.contentMarkdown).toBe('수정 본문');
     expect([...updated.tags].sort()).toEqual(['b', 'c']);
@@ -77,14 +142,14 @@ describe('PostService (통합)', () => {
 
   it('존재하지 않는 id update → NotFoundException', async () => {
     await expect(
-      service.update('no-such-id', { title: 'x' }),
+      service.update('no-such-id', { title: 'x' }, adminActor),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('존재하지 않는 id remove → NotFoundException', async () => {
-    await expect(service.remove('no-such-id')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.remove('no-such-id', adminActor),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('remove는 Post를 삭제한다', async () => {
@@ -93,7 +158,7 @@ describe('PostService (통합)', () => {
       contentMarkdown: 'x',
       authorId,
     });
-    await service.remove(created.id);
+    await service.remove(created.id, adminActor);
     const found = await prisma.post.findUnique({ where: { id: created.id } });
     expect(found).toBeNull();
   });
@@ -104,7 +169,7 @@ describe('PostService (통합)', () => {
       contentMarkdown: 'x',
       authorId,
     });
-    const published = await service.publish(created.id);
+    const published = await service.publish(created.id, adminActor);
     expect(published.status).toBe('PUBLISHED');
     expect(published.publishedAt).not.toBeNull();
   });
@@ -115,8 +180,8 @@ describe('PostService (통합)', () => {
       contentMarkdown: 'x',
       authorId,
     });
-    await service.publish(created.id);
-    const draft = await service.unpublish(created.id);
+    await service.publish(created.id, adminActor);
+    const draft = await service.unpublish(created.id, adminActor);
     expect(draft.status).toBe('DRAFT');
     expect(draft.publishedAt).toBeNull();
   });
@@ -127,8 +192,8 @@ describe('PostService (통합)', () => {
       contentMarkdown: 'x',
       authorId,
     });
-    const first = await service.publish(created.id);
-    const second = await service.publish(created.id);
+    const first = await service.publish(created.id, adminActor);
+    const second = await service.publish(created.id, adminActor);
     expect(second.status).toBe('PUBLISHED');
     expect(second.publishedAt).toBe(first.publishedAt);
   });
@@ -139,17 +204,17 @@ describe('PostService (통합)', () => {
       contentMarkdown: 'x',
       authorId,
     });
-    const res = await service.unpublish(created.id);
+    const res = await service.unpublish(created.id, adminActor);
     expect(res.status).toBe('DRAFT');
   });
 
   it('없는 id publish/unpublish → NotFoundException', async () => {
-    await expect(service.publish('no-such-id')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
-    await expect(service.unpublish('no-such-id')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.publish('no-such-id', adminActor),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(
+      service.unpublish('no-such-id', adminActor),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('listPublished는 발행된 Post만 최신순으로 반환한다(초안 제외)', async () => {
@@ -168,8 +233,8 @@ describe('PostService (통합)', () => {
       contentMarkdown: 'b',
       authorId,
     });
-    await service.publish(a.id);
-    await service.publish(b.id); // b가 더 늦게 발행
+    await service.publish(a.id, adminActor);
+    await service.publish(b.id, adminActor); // b가 더 늦게 발행
 
     const page = await service.listPublished({ page: 1, pageSize: 10 });
     const ids = page.items.map((p) => p.id);
@@ -187,7 +252,7 @@ describe('PostService (통합)', () => {
         contentMarkdown: t,
         authorId,
       });
-      await service.publish(p.id);
+      await service.publish(p.id, adminActor);
     }
     const first = await service.listPublished({ page: 1, pageSize: 2 });
     expect(first.items).toHaveLength(2);
@@ -210,8 +275,8 @@ describe('PostService (통합)', () => {
       authorId,
       tags: ['y'],
     });
-    await service.publish(withX.id);
-    await service.publish(withY.id);
+    await service.publish(withX.id, adminActor);
+    await service.publish(withY.id, adminActor);
 
     const page = await service.listPublished({
       page: 1,
@@ -235,8 +300,8 @@ describe('PostService (통합)', () => {
       contentMarkdown: '이미지 없는 본문',
       authorId,
     });
-    await service.publish(withImg.id);
-    await service.publish(noImg.id);
+    await service.publish(withImg.id, adminActor);
+    await service.publish(noImg.id, adminActor);
 
     const page = await service.listPublished({ page: 1, pageSize: 10 });
     const byId = new Map(page.items.map((p) => [p.id, p]));
@@ -251,7 +316,7 @@ describe('PostService (통합)', () => {
       authorId,
       tags: ['x', 'y'],
     });
-    await service.publish(created.id);
+    await service.publish(created.id, adminActor);
 
     const detail = await service.getPublishedDetail(created.id);
     expect(detail.id).toBe(created.id);
@@ -289,7 +354,7 @@ describe('PostService (통합)', () => {
       authorId,
       tags: ['admin'],
     });
-    await service.publish(pub.id);
+    await service.publish(pub.id, adminActor);
 
     const page = await service.listForAdmin({ page: 1, pageSize: 10 });
     const ids = page.items.map((p) => p.id);

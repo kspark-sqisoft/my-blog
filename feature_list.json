@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (T-AUTH-008)",
+  "updated_at": "2026-06-04 (T-PUB-105, Phase 1 완료)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -752,14 +752,15 @@
         "T-AUTH-007",
         "T-AUTH-008"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "multiuser-rbac",
       "tdd_first": true,
       "acceptance": [
         "post.service update/remove/publish/unpublish가 Actor 수용, ADMIN 전체/AUTHOR 본인/타인 403 — post.service.spec",
         "post.controller 쓰기 @Roles(AUTHOR,ADMIN)+actor 전달, admin-post @Roles(ADMIN), upload @Roles(AUTHOR,ADMIN)",
         "post.e2e 역할별 200/403"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-AUTH-009",

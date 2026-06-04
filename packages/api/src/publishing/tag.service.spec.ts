@@ -81,7 +81,11 @@ describe('TagService (통합)', () => {
       authorId,
       tags: ['a', 'b'],
     });
-    const u = await postService.update(p.id, { tags: ['b', 'c'] });
+    const u = await postService.update(
+      p.id,
+      { tags: ['b', 'c'] },
+      { id: authorId, role: 'ADMIN' },
+    );
     expect([...u.tags].sort()).toEqual(['b', 'c']);
   });
 
