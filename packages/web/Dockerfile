@@ -18,10 +18,12 @@ WORKDIR /repo/packages/web
 EXPOSE 5173
 CMD ["pnpm", "run", "dev", "--", "--host", "0.0.0.0"]
 
-# ---- build: 정적 산출물 생성 ----
+# ---- build: shared 빌드 + 정적 산출물 생성 ----
 FROM base AS build
 COPY packages/shared ./packages/shared
 COPY packages/web ./packages/web
+# shared 의 dist 가 있어야 vite 빌드 시 value import(richHtmlSchema 등, ADR-0021) resolve 가능
+RUN pnpm --filter @blog/shared build
 WORKDIR /repo/packages/web
 RUN pnpm run build
 

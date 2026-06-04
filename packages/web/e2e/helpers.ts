@@ -28,3 +28,25 @@ export const PIXEL_PNG = {
     'base64',
   ),
 };
+
+// 최소 MP4 시연용(헤더만, 실제 재생 불가). 격리 e2e 의 업로드 한도 안에서 contentType 검증 용도.
+export const TINY_MP4 = {
+  name: 'demo.mp4',
+  mimeType: 'video/mp4',
+  buffer: Buffer.from('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDE=', 'base64'),
+};
+
+// ADR-0021: 본문 입력은 TipTap RichEditor(contenteditable). textarea.fill() 이 안 되어
+// focus + keyboard.type 으로 입력한다. 여러 줄은 Enter 로 분리.
+export async function typeRichBody(
+  page: Page,
+  text: string,
+): Promise<void> {
+  const editor = page.getByLabel('본문');
+  await editor.click();
+  const lines = text.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (i > 0) await page.keyboard.press('Enter');
+    if (lines[i]) await page.keyboard.type(lines[i]);
+  }
+}

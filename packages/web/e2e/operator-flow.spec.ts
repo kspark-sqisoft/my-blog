@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { loginAsOperator, PIXEL_PNG } from './helpers';
+import { loginAsOperator, PIXEL_PNG, typeRichBody } from './helpers';
 
 // acceptance #1: 운영자 로그인 → 작성 → 이미지 업로드 → 발행
 test('운영자가 글을 작성하고 이미지를 올린 뒤 발행한다', async ({ page }) => {
@@ -12,11 +12,11 @@ test('운영자가 글을 작성하고 이미지를 올린 뒤 발행한다', as
   await page.getByRole('link', { name: '새 글 작성' }).click();
   await page.waitForURL('**/admin/posts/new');
   await page.getByLabel('제목').fill(title);
-  await page.getByLabel('본문(마크다운)').fill('# E2E 본문\n\n내용입니다.');
+  await typeRichBody(page, 'E2E 본문 내용입니다.');
 
-  // And: 이미지를 업로드하면 본문에 마크다운 이미지가 삽입된다
-  await page.getByLabel('이미지 업로드').setInputFiles(PIXEL_PNG);
-  await expect(page.getByLabel('본문(마크다운)')).toHaveValue(/!\[pixel\.png\]/);
+  // And: 이미지를 업로드하면 본문에 <img> 노드가 삽입된다(ADR-0021 RichEditor).
+  await page.getByLabel('미디어 업로드').setInputFiles(PIXEL_PNG);
+  await expect(page.locator('.ab-rich-editor img').first()).toBeVisible();
 
   // And: 저장하면 대시보드로 이동하고 초안으로 표시된다
   await page.getByRole('button', { name: '저장' }).click();
@@ -35,7 +35,7 @@ test('운영자가 글을 작성하고 이미지를 올린 뒤 발행한다', as
   // And: 상세에서 업로드 이미지가 실제로 렌더된다(깨진 이미지 회귀 방지)
   await page.getByRole('link', { name: title }).click();
   await page.waitForURL('**/posts/**');
-  const img = page.locator('.prose img').first();
+  const img = page.locator('.ab-rich-content img').first();
   await expect(img).toBeVisible();
   await expect
     .poll(() =>

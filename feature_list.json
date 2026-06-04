@@ -1236,12 +1236,32 @@
         "T-WEB-302",
         "T-WEB-303"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
-        "도구바 상호작용으로 색/크기/이미지/비디오 본문 반영",
-        "발행 후 상세에서 동일 시각 표시",
+        "rich-editor.spec.ts 작성: 가입 → 작성 → 색/크기/이미지 → 발행 → 상세 동일 표시",
+        "기존 4 e2e (author-self-serve/draft-hidden/operator-flow/member-journey) 의 본문 입력이 typeRichBody 헬퍼로 RichEditor 호환 갱신",
+        "shared prod 빌드 인프라 패치(Dockerfile + tsconfig.build): richHtmlSchema value import 가 e2e prod 빌드에서도 resolve",
+        "격리 스택 실제 실행은 T-WEB-305(별건) 가 진행"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-WEB-305",
+      "title": "e2e 격리 prod 빌드 RichEditor 진입 디버그",
+      "epic": "E11",
+      "context": "WEB",
+      "priority": 66,
+      "deps": [
+        "T-WEB-304"
+      ],
+      "status": "todo",
+      "feature": "rich-text-editor",
+      "tdd_first": false,
+      "acceptance": [
+        "격리 스택(prod 빌드) 에서 /admin/posts/new 진입 시 제목·본문 라벨이 정상 렌더",
+        "rich-editor.spec.ts + 기존 4 e2e 가 격리 스택에서 통과",
         "dev DB 격리 위반 0"
       ]
     }

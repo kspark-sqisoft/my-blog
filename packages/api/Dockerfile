@@ -19,10 +19,12 @@ WORKDIR /repo/packages/api
 EXPOSE 3000
 CMD ["pnpm", "run", "start:dev"]
 
-# ---- build: Prisma 생성 + 컴파일 ----
+# ---- build: shared 빌드 + Prisma 생성 + api 컴파일 ----
 FROM base AS build
 COPY packages/shared ./packages/shared
 COPY packages/api ./packages/api
+# shared 의 dist(commonjs) 가 prod 런타임에 노출되어야 한다 — value import(richHtmlSchema 등, ADR-0021)
+RUN pnpm --filter @blog/shared build
 WORKDIR /repo/packages/api
 RUN pnpm exec prisma generate \
  && pnpm run build
@@ -49,6 +51,9 @@ COPY --from=build /repo/packages/api/dist ./dist
 COPY --from=build /repo/packages/api/generated ./generated
 COPY --from=build /repo/packages/api/prisma ./prisma
 COPY --from=build /repo/packages/api/package.json ./package.json
+# shared 의 빌드 산출물 — prod 런타임이 require('@blog/shared') 로 가져온다
+COPY --from=build /repo/packages/shared/dist /repo/packages/shared/dist
+COPY --from=build /repo/packages/shared/package.json /repo/packages/shared/package.json
 EXPOSE 3000
 # nest build 산출물은 tsconfig.build 기준 dist/src/main.js 로 떨어진다.
 CMD ["node", "dist/src/main"]

@@ -1,17 +1,18 @@
 {
   "name": "@blog/shared",
   "version": "1.0.0",
-  "description": "프론트·백엔드 공유 타입 계약 (순수 TS, ADR-0004)",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "description": "프론트·백엔드 공유 타입 계약 (TS source + 빌드 산출물, ADR-0004 / ADR-0021)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
+  "files": ["dist", "src"],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "echo \"no runtime tests (순수 타입 — typecheck로 검증)\" && exit 0"
   },
