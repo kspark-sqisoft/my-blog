@@ -56,7 +56,7 @@ describe('Register 페이지', () => {
 
   it('성공 가입 시 POST /auth/register 호출 후 홈(/)으로 이동한다', async () => {
     mockedApi.post.mockResolvedValueOnce({
-      data: { user: { id: 'u1', email: 'new@example.com', name: '새회원', role: 'MEMBER' } },
+      data: { user: { id: 'u1', email: 'new@example.com', name: '새회원', role: 'AUTHOR' } },
     });
     renderRegister();
     fillAndSubmit('new@example.com', 'secret123', '새회원');

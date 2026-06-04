@@ -51,8 +51,8 @@ blog-mvp는 3개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 | **Domain Events** | `UserRegistered`, `UserRoleChanged` (ADR-0018) |
 | **다른 Context 의존** | 없음 — 다른 Context가 User를 `userId`로 참조한다(역방향 의존 없음, 가장 안정적) |
 
-- 공개 회원가입은 기본 역할 `MEMBER`로 생성한다. 운영자(`ADMIN`)가 `AUTHOR`로 승격/강등한다(ADR-0018).
-- 권한 검사: 정적 역할은 가드(`RolesGuard`), 리소스 소유권(AUTHOR 본인 글)은 서비스 계층에서 판정한다(ADR-0018).
+- 공개 회원가입은 기본 역할 `AUTHOR`로 생성한다(가입 즉시 본인 글 작성 — ADR-0019, ADR-0018의 기본 `MEMBER`를 갱신). 운영자(`ADMIN`)는 글쓰기 권한을 회수하려면 `MEMBER`로 강등할 수 있다.
+- 권한 검사: 정적 역할은 가드(`RolesGuard`), 리소스 소유권(AUTHOR 본인 글)은 서비스 계층에서 판정한다(ADR-0018). 운영자 Post 목록/상세도 actor로 스코프한다(ADMIN 전체 / AUTHOR 본인 — ADR-0019).
 - 최초 `ADMIN`은 시드로 부트스트랩한다(ADR-0002는 ADR-0018로 supersede — 공개 가입 추가).
 
 ## Context 간 의존 다이어그램

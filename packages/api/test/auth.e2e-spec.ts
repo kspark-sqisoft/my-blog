@@ -94,7 +94,7 @@ describe('Auth (e2e)', () => {
     return request(app.getHttpServer()).get('/api/auth/me').expect(401);
   });
 
-  it('POST /api/auth/register 성공 → 201, MEMBER + 즉시 로그인 쿠키', async () => {
+  it('POST /api/auth/register 성공 → 201, AUTHOR + 즉시 로그인 쿠키', async () => {
     await prisma.user.deleteMany({ where: { email: regEmail } });
     const res = await request(app.getHttpServer())
       .post('/api/auth/register')
@@ -107,7 +107,8 @@ describe('Auth (e2e)', () => {
     ).user;
     expect(user.email).toBe(regEmail);
     expect(user.name).toBe('회원');
-    expect(user.role).toBe('MEMBER');
+    // ADR-0019: 공개 가입자는 가입 즉시 글을 쓸 수 있는 AUTHOR 로 생성된다
+    expect(user.role).toBe('AUTHOR');
   });
 
   it('POST /api/auth/register 중복 email → 409', async () => {

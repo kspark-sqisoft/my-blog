@@ -356,7 +356,10 @@ describe('PostService (통합)', () => {
     });
     await service.publish(pub.id, adminActor);
 
-    const page = await service.listForAdmin({ page: 1, pageSize: 10 });
+    const page = await service.listForAdmin(
+      { page: 1, pageSize: 10 },
+      adminActor,
+    );
     const ids = page.items.map((p) => p.id);
     expect(ids).toContain(draft.id);
     expect(ids).toContain(pub.id);
@@ -371,9 +374,36 @@ describe('PostService (통합)', () => {
     for (const t of ['a', 'b', 'c']) {
       await service.create({ title: t, contentMarkdown: t, authorId });
     }
-    const first = await service.listForAdmin({ page: 1, pageSize: 2 });
+    const first = await service.listForAdmin(
+      { page: 1, pageSize: 2 },
+      adminActor,
+    );
     expect(first.items).toHaveLength(2);
     expect(first.total).toBe(3);
+  });
+
+  // ADR-0019: 운영자 목록은 actor로 스코프 — AUTHOR 본인 글만, ADMIN 전체
+  it('listForAdmin은 AUTHOR에게 본인 글만 반환한다', async () => {
+    const mine = await service.create({
+      title: '내 글',
+      contentMarkdown: 'm',
+      authorId,
+    });
+    const owner: Actor = { id: authorId, role: 'AUTHOR' };
+    const stranger: Actor = { id: 'stranger-id', role: 'AUTHOR' };
+
+    const ownerPage = await service.listForAdmin(
+      { page: 1, pageSize: 10 },
+      owner,
+    );
+    expect(ownerPage.items.map((p) => p.id)).toContain(mine.id);
+
+    const strangerPage = await service.listForAdmin(
+      { page: 1, pageSize: 10 },
+      stranger,
+    );
+    expect(strangerPage.items.map((p) => p.id)).not.toContain(mine.id);
+    expect(strangerPage.total).toBe(0);
   });
 
   it('getForAdmin은 초안도 contentMarkdown·status 포함해 반환한다', async () => {
@@ -383,16 +413,33 @@ describe('PostService (통합)', () => {
       authorId,
       tags: ['x'],
     });
-    const detail = await service.getForAdmin(draft.id);
+    const detail = await service.getForAdmin(draft.id, adminActor);
     expect(detail.id).toBe(draft.id);
     expect(detail.status).toBe('DRAFT');
     expect(detail.contentMarkdown).toContain('# 초안 본문');
     expect([...detail.tags]).toEqual(['x']);
   });
 
+  // ADR-0019: AUTHOR는 본인 글만 편집 로드 가능 (타인 글 403, 없으면 404 우선)
+  it('getForAdmin은 AUTHOR가 본인 글이면 반환, 타인 글이면 403', async () => {
+    const draft = await service.create({
+      title: '소유 글',
+      contentMarkdown: '본문',
+      authorId,
+    });
+    const owner: Actor = { id: authorId, role: 'AUTHOR' };
+    const stranger: Actor = { id: 'stranger-id', role: 'AUTHOR' };
+
+    const detail = await service.getForAdmin(draft.id, owner);
+    expect(detail.id).toBe(draft.id);
+    await expect(
+      service.getForAdmin(draft.id, stranger),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
   it('getForAdmin은 없는 id → NotFoundException', async () => {
-    await expect(service.getForAdmin('no-such-id')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.getForAdmin('no-such-id', adminActor),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });

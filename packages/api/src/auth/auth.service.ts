@@ -39,7 +39,9 @@ export class AuthService {
     return this.issue(user);
   }
 
-  // 회원가입: 항상 MEMBER로 생성하고 즉시 로그인 토큰을 발급한다 (ADR-0018).
+  // 회원가입: 항상 AUTHOR로 생성하고 즉시 로그인 토큰을 발급한다 (ADR-0019).
+  // 공개 가입자는 가입 즉시 본인 글을 쓸 수 있다(ADR-0018의 기본 MEMBER를 갱신).
+  // 클라이언트가 role을 지정할 수 없도록 서버가 강제한다(화이트리스트).
   async register(
     email: string,
     password: string,
@@ -51,7 +53,7 @@ export class AuthService {
     }
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await this.prisma.user.create({
-      data: { email, passwordHash, name, role: 'MEMBER' },
+      data: { email, passwordHash, name, role: 'AUTHOR' },
     });
     return this.issue(user);
   }

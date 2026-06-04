@@ -900,6 +900,44 @@
         "e2e GWT: 가입→승격→작성 소유권, 실명 댓글"
       ],
       "completed_at": "2026-06-04"
+    },
+    {
+      "id": "T-AUTH-011",
+      "title": "공개 가입 기본 역할 AUTHOR (가입 즉시 글 작성)",
+      "epic": "E9",
+      "context": "AUTH",
+      "priority": 48,
+      "deps": [
+        "T-AUTH-009"
+      ],
+      "status": "done",
+      "feature": "author-by-default",
+      "tdd_first": true,
+      "acceptance": [
+        "POST /api/auth/register → 기본 역할 AUTHOR (ADR-0019)",
+        "클라이언트 role 지정 불가(화이트리스트 400) 유지",
+        "DB 컬럼 기본값은 MEMBER 유지(방어적 기본값, 마이그레이션 없음)"
+      ],
+      "completed_at": "2026-06-04"
+    },
+    {
+      "id": "T-PUB-106",
+      "title": "운영자 Post 목록/상세 작성자 스코프 (AUTHOR 본인)",
+      "epic": "E9",
+      "context": "PUB",
+      "priority": 49,
+      "deps": [
+        "T-AUTH-011"
+      ],
+      "status": "done",
+      "feature": "author-by-default",
+      "tdd_first": true,
+      "acceptance": [
+        "GET /api/admin/posts: AUTHOR 본인 글만, ADMIN 전체 (ADR-0019)",
+        "GET /api/admin/posts/:id: 타인 글이면 403, 없으면 404 우선",
+        "AdminPostController @Roles('AUTHOR','ADMIN') 로 개방"
+      ],
+      "completed_at": "2026-06-04"
     }
   ]
 }

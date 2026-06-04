@@ -153,18 +153,22 @@ export class PostService {
   // 운영자 대시보드용 전체 목록 (초안+발행, createdAt 최신순, status 포함)
   async listForAdmin(
     params: { page?: number; pageSize?: number } = {},
+    actor: Actor,
   ): Promise<Paginated<AdminPostSummaryDto>> {
     const page = params.page ?? DEFAULT_PAGE;
     const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+    // 작성자 스코프 (ADR-0019): ADMIN은 전체, AUTHOR는 본인 글만.
+    const where = actor.role === 'ADMIN' ? {} : { authorId: actor.id };
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.post.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: withTags,
       }),
-      this.prisma.post.count(),
+      this.prisma.post.count({ where }),
     ]);
 
     return {
@@ -175,9 +179,11 @@ export class PostService {
     };
   }
 
-  // 운영자 단건 상세 (초안 포함). 편집 화면 로드용.
-  async getForAdmin(id: string): Promise<PostDetailDto> {
+  // 운영자/작성자 단건 상세 (초안 포함). 편집 화면 로드용.
+  // ADR-0019: AUTHOR는 본인 글만 (없으면 404, 타인 글이면 403 — 순서 유지).
+  async getForAdmin(id: string, actor: Actor): Promise<PostDetailDto> {
     const post = await this.requirePost(id);
+    this.assertCanMutate(post, actor);
     return this.toDetail(post);
   }
 
