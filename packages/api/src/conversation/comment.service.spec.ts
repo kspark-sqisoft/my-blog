@@ -73,6 +73,30 @@ describe('CommentService (통합)', () => {
     expect(reply.depth).toBe(1);
   });
 
+  it('로그인 회원 댓글은 userId 연결 + 계정 이름(실명), displayName 무시 (ADR-0018)', async () => {
+    const user = await prisma.user.findUnique({ where: { id: authorId } });
+    const c = await service.create({
+      postId: publishedId,
+      body: '회원 댓글',
+      userId: authorId,
+      displayName: '무시될-이름',
+    });
+    expect(c.userId).toBe(authorId);
+    expect(c.authorName).toBe(user?.name);
+    expect(c.displayName).toBeNull();
+  });
+
+  it('비로그인 댓글은 익명(displayName)이고 userId는 null (ADR-0018)', async () => {
+    const c = await service.create({
+      postId: publishedId,
+      body: '익명 댓글',
+      displayName: '익명이',
+    });
+    expect(c.userId).toBeNull();
+    expect(c.authorName).toBe('익명이');
+    expect(c.displayName).toBe('익명이');
+  });
+
   it('깊이 2까지 허용하고 깊이 3은 BadRequestException', async () => {
     const top = await service.create({ postId: publishedId, body: 't' });
     const r1 = await service.create({

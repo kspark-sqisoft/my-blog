@@ -65,7 +65,7 @@
 ### S9.3 댓글 회원 연동 (Phase 3)
 
 #### T-CONV-004 — 댓글 회원 연동: OptionalJwt + userId/실명, CommentDto authorName
-- priority: 43 / 의존: T-AUTH-007, T-AUTH-008 / status: todo
+- priority: 43 / 의존: T-AUTH-007, T-AUTH-008 / status: done (2026-06-04)
 - acceptance:
   1. 로그인 댓글 userId 연결 + 실명(user.name), 비로그인 익명(displayName) 병행.
   2. CommentDto에 authorName·userId 추가(displayName 하위호환).

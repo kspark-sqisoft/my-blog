@@ -67,15 +67,47 @@ describe('CommentController (e2e)', () => {
     expect(body[0].replies).toHaveLength(1);
   });
 
-  it('POST /api/posts/:postId/comments (공개, 익명) → 201 + CommentDto', async () => {
+  it('POST /api/posts/:postId/comments (공개, 익명) → 201 + authorName=displayName, userId null', async () => {
     const res = await request(app.getHttpServer())
       .post(`/api/posts/${postId}/comments`)
       .send({ body: '익명 댓글', displayName: '방문자' })
       .expect(201);
-    const body = res.body as { id: string; depth: number; body: string };
+    const body = res.body as {
+      id: string;
+      depth: number;
+      body: string;
+      authorName: string | null;
+      userId: string | null;
+    };
     expect(body.body).toBe('익명 댓글');
     expect(body.depth).toBe(0);
-    expect(body.id).toBeTruthy();
+    expect(body.authorName).toBe('방문자');
+    expect(body.userId).toBeNull();
+  });
+
+  it('로그인 회원 POST → 201 + 계정 이름(실명) + userId, displayName 무시 (ADR-0018)', async () => {
+    // 운영자(시드, 이름=comment-e2e)로 로그인
+    const login = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: authorEmail, password: 'x' })
+      .expect(200);
+    const setCookie = login.headers['set-cookie'];
+    const cookieArr: string[] = Array.isArray(setCookie) ? setCookie : [];
+    const cookie = cookieArr.find((c) => c.startsWith('access_token=')) ?? '';
+
+    const res = await request(app.getHttpServer())
+      .post(`/api/posts/${postId}/comments`)
+      .set('Cookie', cookie)
+      .send({ body: '회원 댓글', displayName: '무시될-이름' })
+      .expect(201);
+    const body = res.body as {
+      authorName: string | null;
+      userId: string | null;
+      displayName: string | null;
+    };
+    expect(body.userId).toBe(authorId);
+    expect(body.authorName).toBe('comment-e2e'); // email 로컬파트 = 시드 이름
+    expect(body.displayName).toBeNull();
   });
 
   it('body 누락 → 400', () => {

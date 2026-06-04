@@ -11,18 +11,24 @@ export interface CreateCommentInput {
   body: string;
   displayName?: string;
   parentId?: string;
+  userId?: string; // 로그인 회원이면 설정 (ADR-0018)
 }
 
 // 답글 최대 깊이 (최상위=0, 답글=1, 답글의 답글=2 — ADR-0013)
 const MAX_DEPTH = 2;
 
+// 작성자 이름·userId까지 포함해 조회 (ADR-0018)
+const withUser = { user: { select: { name: true } } } as const;
+
 type CommentRow = {
   id: string;
   postId: string;
   parentId: string | null;
+  userId: string | null;
   displayName: string | null;
   body: string;
   createdAt: Date;
+  user: { name: string } | null;
 };
 
 @Injectable()
@@ -60,9 +66,12 @@ export class CommentService {
       data: {
         postId: input.postId,
         body: input.body,
-        displayName: input.displayName ?? null,
+        userId: input.userId ?? null,
+        // 로그인 회원은 계정 이름(실명)을 쓰므로 displayName을 저장하지 않는다
+        displayName: input.userId ? null : (input.displayName ?? null),
         parentId: input.parentId ?? null,
       },
+      include: withUser,
     });
     return this.toDto(comment, depth);
   }
@@ -72,6 +81,7 @@ export class CommentService {
     const rows = await this.prisma.comment.findMany({
       where: { postId },
       orderBy: { createdAt: 'asc' },
+      include: withUser,
     });
 
     const nodes = new Map<string, CommentDto>();
@@ -119,6 +129,9 @@ export class CommentService {
       postId: comment.postId,
       parentId: comment.parentId,
       depth,
+      userId: comment.userId,
+      // 표시 이름: 로그인 회원은 계정 이름(실명), 익명은 displayName
+      authorName: comment.user?.name ?? comment.displayName,
       displayName: comment.displayName,
       body: comment.body,
       createdAt: comment.createdAt.toISOString(),

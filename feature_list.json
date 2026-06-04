@@ -812,7 +812,8 @@
         "T-AUTH-007",
         "T-AUTH-008"
       ],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-04",
       "feature": "multiuser-rbac",
       "tdd_first": true,
       "acceptance": [
