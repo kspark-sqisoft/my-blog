@@ -1062,14 +1062,15 @@
       "deps": [
         "T-WEB-201"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "video-upload",
       "tdd_first": true,
       "acceptance": [
         "coverImageUrl 확장자 .mp4 면 <video preload='metadata' muted playsInline> 첫 프레임",
         "카드 안에서는 재생되지 않고 클릭 시 상세 이동",
         "이미지 커버는 기존 <img> 그대로"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     }
   ]
 }

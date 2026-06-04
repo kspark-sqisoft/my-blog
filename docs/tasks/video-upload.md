@@ -72,15 +72,16 @@
   3. PDF/MOV 등 비허용 → 클라이언트 알림 + 업로드 호출 없음. ✅
 
 #### T-WEB-203 — web 목록 카드 비디오 첫 프레임 커버
-- priority: 56 / 의존: T-WEB-201 / status: todo
+- priority: 56 / 의존: T-WEB-201 / status: done (2026-06-04)
 - 산출:
-  - 글 목록 카드(`PostCard` 또는 동등 컴포넌트)가 `coverImageUrl` 의 확장자가 `.mp4` 면
-    `<video src preload="metadata" muted playsInline>` 로 렌더(controls 없음, 카드 인라인 재생 X).
-  - 그 외 확장자는 기존 `<img>` 그대로.
+  - `components/PostListView.tsx`: `VIDEO_COVER_EXT` 정규로 `coverImageUrl` 확장자가 `.mp4` 면
+    `<video className="ab-card-cover" preload="metadata" muted playsInline>` 로 렌더(controls 없음).
+  - 이미지 커버는 기존 `<img>` 유지. 없으면 줄무늬 플레이스홀더.
+  - `pages/PostList.test.tsx` +2 케이스: .mp4 → <video class=ab-card-cover> (muted/playsInline/!controls + <img> 없음) / .jpg → <img class=ab-card-cover>.
 - acceptance:
-  1. 본문 첫 미디어가 `.mp4` 인 글은 카드에 첫 프레임이 멈춰 보인다.
-  2. 카드 클릭 시 상세로 이동 — 카드 인라인 재생 안 함.
-  3. 본문 첫 미디어가 이미지면 기존 동작 그대로.
+  1. 본문 첫 미디어가 `.mp4` 인 글은 카드에 첫 프레임이 멈춰 보인다. ✅
+  2. 카드 클릭 시 상세로 이동 — controls 없음 → 인라인 재생 안 함. ✅
+  3. 이미지 커버는 기존 `<img>` 그대로. ✅
 
 ## 범위 외
 - WebM/MOV 포맷, 트랜스코딩, HLS·DASH.

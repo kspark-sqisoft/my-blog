@@ -82,4 +82,46 @@ describe('PostList 페이지', () => {
       }),
     );
   });
+
+  // T-WEB-203: 목록 카드 비디오 첫 프레임 커버 (ADR-0020)
+  it('coverImageUrl 이 .mp4 면 카드 커버에 <video> 첫 프레임을 표시한다 (controls 없음)', async () => {
+    mockedApi.get.mockResolvedValueOnce({
+      data: {
+        items: [summary({ coverImageUrl: '/uploads/clip.mp4' })],
+        page: 1,
+        pageSize: 10,
+        total: 1,
+      },
+    });
+    const { container } = renderList();
+    await screen.findByText('첫 글');
+    const video = container.querySelector(
+      'video.ab-card-cover',
+    ) as HTMLVideoElement | null;
+    expect(video).not.toBeNull();
+    expect(video?.getAttribute('src')).toBe('/uploads/clip.mp4');
+    expect(video?.getAttribute('preload')).toBe('metadata');
+    // muted/playsInline 은 React 가 DOM property 로 설정한다 (attribute 가 아닐 수 있음).
+    expect(video?.muted).toBe(true);
+    expect(video?.playsInline).toBe(true);
+    // 카드 인라인 재생을 막기 위해 controls 는 없어야 한다 (클릭 → 상세 이동만)
+    expect(video?.controls).toBe(false);
+    // 비디오 카드는 <img> 를 사용하지 않는다
+    expect(container.querySelector('img.ab-card-cover')).toBeNull();
+  });
+
+  it('coverImageUrl 이 이미지(.jpg) 면 기존 <img> 커버를 유지한다', async () => {
+    mockedApi.get.mockResolvedValueOnce({
+      data: {
+        items: [summary({ coverImageUrl: '/uploads/a.jpg' })],
+        page: 1,
+        pageSize: 10,
+        total: 1,
+      },
+    });
+    const { container } = renderList();
+    await screen.findByText('첫 글');
+    expect(container.querySelector('img.ab-card-cover')).not.toBeNull();
+    expect(container.querySelector('video.ab-card-cover')).toBeNull();
+  });
 });
