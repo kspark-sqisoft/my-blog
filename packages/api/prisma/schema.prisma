@@ -46,7 +46,8 @@ model User {
 model Post {
   id              String     @id @default(cuid())
   title           String
-  contentMarkdown String
+  contentMarkdown String     // @deprecated T-INFRA-303 마이그레이션 후 후속 ADR 에서 drop (ADR-0021)
+  contentHtml     String     @default("") // 본문 HTML(sanitize 통과). ADR-0021. T-INFRA-303 가 채움
   status          PostStatus @default(DRAFT)
   publishedAt     DateTime?
   authorId        String

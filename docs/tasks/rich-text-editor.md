@@ -23,14 +23,14 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
 - 비고: acceptance 2·3 의 "필수/응답 제거" 부분은 contentHtml 가 실제 값으로 채워지는 T-PUB-301(서버 sanitize 적용)에서 회수한다. 지금 시점에 required 로 바꾸면 호출처 컴파일이 깨져 단계 의미가 사라진다.
 
 #### T-INFRA-302 — Prisma 스키마: Post.contentHtml 컬럼 + 마이그레이션
-- priority: 58 / 의존: T-INFRA-301 / status: todo
+- priority: 58 / 의존: T-INFRA-301 / status: done (2026-06-05)
 - 산출:
-  - schema.prisma: `contentHtml String @default("")` 추가. contentMarkdown 은 과도기 보존.
-  - prisma migrate dev 로 마이그레이션 생성. dev/test DB 모두 적용.
+  - `schema.prisma`: Post 모델에 `contentHtml String @default("")` 추가. contentMarkdown 은 `@deprecated` 주석으로 과도기 보존.
+  - 마이그레이션: `prisma/migrations/20260604151420_add_post_content_html/migration.sql` 생성, dev DB(`blog`) + 테스트 DB(`blog_test`) 양쪽 적용.
 - acceptance:
-  1. `posts.content_html` 컬럼 생성, default ''.
-  2. 기존 row 의 contentHtml 은 일단 빈 문자열(T-INFRA-303 이 채움).
-  3. blog_test DB 도 마이그레이션 통과(통합 spec 깨지지 않음).
+  1. `posts.contentHtml text NOT NULL default ''` 컬럼 생성. ✅ (psql `\d posts` 확인)
+  2. 기존 row 는 default `''` 로 채워짐 — T-INFRA-303 가 markdown→html 변환으로 덮어쓴다. ✅
+  3. blog_test DB 도 마이그레이션 통과: api 통합/e2e(`pnpm test` 102/102, `pnpm test:e2e` 10/61) 회귀 0. ✅
 
 #### T-INFRA-303 — 일회성 마이그레이션 스크립트 (markdown → html)
 - priority: 59 / 의존: T-INFRA-302 / status: todo
