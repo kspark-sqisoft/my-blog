@@ -1,15 +1,14 @@
-// 본문 마크다운에서 목록용 요약 텍스트를 만든다.
-// 이미지/코드/링크/헤딩/강조 등 마크다운 표기를 제거해 읽기 쉬운 평문으로 정리하고
-// 길이를 제한한다. (목록 카드의 요약은 평문이어야 함)
-export function toSummaryText(markdown: string, max = 200): string {
-  if (!markdown) return '';
-  let t = markdown;
-  t = t.replace(/```[\s\S]*?```/g, ' '); // 코드펜스
-  t = t.replace(/!\[[^\]]*\]\([^)]*\)/g, ' '); // 이미지
-  t = t.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1'); // 링크 → 텍스트
-  t = t.replace(/^\s{0,3}(#{1,6}|>|[-*+]|\d+\.)\s+/gm, ''); // 헤딩/인용/리스트 마커
-  t = t.replace(/`([^`]*)`/g, '$1'); // 인라인 코드
-  t = t.replace(/[*_~]{1,3}/g, ''); // 강조 기호
-  t = t.replace(/\s+/g, ' ').trim(); // 공백 정리
-  return t.length > max ? `${t.slice(0, max)}…` : t;
+import * as cheerio from 'cheerio';
+
+// T-PUB-302: 본문 HTML(ADR-0021) 에서 목록 카드용 요약 평문을 추출한다.
+// 이미지/비디오 노드는 텍스트가 없어 자연 제외, 링크는 표시 텍스트만 남는다.
+// 공백 정리 + max 길이 trim. 함수명은 호환 유지(toSummaryText).
+export function toSummaryText(html: string, max = 200): string {
+  if (!html || !html.trim()) return '';
+  const $ = cheerio.load(html, { xml: false });
+  // 스타일·스크립트는 sanitize 단계에서 제거되지만 방어적으로 한 번 더.
+  $('script, style').remove();
+  const text = $.root().text();
+  const collapsed = text.replace(/\s+/g, ' ').trim();
+  return collapsed.length > max ? `${collapsed.slice(0, max)}…` : collapsed;
 }

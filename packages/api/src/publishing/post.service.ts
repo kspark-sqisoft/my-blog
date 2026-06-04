@@ -293,16 +293,18 @@ export class PostService {
     return post;
   }
 
-  // 본문 마크다운에서 요약(평문) + 대표 이미지(첫 이미지)를 생성
+  // 본문 HTML(ADR-0021) 에서 요약(평문) + 대표 미디어(첫 img|video)를 생성.
+  // contentHtml 가 비어있는 과도기 row 는 contentMarkdown 으로 폴백(T-INFRA-303 이후 거의 없음).
   private toSummary(post: PostWithTags): PostSummaryDto {
+    const body = post.contentHtml || post.contentMarkdown;
     return {
       id: post.id,
       title: post.title,
-      summary: toSummaryText(post.contentMarkdown, SUMMARY_MAX),
+      summary: toSummaryText(body, SUMMARY_MAX),
       tags: post.postTags.map((pt) => pt.tag.name),
       authorName: post.author.name,
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
-      coverImageUrl: extractFirstImageUrl(post.contentMarkdown),
+      coverImageUrl: extractFirstImageUrl(body),
     };
   }
 

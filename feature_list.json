@@ -1156,14 +1156,15 @@
       "deps": [
         "T-PUB-301"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
-        "extractFirstMediaUrl(html) cheerio 로 첫 <img>/<video> src 추출",
-        "toSummaryText(html, 200) 평문 200자 trim",
+        "extractFirstImageUrl(html) cheerio 로 첫 <img>/<video> src 추출 (이름은 호환 유지, 의미는 슈퍼셋)",
+        "toSummaryText(html, 200) cheerio.text() 기반 평문 200자 trim",
         "기존 e2e 회귀 0건"
-      ]
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-WEB-301",
