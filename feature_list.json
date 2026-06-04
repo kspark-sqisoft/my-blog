@@ -1079,14 +1079,15 @@
       "context": "INFRA",
       "priority": 57,
       "deps": [],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
         "packages/shared 에 richHtmlSchema 단일 소스 export + unit spec",
         "CreatePostDto/UpdatePostDto 가 contentHtml: string 요구(컴파일 enforce)",
         "PostDetailDto.contentHtml 노출, contentMarkdown 키 응답에서 사라짐"
-      ]
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-INFRA-302",
