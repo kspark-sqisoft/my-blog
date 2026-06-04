@@ -89,6 +89,44 @@ describe('PostEditor', () => {
     );
   });
 
+  it('제목 없이 저장하면 검증 알림을 띄우고 제목에 포커스, POST 미호출', async () => {
+    renderEditor('/admin/posts/new');
+    fireEvent.change(screen.getByLabelText('본문(마크다운)'), {
+      target: { value: '# 본문' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('제목');
+    expect(screen.getByLabelText('제목')).toHaveFocus();
+    expect(mockedApi.post).not.toHaveBeenCalled();
+  });
+
+  it('본문 없이 저장하면 검증 알림을 띄우고 본문에 포커스, POST 미호출', async () => {
+    renderEditor('/admin/posts/new');
+    fireEvent.change(screen.getByLabelText('제목'), {
+      target: { value: '제목만 있음' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('본문');
+    expect(screen.getByLabelText('본문(마크다운)')).toHaveFocus();
+    expect(mockedApi.post).not.toHaveBeenCalled();
+  });
+
+  it('공백만 입력한 제목은 검증으로 막힌다', async () => {
+    renderEditor('/admin/posts/new');
+    fireEvent.change(screen.getByLabelText('제목'), {
+      target: { value: '   ' },
+    });
+    fireEvent.change(screen.getByLabelText('본문(마크다운)'), {
+      target: { value: '# 본문' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('제목');
+    expect(mockedApi.post).not.toHaveBeenCalled();
+  });
+
   it('Tag 6개 이상이면 클라이언트 검증으로 저장이 막힌다', async () => {
     renderEditor('/admin/posts/new');
     fireEvent.change(screen.getByLabelText('제목'), {

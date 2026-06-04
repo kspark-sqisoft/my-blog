@@ -25,3 +25,6 @@ Thumbs.db
 
 # OMC 상태
 .omc/
+
+# Playwright MCP 임시 산출물(스냅샷/콘솔로그/스크린샷)
+.playwright-mcp/

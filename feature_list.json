@@ -938,6 +938,25 @@
         "AdminPostController @Roles('AUTHOR','ADMIN') 로 개방"
       ],
       "completed_at": "2026-06-04"
+    },
+    {
+      "id": "T-WEB-016",
+      "title": "글 에디터 클라이언트 입력 검증 (제목/본문 필수 + 포커스)",
+      "epic": "E9",
+      "context": "WEB",
+      "priority": 50,
+      "deps": [
+        "T-PUB-106"
+      ],
+      "status": "done",
+      "feature": "author-by-default",
+      "tdd_first": true,
+      "acceptance": [
+        "제목/본문이 비면 서버 400 전에 알림 배너를 띄우고 저장을 막는다",
+        "빈 필드로 포커스 이동 + 깜빡임(blink) 시각 피드백",
+        "공백만 입력한 제목도 검증으로 막는다"
+      ],
+      "completed_at": "2026-06-04"
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   useAdminPost,
@@ -31,7 +31,14 @@ export function PostEditor() {
   const [body, setBody] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // 검증 실패한 필드(테두리 강조/흔들림 + 포커스 대상)
+  const [invalidField, setInvalidField] = useState<'title' | 'body' | null>(
+    null,
+  );
   const [loadedId, setLoadedId] = useState<string | undefined>(undefined);
+
+  const titleRef = useRef<HTMLInputElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   // 수정 모드: 기존 값이 로드되면 폼을 한 번 초기화(렌더 중 조정 패턴 — React 권장)
   if (existing.data && existing.data.id !== loadedId) {
@@ -54,12 +61,27 @@ export function PostEditor() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInvalidField(null);
+
+    // 클라이언트 검증: 부족하면 서버 400 전에 알림 + 해당 필드로 포커스(흔들림)
+    if (!title.trim()) {
+      setError('제목을 입력하세요.');
+      setInvalidField('title');
+      titleRef.current?.focus();
+      return;
+    }
+    if (!body.trim()) {
+      setError('본문을 입력하세요.');
+      setInvalidField('body');
+      bodyRef.current?.focus();
+      return;
+    }
     const tags = parseTags(tagsInput);
     if (tags.length > MAX_TAGS) {
       setError(`태그는 최대 ${MAX_TAGS}개까지 가능합니다.`);
       return;
     }
-    const payload = { title, contentMarkdown: body, tags };
+    const payload = { title: title.trim(), contentMarkdown: body, tags };
     const onSuccess = () => navigate('/admin');
     if (isEdit) {
       updateMut.mutate(payload, { onSuccess });
@@ -85,25 +107,42 @@ export function PostEditor() {
       </header>
 
       <div className="ab-admin-body">
+        {error && (
+          <p role="alert" className="ab-form-error">
+            {error}
+          </p>
+        )}
         <div className="ab-editor">
           <div className="ab-editor-main">
             <input
+              ref={titleRef}
               aria-label="제목"
-              className="ab-title-input"
+              className={`ab-title-input${
+                invalidField === 'title' ? ' invalid' : ''
+              }`}
               placeholder="제목을 입력하세요"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (invalidField === 'title') setInvalidField(null);
+              }}
             />
             <label htmlFor="body" className="ab-editor-label">
               본문(마크다운)
             </label>
             <textarea
               id="body"
+              ref={bodyRef}
               aria-label="본문(마크다운)"
-              className="ab-body-input"
+              className={`ab-body-input${
+                invalidField === 'body' ? ' invalid' : ''
+              }`}
               placeholder="마크다운으로 본문을 작성하세요…"
               value={body}
-              onChange={(e) => setBody(e.target.value)}
+              onChange={(e) => {
+                setBody(e.target.value);
+                if (invalidField === 'body') setInvalidField(null);
+              }}
             />
           </div>
 
@@ -118,11 +157,6 @@ export function PostEditor() {
                 onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="nestjs, blog"
               />
-              {error && (
-                <p role="alert" className="ab-error">
-                  {error}
-                </p>
-              )}
             </div>
 
             <div className="ab-panel">
