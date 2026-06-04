@@ -1196,14 +1196,16 @@
         "T-WEB-301",
         "T-PUB-301"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "rich-text-editor",
       "tdd_first": true,
       "acceptance": [
         "본문 textarea 가 사라지고 RichEditor 렌더",
-        "빈 본문(공백/빈 단락) 저장 시 클라이언트 검증으로 차단",
-        "수정 모드: 기존 contentHtml 을 editor 에 로드, PATCH 시 editor.getHTML() 전송"
-      ]
+        "빈 본문(공백/빈 단락) 저장 시 클라이언트 검증으로 차단 (isBlankHtmlBody)",
+        "수정 모드: 기존 contentHtml 로드(없으면 contentMarkdown 폴백), PATCH 시 contentHtml 전송",
+        "사이드바 미디어 패널 제거, 미디어 업로드는 RichEditor 도구바로 통합"
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-WEB-303",
