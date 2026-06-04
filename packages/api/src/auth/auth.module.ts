@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
+import { RolesGuard } from './roles.guard';
 
 @Module({
   imports: [
@@ -17,6 +18,8 @@ import { JwtStrategy } from './jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  // RolesGuard·JwtStrategy를 export → 다른 모듈(@UseGuards)에서 RBAC 사용 (ADR-0018)
+  providers: [AuthService, JwtStrategy, RolesGuard],
+  exports: [RolesGuard, JwtStrategy, PassportModule, JwtModule],
 })
 export class AuthModule {}

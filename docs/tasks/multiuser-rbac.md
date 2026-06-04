@@ -33,7 +33,7 @@
   3. login/me 응답 user에 name·role 포함.
 
 #### T-AUTH-008 — RBAC 가드: @Roles + RolesGuard(Reflector) + OptionalJwtAuthGuard
-- priority: 39 / 의존: T-AUTH-006 / status: todo
+- priority: 39 / 의존: T-AUTH-006 / status: done (2026-06-04)
 - acceptance:
   1. `@Roles`, `RolesGuard` 구현(메타 없으면 통과, 역할 불일치 403) — roles.guard.spec.
   2. `OptionalJwtAuthGuard`(토큰 없거나 무효여도 통과).
