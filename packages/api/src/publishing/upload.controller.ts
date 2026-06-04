@@ -62,6 +62,13 @@ export class UploadController {
       originalName: file.originalname,
       mimeType: file.mimetype,
     });
-    return { url: saved.url, contentType: file.mimetype, size: file.size };
+    // 현재 fileFilter 가 image MIME 만 통과 → type='image' 고정.
+    // T-PUB-202 에서 video 까지 받도록 MIME 별 분기로 확장한다.
+    return {
+      url: saved.url,
+      contentType: file.mimetype,
+      size: file.size,
+      type: 'image',
+    };
   }
 }

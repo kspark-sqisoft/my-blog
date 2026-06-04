@@ -965,14 +965,15 @@
       "context": "PUB",
       "priority": 51,
       "deps": [],
-      "status": "todo",
+      "status": "done",
       "feature": "video-upload",
       "tdd_first": true,
       "acceptance": [
         "packages/shared 의 UploadResult 가 { url, contentType, size, type: 'image'|'video' } 로 export",
         ".env.example 에 UPLOAD_MAX_BYTES_VIDEO=52428800 추가",
         "docker-compose api environment 에 UPLOAD_MAX_BYTES_VIDEO 주입"
-      ]
+      ],
+      "completed_at": "2026-06-04"
     },
     {
       "id": "T-PUB-202",

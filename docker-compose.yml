@@ -32,6 +32,9 @@ services:
       # JWT 서명 시크릿. 폴백 없이 부팅 시점에 강제(requireJwtSecret — C1).
       # 미설정이면 compose 자체가 실패해 운영에서 'change-me' 같은 위험 폴백 사용을 차단한다.
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required (set in .env)}
+      # 업로드 크기 상한 (ADR-0020). 이미지/비디오 분리 한도.
+      UPLOAD_MAX_BYTES: ${UPLOAD_MAX_BYTES:-5242880}
+      UPLOAD_MAX_BYTES_VIDEO: ${UPLOAD_MAX_BYTES_VIDEO:-52428800}
     depends_on:
       db:
         # db healthcheck가 통과해야 api 시작

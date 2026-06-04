@@ -11,14 +11,17 @@
 ## 태스크
 
 #### T-PUB-201 — shared UploadResult 확장 + 환경변수 추가
-- priority: 51 / 의존: 없음 / status: todo
+- priority: 51 / 의존: 없음 / status: done (2026-06-04)
 - 산출:
-  - `packages/shared` 에 `UploadResult` 명시 export (있다면 `type: 'image'|'video'` 추가).
-  - `.env.example` 에 `UPLOAD_MAX_BYTES_VIDEO=52428800` 추가, `docker-compose.yml`/`.dev` 가 api 컨테이너에 주입.
+  - `packages/shared/src/dto/upload.ts` 의 `UploadResultDto` 에 `type: 'image' | 'video'` 추가.
+  - `.env.example` 에 `UPLOAD_MAX_BYTES_VIDEO=52428800` 추가.
+  - `docker-compose.yml` api environment 에 `UPLOAD_MAX_BYTES` / `UPLOAD_MAX_BYTES_VIDEO` 매핑.
+  - `upload.controller.ts` 응답에 `type: 'image'` 임시 고정(T-PUB-202 에서 분기 확장).
+  - 회귀 가드 단위 spec: `upload-result.type.spec.ts`.
 - acceptance:
-  1. `packages/shared` 에서 `UploadResult` 가 `{ url, contentType, size, type: 'image'|'video' }` 로 export.
-  2. `.env.example` 에 `UPLOAD_MAX_BYTES_VIDEO` 라인 추가, 기본값 52428800.
-  3. docker-compose api environment 에 `UPLOAD_MAX_BYTES_VIDEO: ${UPLOAD_MAX_BYTES_VIDEO}` 매핑.
+  1. `packages/shared` 에서 `UploadResultDto` 가 `{ url, contentType, size, type: 'image'|'video' }` 로 export. ✅
+  2. `.env.example` 에 `UPLOAD_MAX_BYTES_VIDEO` 라인 추가, 기본값 52428800. ✅
+  3. docker-compose api environment 에 `UPLOAD_MAX_BYTES_VIDEO: ${UPLOAD_MAX_BYTES_VIDEO}` 매핑. ✅
 
 #### T-PUB-202 — api `/api/uploads` 가 MP4 수락 + MIME/크기 분리 검증
 - priority: 52 / 의존: T-PUB-201 / status: todo
