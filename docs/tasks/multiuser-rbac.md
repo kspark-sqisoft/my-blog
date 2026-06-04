@@ -26,7 +26,7 @@
   3. shared 빌드 통과 + 기존 사용처 타입 통과.
 
 #### T-AUTH-007 — JwtStrategy DB 재조회로 role 주입(즉시 반영) + 삭제계정 401
-- priority: 38 / 의존: T-AUTH-005, T-AUTH-006 / status: todo
+- priority: 38 / 의존: T-AUTH-005, T-AUTH-006 / status: done (2026-06-04)
 - acceptance:
   1. validate가 PrismaService로 user 재조회해 `{id,email,name,role}` 반환.
   2. 삭제된 계정 토큰은 401.

@@ -51,6 +51,9 @@ describe('AuthService (통합)', () => {
     expect(res.user.email).toBe(email);
     expect(typeof res.user.id).toBe('string');
     expect(res.user.id.length).toBeGreaterThan(0);
+    // name·role 포함 (ADR-0018). 시드 운영자는 ADMIN
+    expect(res.user.name.length).toBeGreaterThan(0);
+    expect(res.user.role).toBe('ADMIN');
   });
 
   it('비밀번호가 틀리면 UnauthorizedException', async () => {

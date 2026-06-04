@@ -78,7 +78,13 @@ describe('Auth (e2e)', () => {
       .get('/api/auth/me')
       .set('Cookie', cookie)
       .expect(200);
-    expect((res.body as { user: { email: string } }).user.email).toBe(email);
+    const me = (
+      res.body as { user: { email: string; name: string; role: string } }
+    ).user;
+    expect(me.email).toBe(email);
+    // JwtStrategy DB 재조회로 name·role 노출 (ADR-0018)
+    expect(me.name.length).toBeGreaterThan(0);
+    expect(me.role).toBe('ADMIN');
   });
 
   it('GET /api/auth/me 비로그인 → 401', () => {

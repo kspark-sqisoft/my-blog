@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { AuthUserDto } from '@blog/shared';
+import { PrismaService } from '../prisma/prisma.service';
 
 interface JwtPayload {
   sub: string;
@@ -17,7 +18,7 @@ const cookieExtractor = (req: Request): string | null => {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
       ignoreExpiration: false,
@@ -25,8 +26,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  // 검증된 payload → req.user 매핑
-  validate(payload: JwtPayload): AuthUserDto {
-    return { id: payload.sub, email: payload.email };
+  // 검증된 payload의 sub로 User를 매 요청 재조회한다 (ADR-0018).
+  // → 역할 승격/강등이 토큰 만료를 기다리지 않고 즉시 반영되고, 삭제된 계정 토큰은 무효화된다.
+  async validate(payload: JwtPayload): Promise<AuthUserDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, email: true, name: true, role: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return { id: user.id, email: user.email, name: user.name, role: user.role };
   }
 }
