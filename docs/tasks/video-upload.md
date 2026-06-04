@@ -47,16 +47,17 @@
   3. 절대 규칙 #9 (쓰기-읽기 왕복) 통과. ✅
 
 #### T-WEB-201 — web 마크다운 렌더러 `.mp4` → `<video>` 자동 분기
-- priority: 54 / 의존: T-PUB-202 / status: todo
+- priority: 54 / 의존: T-PUB-202 / status: done (2026-06-04)
 - 산출:
-  - `packages/web/src/markdown/` 의 렌더러가 이미지 노드의 url 확장자(`.mp4`)를 감지해
-    `<video controls preload="metadata" playsInline>` 로 치환.
-  - alt 텍스트는 `aria-label` 로 매핑.
+  - `packages/web/src/components/Markdown.tsx`: `MediaNode` 컴포넌트 추가.
+    `ReactMarkdown` 의 `components={{ img: MediaNode }}` 로 마크다운 이미지 노드를 url 확장자에 따라
+    `<video>`/`<img>` 분기. 비디오는 `controls preload="metadata" playsInline aria-label={alt}`.
+  - `Markdown.test.tsx` 6 신규 케이스: `.mp4` <video>, autoplay 없음, .jpg/png/gif/webp 는 <img>, aria-label 매핑, raw <video> 차단.
 - acceptance:
-  1. `![demo](/uploads/x.mp4)` 가 `<video controls>` 로 렌더링.
-  2. `![photo](/uploads/x.jpg)` 는 기존대로 `<img>` 로 렌더링.
-  3. 자동재생되지 않음 (autoplay 속성 없음).
-  4. sanitize 정책에 새 우회 경로 없음 — raw `<video>` 텍스트 입력은 여전히 차단.
+  1. `![demo](/uploads/x.mp4)` → `<video controls preload="metadata" playsInline>`. ✅
+  2. `![photo](/uploads/x.{jpg,png,gif,webp})` → 기존 `<img>`. ✅
+  3. autoplay 없음. ✅
+  4. raw `<video>` 텍스트 입력은 sanitize/미파싱으로 차단. ✅
 
 #### T-WEB-202 — web 글 에디터 미디어 업로드 UX (이미지+비디오 통합)
 - priority: 55 / 의존: T-WEB-201 / status: todo
