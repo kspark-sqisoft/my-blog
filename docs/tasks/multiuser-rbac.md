@@ -56,7 +56,7 @@
   3. 성공 시 즉시 로그인 쿠키 + user 반환 — auth.e2e.
 
 #### T-AUTH-010 — 사용자 관리 API: GET /api/admin/users, PATCH /:id/role (마지막 ADMIN 보호)
-- priority: 42 / 의존: T-AUTH-008 / status: todo
+- priority: 42 / 의존: T-AUTH-008 / status: done (2026-06-04)
 - acceptance:
   1. GET 목록(ADMIN, `Paginated<AdminUserDto>`).
   2. PATCH role 변경(ADMIN), `@IsIn` 검증.

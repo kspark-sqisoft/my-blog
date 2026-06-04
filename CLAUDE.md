@@ -25,6 +25,8 @@
 | DELETE | `/api/posts/:id` | 삭제 | 운영자 |
 | GET | `/api/admin/posts` | 대시보드 목록(초안 포함) | 운영자 |
 | GET | `/api/admin/posts/:id` | 단건(편집 로드) | 운영자 |
+| GET | `/api/admin/users` | 사용자 목록 | 운영자(ADMIN) |
+| PATCH | `/api/admin/users/:id/role` | 역할 변경 | 운영자(ADMIN) |
 | GET | `/api/posts/:postId/comments` | 댓글 목록 | 공개 |
 | POST | `/api/posts/:postId/comments` | 댓글/답글 작성 | 공개 |
 | GET | `/api/tags` | 태그 목록 | 공개 |
