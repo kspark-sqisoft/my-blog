@@ -10,8 +10,11 @@ services:
   api:
     build:
       target: dev
-    # 컨테이너 안에서 Prisma 클라이언트 생성 후 개발 서버 기동
-    command: sh -c "pnpm exec prisma generate && pnpm run start:dev"
+    # 컨테이너 안에서 (1) @blog/shared 빌드 → (2) Prisma 클라이언트 생성 → (3) 개발 서버 기동.
+    # (1) 필수: api(CJS)는 @blog/shared 를 dist(빌드 산출물)로 해석한다. shared 소스가 머지/풀/편집으로
+    #     바뀌었는데 dist 가 오래되면 nest 컴파일이 깨져 서버가 안 뜬다(→ vite 프록시 502). 매 기동마다
+    #     shared 를 먼저 빌드해 dist 를 최신화한다. (dist 는 gitignore 라 커밋으로 갱신되지 않음)
+    command: sh -c "pnpm --filter @blog/shared run build && pnpm exec prisma generate && pnpm run start:dev"
     environment:
       # Windows 바인드 마운트에서 파일 변경 감지를 위한 폴링
       CHOKIDAR_USEPOLLING: "true"

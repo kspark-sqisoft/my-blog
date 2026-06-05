@@ -79,6 +79,20 @@ dev 스택은 한 번만 `docker compose -f docker-compose.yml -f docker-compose
   안 보인다 → worktree 에서는 TDD(jest/vitest)로 검증하고, 브라우저 도그푸딩은 메인에서. db 는 메인 컨테이너
   (5433)를 재사용한다(별도 스택 기동 시 포트 충돌). (배경은 `docs/harness.md` 운영 함정 #7)
 
+## @blog/shared 는 항상 빌드된 상태로 (api 는 dist 를 본다)
+
+api(NestJS·CJS)와 api 의 jest 는 `@blog/shared` 를 **빌드 산출물 `packages/shared/dist`** 로 해석한다
+(package.json `require`/`types` → dist). web(Vite·ESM)은 `src` 를 직접 본다. 따라서 shared **소스만**
+바뀌고(merge·pull·편집) **dist 를 안 빌드하면 api 컴파일이 깨진다**(`no exported member …` → nest watch
+서버 미기동 → vite 프록시 **502**). `dist` 는 gitignore 라 커밋으로 갱신되지 않는다.
+
+하네스가 3중으로 자동 빌드하므로 보통 직접 신경 쓸 필요 없다:
+- **dev 컨테이너**: api 기동 명령이 `pnpm --filter @blog/shared run build` 를 먼저 실행(docker-compose.dev.yml).
+- **부트스트랩**: `init.sh` 가 매번 shared 를 빌드.
+- **세션 중**: `packages/shared/src/**` 편집 시 PostToolUse 훅 `shared-build` 가 자동 재빌드.
+
+수동이 필요하면: `pnpm --filter @blog/shared run build`. (배경은 `docs/harness.md` 운영 함정 #8)
+
 ## 데이터 입력 주의 (한글 깨짐)
 
 Windows Git Bash 의 `curl -d '{"title":"한글..."}'` 는 비ASCII 를 깨뜨려 ��� 로 저장된다.

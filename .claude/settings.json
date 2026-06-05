@@ -42,6 +42,13 @@
           {
             "type": "command",
             "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/shared-build.mjs\"",
+            "timeout": 65,
+            "statusMessage": "@blog/shared 자동 빌드(src 편집 시 dist 최신화)"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/docker-rebuild-sensor.mjs\"",
             "timeout": 15,
             "statusMessage": "도커 재빌드 트리거 감지(deps/Dockerfile/compose/.env)"

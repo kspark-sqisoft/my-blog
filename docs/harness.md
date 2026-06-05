@@ -56,6 +56,7 @@
 |---|---|---|
 | PreToolUse(Edit\|Write) | `protect-paths` | `.env`·확정(Accepted) ADR 수정 **차단(exit 2)** |
 | PostToolUse(Edit\|Write) | `docker-rebuild-sensor` | 도커 재빌드 트리거(deps/Dockerfile/compose/.env) 감지 → 정확한 명령 알림 + sentinel 기록(비차단) |
+| PostToolUse(Edit\|Write) | `shared-build` | `packages/shared/src/**` 편집 시 `@blog/shared` 자동 재빌드(dist 최신화, 비차단) |
 | PostToolUse(Edit\|Write) | `worktree-guard` | default 브랜치(main) 메인 체크아웃에서 기능 소스 첫 편집 시 worktree 사용 권유(세션당 1회, 비차단) |
 | UserPromptSubmit | `tdd-reminder` | 구현 의도면 RED→GREEN→REFACTOR 리마인드 |
 | UserPromptSubmit | `session-ready` | "준비"/`/ready` 면 시작 루틴 주입 |
@@ -246,13 +247,36 @@ worktree 편집은 핫리로드로 안 보인다. worktree 에서는 TDD(jest/vi
 메인 디렉터리에서 한다. worktree 에서 `init.sh` 의 `docker compose up -d db` 는 호스트 5433 포트가 메인
 db 와 충돌하니, **메인 db(5433)를 재사용**(prisma generate + migrate deploy 만)하면 된다.
 
+### 8. shared 소스만 바뀌고 dist 가 stale → api 컴파일 깨짐(502)
+**증상**: shared 변경(merge·pull·편집) 후 dev 스택을 올리면 web 목록이 "불러오지 못했습니다" + `/api` 502.
+api 로그에 `Module '"@blog/shared"' has no exported member 'X'` / `'Y' does not exist in type 'PostSummaryDto'`
+류 TS 에러 다수 → `nest start --watch` 가 컴파일에 실패해 서버를 띄우지 못함 → vite 프록시가 502.
+
+**원인**: api(NestJS·CJS)와 api 의 jest 는 `@blog/shared` 를 **빌드 산출물 `packages/shared/dist`** 로
+해석한다(package.json `require`→`dist/index.js`, `types`→`dist/index.d.ts`). web(Vite·ESM)은 `exports.import`
+→ `src/index.ts` 를 직접 본다. 그래서 shared **소스만** 바뀌고 dist 를 재빌드하지 않으면 **api 만** 깨지고
+web 은 멀쩡하다(혼동 포인트). `dist` 는 gitignore 라 커밋·머지로 갱신되지 않는다 — **반드시 빌드해야** 갱신된다.
+(실제 사례: 참여(C) 머지 후 `up --build` → 메인 dist 가 참여 이전 버전이라 api 6에러로 502. shared 재빌드 +
+api 재기동으로 해소.)
+
+**해결(적용됨, 3중 자동화)**:
+- **dev 컨테이너**: `docker-compose.dev.yml` 의 api command 가 `pnpm --filter @blog/shared run build` 를
+  먼저 실행한다(매 기동마다 dist 최신화). → compose 변경이라 적용하려면 api 컨테이너 재생성 필요
+  (`docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`).
+- **부트스트랩**: `init.sh` 의 `2-b` 단계가 매번 shared 를 빌드.
+- **세션 중**: `.claude/hooks/shared-build.mjs`(PostToolUse) 가 `packages/shared/src/**` 편집 시 자동 재빌드.
+- 수동: `pnpm --filter @blog/shared run build`.
+
+**watch 가 dist 변경을 못 잡을 때**: Windows 바인드 마운트에서 node_modules 경유 `.d.ts` 변경은 nest watch 가
+놓칠 수 있다(함정 #4). 이미 떠 있는 컨테이너라면 `docker restart my-blog-api-1` 로 클린 재컴파일한다.
+
 ## 관련 파일
 
-- `init.sh` — 환경 부트스트랩(개발 DB + 테스트 DB)
+- `init.sh` — 환경 부트스트랩(개발 DB + 테스트 DB + @blog/shared 빌드)
 - `feature_list.json` — 진행 상태 정규 소스
 - `CLAUDE.md` — 시작 루틴·완료 규칙·절대 규칙
 - `.claude/commands/` — `ready` · `implement` · `finish` · 설계 명령들
-- `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks` · `docker-rebuild-sensor` · `docker-rebuild-stop` · `worktree-guard`
+- `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks` · `docker-rebuild-sensor` · `docker-rebuild-stop` · `worktree-guard` · `shared-build`
 - `docs/handoff/` — 세션 간 인계 노트
 - `docs/harness-gap-analysis.md` — 가이드(claude-code-guide) 대비 하네스 갭/보강 권고
 - `docs/harness-changelog.md` — 하네스 자체 변경 이력(가이드 12.5)

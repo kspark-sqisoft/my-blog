@@ -26,6 +26,11 @@ if [ ! -d node_modules ] || [ ! -d packages/api/node_modules ]; then
 fi
 ok "의존성 설치됨"
 
+# 2-b) @blog/shared 빌드 — api(CJS)는 shared 를 dist(빌드 산출물)로 해석한다.
+# dist 는 gitignore 라 머지/풀로 소스만 바뀌면 stale 이 된다 → api 컴파일 깨짐(502). 매 부트스트랩에 최신화.
+pnpm --filter @blog/shared run build >/dev/null 2>&1 || fail "@blog/shared 빌드 실패"
+ok "@blog/shared 빌드(dist 최신화)"
+
 # 3) PostgreSQL 컨테이너 기동 + healthy 대기
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db >/dev/null 2>&1 \
   || fail "db 컨테이너 기동 실패 (docker 실행 여부 확인)"
