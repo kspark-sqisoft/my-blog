@@ -1482,3 +1482,58 @@ a {
     display: none;
   }
 }
+
+/* 에디터 미디어 미리보기 + 호버 오버레이(교체/삭제) — T-WEB-306 */
+.ab-media-node {
+  position: relative;
+}
+.ab-media-frame {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+.ab-media-frame > img,
+.ab-media-frame > video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-sm);
+}
+.ab-media-frame.selected > img,
+.ab-media-frame.selected > video {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ab-media-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.ab-media-frame:hover .ab-media-overlay,
+.ab-media-frame.selected .ab-media-overlay {
+  opacity: 1;
+}
+.ab-media-btn {
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 9px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+.ab-media-btn:hover {
+  background: var(--surface-2);
+}
+.ab-media-btn.danger {
+  color: var(--danger);
+}
+.ab-media-btn.danger:hover {
+  background: var(--danger-soft);
+}

@@ -42,7 +42,7 @@ export async function typeRichBody(
   page: Page,
   text: string,
 ): Promise<void> {
-  const editor = page.getByLabel('본문');
+  const editor = page.getByLabel('본문', { exact: true });
   await editor.click();
   const lines = text.split('\n');
   for (let i = 0; i < lines.length; i++) {

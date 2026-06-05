@@ -25,17 +25,21 @@ test('가입한 사용자가 WYSIWYG 에디터로 색/크기/이미지를 적용
   // When: 새 글 작성 화면에서 본문에 텍스트를 쓴다
   await page.getByRole('link', { name: '새 글 작성' }).click();
   await page.waitForURL('**/admin/posts/new');
-  await page.getByLabel('제목').fill(title);
+  await page.getByLabel('제목', { exact: true }).fill(title);
   await typeRichBody(page, emphasis);
 
   // And: 본문 전체 선택 → 색(빨강) + 크기(크게) 적용
-  const body = page.getByLabel('본문');
+  const body = page.getByLabel('본문', { exact: true });
   await body.click();
   // ProseMirror 의 선택은 페이지의 단축키로 트리거
   await page.keyboard.press('ControlOrMeta+a');
   await page.getByLabel('글자 색').selectOption('text-rose-500');
   await page.keyboard.press('ControlOrMeta+a');
   await page.getByLabel('글자 크기').selectOption('text-lg');
+
+  // 전체 선택 상태로 이미지를 올리면 본문이 통째로 교체되므로, 커서를 본문 끝으로 모은다.
+  await body.click();
+  await page.keyboard.press('End');
 
   // And: 이미지 업로드 → 본문에 <img> 노드가 삽입된다
   await page.getByLabel('미디어 업로드').setInputFiles(PIXEL_PNG);

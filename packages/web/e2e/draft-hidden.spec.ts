@@ -9,7 +9,7 @@ test('초안 글은 공개 목록과 상세에서 숨겨진다', async ({ page }
   await loginAsOperator(page);
   await page.getByRole('link', { name: '새 글 작성' }).click();
   await page.waitForURL('**/admin/posts/new');
-  await page.getByLabel('제목').fill(title);
+  await page.getByLabel('제목', { exact: true }).fill(title);
   await typeRichBody(page, '비공개 본문');
   await page.getByRole('button', { name: '저장' }).click();
   await page.waitForURL('**/admin');

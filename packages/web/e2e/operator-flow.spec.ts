@@ -11,7 +11,7 @@ test('운영자가 글을 작성하고 이미지를 올린 뒤 발행한다', as
   // When: 새 글 작성 화면에서 제목/본문 입력
   await page.getByRole('link', { name: '새 글 작성' }).click();
   await page.waitForURL('**/admin/posts/new');
-  await page.getByLabel('제목').fill(title);
+  await page.getByLabel('제목', { exact: true }).fill(title);
   await typeRichBody(page, 'E2E 본문 내용입니다.');
 
   // And: 이미지를 업로드하면 본문에 <img> 노드가 삽입된다(ADR-0021 RichEditor).

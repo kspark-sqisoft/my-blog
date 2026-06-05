@@ -127,13 +127,20 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
   3. 격리 스택의 실제 e2e 실행은 **T-WEB-305(별건)** — RichEditor prod 진입 timeout 디버그.
 
 #### T-WEB-305 — e2e 격리 prod 빌드 RichEditor 진입 디버그
-- priority: 66 / 의존: T-WEB-304 / status: todo
-- 배경: 인프라 패치 후 컨테이너 빌드는 통과하지만, 격리 스택에서 `/admin/posts/new` 진입 후 `getByLabel('제목')` 가 timeout(6 spec 동일). RichEditor/RichContent 의 vite prod 빌드 산출물이 TipTap/dompurify 등의 ESM/CJS 호환 또는 모듈-level 부수효과(dompurify addHook)에서 막히는 것으로 추정.
-- 후보 조사: web prod 컨테이너 console error, RichContent 의 dompurify hook 부수효과, dompurify 의 jsdom 의존 vs 브라우저 동작, vite optimizeDeps 설정.
+- priority: 66 / 의존: T-WEB-304 / status: done (2026-06-05)
+- 원인(확정): prod 빌드 문제 아님. `getByLabel('제목')` timeout 은 **strict-mode 충돌** — RichEditor 툴바의 "제목 1/2/3"(H1~H3) 버튼이 "제목" 부분일치, "본문 서식" 툴바가 "본문" 부분일치. e2e 셀렉터를 `{ exact: true }` 로 한정해 해결. 추가로 rich-editor.spec 은 전체선택(Ctrl+A) 직후 이미지 업로드 시 본문이 통째로 교체되던 시퀀스를 "업로드 전 커서 모으기"로 수정.
 - acceptance:
-  1. 격리 스택(prod) 에서 작성 화면이 정상 렌더(`/admin/posts/new` 제목·본문 라벨 발견 가능).
-  2. rich-editor.spec + 기존 4 e2e 가 격리 스택에서 모두 통과.
-  3. dev DB 격리 위반 0.
+  1. 격리 스택(prod) 에서 작성 화면 정상 렌더(제목·본문 라벨 발견 가능). ✓
+  2. rich-editor.spec + 기존 4 e2e 가 격리 스택에서 모두 통과(6 passed). ✓
+  3. dev DB 격리 위반 0. ✓
+
+#### T-WEB-306 — 에디터 미디어 미리보기 + 삭제/교체 + 레거시 마크다운 백필
+- priority: 67 / 의존: T-WEB-302, T-INFRA-303 / status: done (2026-06-05)
+- acceptance:
+  1. 에디터에서 이미지/동영상이 주소 텍스트가 아니라 미리보기로 렌더(레거시 마크다운 글은 `migrate:md-to-html` 백필로 contentHtml 채움).
+  2. 미디어 호버 오버레이로 삭제(노드 제거) / 교체(재업로드 후 src 갱신) — 이미지·동영상 공통.
+  3. ProseMirror editable 내부 클릭 유실 회피: `handleDOMEvents.mousedown` 로 트리거(buildMediaView + runMediaActionFrom).
+  4. 회귀 없음: web lint/typecheck/unit(88) + e2e(6) 통과.
 
 ## 범위 외
 - 표(table)/임베드 카드, 협업 편집(yjs), 글 이력/버전.

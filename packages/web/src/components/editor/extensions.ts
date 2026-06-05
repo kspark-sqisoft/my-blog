@@ -1,4 +1,11 @@
 import { Mark, mergeAttributes, Node } from '@tiptap/core';
+import Image from '@tiptap/extension-image';
+import { mediaNodeView } from './mediaNodeView';
+
+// 미디어 교체 시 업로드를 수행하는 콜백(확장 옵션). RichEditor 가 configure 로 주입한다.
+export type UploadMediaFn = (
+  file: File,
+) => Promise<{ url: string; type: 'image' | 'video' }>;
 
 // T-WEB-301: 본문 모델(ADR-0021) 의 화이트리스트 정책 — 색/크기는 Tailwind 클래스로만.
 // TipTap 의 Color 확장은 인라인 style 을 사용해 우리 sanitize 정책과 충돌하므로
@@ -72,12 +79,15 @@ export const FontSizeClass = classMark('fontSizeClass', 'size').extend({
 
 // 비디오 노드 (ADR-0020). 마크다운 본문이 아니라 에디터의 정식 노드로 다룬다.
 // 우리 업로드 응답의 url 을 setVideo 명령으로 삽입. 카드는 controls/preload/playsinline.
-export const Video = Node.create({
+export const Video = Node.create<{ onUploadMedia?: UploadMediaFn }>({
   name: 'video',
   group: 'block',
   selectable: true,
   draggable: true,
   atom: true,
+  addOptions() {
+    return { onUploadMedia: undefined };
+  },
   addAttributes() {
     return {
       src: { default: null as string | null },
@@ -96,6 +106,10 @@ export const Video = Node.create({
       }),
     ];
   },
+  // 에디터 안에서는 미리보기 + 호버 오버레이(교체/삭제)로 렌더. 직렬화(getHTML)는 renderHTML 사용.
+  addNodeView() {
+    return mediaNodeView();
+  },
   addCommands() {
     return {
       setVideo:
@@ -103,6 +117,19 @@ export const Video = Node.create({
         ({ commands }) =>
           commands.insertContent({ type: this.name, attrs }),
     };
+  },
+});
+
+// 이미지 노드: 기본 Image 확장에 업로드 콜백 옵션 + 미리보기/오버레이 NodeView 추가.
+export const MediaImage = Image.extend<{ onUploadMedia?: UploadMediaFn }>({
+  addOptions() {
+    return {
+      ...this.parent?.(),
+      onUploadMedia: undefined,
+    };
+  },
+  addNodeView() {
+    return mediaNodeView();
   },
 });
 
