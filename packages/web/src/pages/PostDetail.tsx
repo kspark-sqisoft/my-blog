@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CommentSection } from '../components/CommentSection';
 import { Icon } from '../components/Icon';
-import { RichContent } from '../components/RichContent';
+import { ReadingArticle } from '../components/ReadingArticle';
 import { fmtDate } from '../lib/format';
 import { estimateReadingTime } from '../lib/reading-time';
 import { usePost } from '../posts/usePost';
@@ -75,8 +75,8 @@ export function PostDetail() {
           )}
         </header>
         <div className="ab-article-body">
-          {/* ADR-0021: contentHtml 우선, 과도기 contentMarkdown 폴백 */}
-          <RichContent html={post.contentHtml || post.contentMarkdown} />
+          {/* ADR-0021/0023: contentHtml 우선(과도기 contentMarkdown 폴백), 읽기용 보강 렌더 */}
+          <ReadingArticle html={post.contentHtml || post.contentMarkdown} />
         </div>
       </article>
       <CommentSection postId={post.id} />

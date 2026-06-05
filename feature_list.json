@@ -1396,7 +1396,7 @@
       "deps": [
         "T-WEB-309"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "reading-experience",
       "tdd_first": true,
       "acceptance": [
@@ -1404,7 +1404,8 @@
         "코드블록(pre code)에 highlight.js 자동감지 적용(hljs class), highlight.js 는 동적 import",
         "헤딩/코드 없으면 안전(toc 빈 배열, 원본 보존), sanitize 로직은 sanitize-rich-html.ts 로 공유",
         "상세 페이지 코드블록 하이라이트 렌더, 회귀 없음: web 단위(article-enhance 신규 spec) 통과"
-      ]
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-READ-103",

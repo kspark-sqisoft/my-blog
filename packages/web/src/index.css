@@ -649,6 +649,110 @@ a {
   background: var(--code-bg);
   color: var(--accent-text);
 }
+
+/* T-READ-102: 글 상세 본문(.ab-rich-content) 코드블록 + highlight.js 토큰 테마.
+   .ab-md 는 미리보기 전용이라 발행 본문에는 적용되지 않으므로 별도로 코드 박스를 정의한다. */
+.ab-rich-content pre {
+  margin: 28px 0;
+  padding: 20px 22px;
+  border-radius: var(--r-md);
+  background: var(--code-bg);
+  border: 1px solid var(--border-2);
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.ab-rich-content pre code {
+  font-family: var(--mono);
+  font-size: inherit;
+  color: var(--text);
+  white-space: pre;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+.ab-rich-content :not(pre) > code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--code-bg);
+  color: var(--accent-text);
+}
+/* highlight.js 토큰 색 — 라이트 */
+.ab-rich-content .hljs-comment,
+.ab-rich-content .hljs-quote {
+  color: #6e7781;
+  font-style: italic;
+}
+.ab-rich-content .hljs-keyword,
+.ab-rich-content .hljs-selector-tag,
+.ab-rich-content .hljs-literal,
+.ab-rich-content .hljs-type {
+  color: #cf222e;
+}
+.ab-rich-content .hljs-string,
+.ab-rich-content .hljs-regexp {
+  color: #0a3069;
+}
+.ab-rich-content .hljs-number,
+.ab-rich-content .hljs-symbol,
+.ab-rich-content .hljs-built_in {
+  color: #0550ae;
+}
+.ab-rich-content .hljs-title,
+.ab-rich-content .hljs-title.function_,
+.ab-rich-content .hljs-section {
+  color: #8250df;
+}
+.ab-rich-content .hljs-attr,
+.ab-rich-content .hljs-attribute,
+.ab-rich-content .hljs-variable,
+.ab-rich-content .hljs-name,
+.ab-rich-content .hljs-property {
+  color: #116329;
+}
+.ab-rich-content .hljs-meta,
+.ab-rich-content .hljs-tag {
+  color: #6e7781;
+}
+/* highlight.js 토큰 색 — 다크 */
+[data-theme='dark'] .ab-rich-content .hljs-comment,
+[data-theme='dark'] .ab-rich-content .hljs-quote {
+  color: #8b949e;
+}
+[data-theme='dark'] .ab-rich-content .hljs-keyword,
+[data-theme='dark'] .ab-rich-content .hljs-selector-tag,
+[data-theme='dark'] .ab-rich-content .hljs-literal,
+[data-theme='dark'] .ab-rich-content .hljs-type {
+  color: #ff7b72;
+}
+[data-theme='dark'] .ab-rich-content .hljs-string,
+[data-theme='dark'] .ab-rich-content .hljs-regexp {
+  color: #a5d6ff;
+}
+[data-theme='dark'] .ab-rich-content .hljs-number,
+[data-theme='dark'] .ab-rich-content .hljs-symbol,
+[data-theme='dark'] .ab-rich-content .hljs-built_in {
+  color: #79c0ff;
+}
+[data-theme='dark'] .ab-rich-content .hljs-title,
+[data-theme='dark'] .ab-rich-content .hljs-title.function_,
+[data-theme='dark'] .ab-rich-content .hljs-section {
+  color: #d2a8ff;
+}
+[data-theme='dark'] .ab-rich-content .hljs-attr,
+[data-theme='dark'] .ab-rich-content .hljs-attribute,
+[data-theme='dark'] .ab-rich-content .hljs-variable,
+[data-theme='dark'] .ab-rich-content .hljs-name,
+[data-theme='dark'] .ab-rich-content .hljs-property {
+  color: #7ee787;
+}
+[data-theme='dark'] .ab-rich-content .hljs-meta,
+[data-theme='dark'] .ab-rich-content .hljs-tag {
+  color: #8b949e;
+}
 .ab-md a {
   color: var(--accent-text);
   border-bottom: 1px solid var(--accent-soft);

@@ -16,7 +16,7 @@
   4. 회귀 없음: web 단위 테스트 통과(reading-time 신규 spec 포함).
 
 #### T-READ-102 — 코드 하이라이트(자동감지) + 헤딩 id 부여
-- priority: 73 / 의존: T-WEB-309 / status: todo
+- priority: 73 / 의존: T-WEB-309 / status: done (2026-06-05)
 - acceptance:
   1. `enhanceArticleHtml(html)` 순수 변환: h1~h3 에 slug id(중복 `-2` suffix) 부여 + `toc[]`(id·text·level) 추출.
   2. 코드블록(`pre code`)에 highlight.js 자동감지 적용(hljs class), highlight.js 는 동적 import.
