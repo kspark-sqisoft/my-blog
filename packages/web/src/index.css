@@ -143,35 +143,23 @@ a {
   letter-spacing: -0.02em;
   color: var(--text);
 }
-/* 사이트 로고: 그라데이션 박스 + 안쪽 흰색 코드 브래킷(</> = "디버그 노트" 정체성).
+/* 사이트 로고: 그라데이션 코드 브래킷 </> 아이콘 ("디버그 노트" 정체성).
+   배경 박스 없이 SVG mask 로 그라데이션 영역을 아이콘 모양으로 잘라내 표시한다.
    기존 .ab-brand-dot 셀렉터 그대로 사용해 NavBar/Footer/AdminLayout/Login/Register
-   다섯 군데를 한 번에 갱신한다(JSX 무수정). 아이콘은 ::after + SVG mask 로 처리. */
+   다섯 군데를 한 번에 갱신한다(JSX 무수정). */
 .ab-brand-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
+  width: 30px;
+  height: 30px;
   background: linear-gradient(150deg, var(--accent), #5ac8fa);
-  box-shadow: 0 2px 8px var(--accent-soft);
+  -webkit-mask: var(--brand-mark-svg) center / contain no-repeat;
+  mask: var(--brand-mark-svg) center / contain no-repeat;
   flex-shrink: 0;
-  position: relative;
   display: inline-block;
 }
-.ab-brand-dot::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: #fff;
-  -webkit-mask: var(--brand-mark-svg) center / 62% no-repeat;
-  mask: var(--brand-mark-svg) center / 62% no-repeat;
-}
 .ab-brand-dot.big {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 60px;
+  height: 60px;
   margin-bottom: 6px;
-}
-.ab-brand-dot.big::after {
-  background: #fff;
 }
 :root {
   --brand-mark-svg: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 8L5 12L9 16M15 8L19 12L15 16M14 6L10 18'/%3E%3C/svg%3E");
