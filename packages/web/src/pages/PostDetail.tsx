@@ -71,11 +71,11 @@ export function PostDetail() {
         <Icon name="back" size={16} /> 글 목록
       </Link>
       <div className="ab-reading-main">
-        {hasToc && (
-          <aside className="ab-toc-aside">
-            <ArticleToc items={toc} />
-          </aside>
-        )}
+        {/* aside 를 항상 렌더해 본문 컬럼의 위치를 고정한다(목차 등장으로 컬럼이 리마운트되는 것 방지).
+            목차가 없으면 ArticleToc 는 null 을 반환해 빈 aside 가 되고, CSS :empty 로 숨겨진다. */}
+        <aside className="ab-toc-aside">
+          <ArticleToc items={toc} />
+        </aside>
         <div className="ab-reading-col">
           <article>
             <header className="ab-article-head">

@@ -253,6 +253,10 @@ a {
 .ab-toc-aside {
   margin: 0 0 28px;
 }
+/* 목차가 없으면 빈 aside 가 되므로 숨긴다(컬럼 리마운트 방지용 항상-렌더와 한 쌍). */
+.ab-toc-aside:empty {
+  display: none;
+}
 .ab-toc {
   border: 0;
 }
