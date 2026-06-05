@@ -28,3 +28,6 @@ Thumbs.db
 
 # Playwright MCP 임시 산출물(스냅샷/콘솔로그/스크린샷)
 .playwright-mcp/
+
+# 도커 재빌드 센서의 펜딩 상태(transient — docker-rebuild-sensor/stop 훅)
+.claude/.docker-dirty.json

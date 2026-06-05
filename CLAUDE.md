@@ -41,6 +41,27 @@ pnpm 만 사용 (npm·yarn 금지). 패키지 추가는 `pnpm --filter api add l
 > `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --renew-anon-volumes`
 > (자세한 함정·해결은 `docs/harness.md` "운영 함정 & 해결" 참고)
 
+## 도커 재빌드 — 언제 필요한가 (하네스가 감지)
+
+dev 스택은 한 번만 `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` 로 띄우면,
+**소스(.ts/.tsx)·Prisma 엔티티(→migrate)·DB 데이터 변경은 핫리로드/마이그레이션으로 자동 반영**된다(재시작 불필요).
+
+**재빌드가 필요한 경우는 정해져 있다:**
+
+| 바뀐 것 | 필요한 명령 |
+|---|---|
+| `package.json` / `pnpm-lock.yaml` (의존성) | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --renew-anon-volumes` |
+| `Dockerfile` / `docker-compose.yml` / `docker-compose.dev.yml` / `.env` | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build` |
+
+이 트리거 파일을 Edit/Write 로 고치면 **PostToolUse 훅 `docker-rebuild-sensor`** 가 감지해 정확한 명령을
+알려주고 `.claude/.docker-dirty.json` 에 펜딩을 기록한다(비차단 알림).
+
+**실행은 옵트인이다:**
+- 기본: 알림만 한다 → 사용자에게 위 명령을 안내하거나 확인 후 실행.
+- `AUTO_DOCKER_REBUILD=1` 로 세션을 시작하면, 턴 종료 시 **Stop 훅 `docker-rebuild-stop`** 이 재빌드를
+  자동 수행하도록 유도하고(빌드 로그가 세션에 보임), 성공 후 sentinel 을 지워 다음 종료는 통과시킨다.
+- 끄려면 환경변수를 빼거나 `OMC_SKIP_HOOKS` 사용. (배경/설계는 `docs/harness.md` 운영 함정 #6)
+
 ## 데이터 입력 주의 (한글 깨짐)
 
 Windows Git Bash 의 `curl -d '{"title":"한글..."}'` 는 비ASCII 를 깨뜨려 ��� 로 저장된다.

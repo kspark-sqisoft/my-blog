@@ -38,6 +38,13 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-edited.mjs\"",
             "timeout": 70,
             "statusMessage": "편집 파일 자동 포맷/린트(eslint --fix)"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/docker-rebuild-sensor.mjs\"",
+            "timeout": 15,
+            "statusMessage": "도커 재빌드 트리거 감지(deps/Dockerfile/compose/.env)"
           }
         ]
       }
@@ -51,6 +58,13 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/verify-done-tasks.mjs\"",
             "timeout": 15,
             "statusMessage": "done 태스크 검증 점검"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/docker-rebuild-stop.mjs\"",
+            "timeout": 15,
+            "statusMessage": "도커 재빌드 펜딩 점검(AUTO_DOCKER_REBUILD)"
           }
         ]
       }

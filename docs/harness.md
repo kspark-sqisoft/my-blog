@@ -55,9 +55,11 @@
 | 이벤트 | 훅 | 강제하는 것 |
 |---|---|---|
 | PreToolUse(Edit\|Write) | `protect-paths` | `.env`·확정(Accepted) ADR 수정 **차단(exit 2)** |
+| PostToolUse(Edit\|Write) | `docker-rebuild-sensor` | 도커 재빌드 트리거(deps/Dockerfile/compose/.env) 감지 → 정확한 명령 알림 + sentinel 기록(비차단) |
 | UserPromptSubmit | `tdd-reminder` | 구현 의도면 RED→GREEN→REFACTOR 리마인드 |
 | UserPromptSubmit | `session-ready` | "준비"/`/ready` 면 시작 루틴 주입 |
 | Stop | `verify-done-tasks` | 미커밋 `status=done`(MD+JSON) 감지 시 검증·커밋 유도 |
+| Stop | `docker-rebuild-stop` | `AUTO_DOCKER_REBUILD=1` 일 때만 펜딩 재빌드 자동 수행 유도(옵트인) |
 
 ---
 
@@ -190,13 +192,44 @@ docker compose -f docker-compose.e2e.yml -p my-blog-e2e down -v
   `docker restart <svc>`(예: `docker restart my-blog-api-1`) 로 재컴파일·재기동한 뒤 검증한다.
   (의존성 변경은 함정 #1 의 `--renew-anon-volumes` 를 쓴다.)
 
+### 6. 도커 재빌드를 깜빡함 — 트리거 감지 센서로 자동화
+**증상**: `package.json`/`Dockerfile`/`docker-compose*.yml`/`.env` 를 고쳤는데 dev 컨테이너에 반영이 안 됨.
+핫리로드(소스/엔티티/DB)에 익숙해진 나머지, **재빌드가 필요한 변경**까지 "알아서 반영되겠지" 하고 넘어간다.
+
+**원인**: dev 스택은 소스만 바인드 마운트한다. 의존성은 이미지 빌드 시점(익명 볼륨)에, Dockerfile/compose/.env 는
+컨테이너 생성 시점에 고정된다 — 이 파일들은 **재빌드(또는 재생성)** 해야만 반영된다.
+
+**해결(적용됨)**: 편집 도구 후킹으로 감지 + 옵트인 자동 실행. (설계 결정: 재빌드는 실행 중 서비스를
+내렸다 올리는 무거운 작업이라 "감지 즉시 무조건 실행"은 편집 중 thrash·예고 없는 재기동 위험 → 기본은 알림,
+실행은 옵트인.)
+
+| 바뀐 것 | 분류 | 명령 |
+|---|---|---|
+| `package.json` / `pnpm-lock.yaml` | deps | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --renew-anon-volumes` |
+| `Dockerfile(.*)` / `docker-compose.yml` / `docker-compose.dev.yml` / `.env` | config | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build` |
+
+- **`.claude/hooks/docker-rebuild-sensor.mjs`** (PostToolUse Edit\|Write, 비차단): 트리거 파일 변경을 감지해
+  정확한 명령을 Claude 컨텍스트에 주입하고, 펜딩을 `.claude/.docker-dirty.json`(gitignore)에 기록한다.
+  deps 가 config 보다 강하다(한 번 deps 면 `--renew-anon-volumes` 명령 유지). dev 스택과 무관한
+  `docker-compose.e2e.yml`/`.prod.yml`, `node_modules/**` 는 트리거에서 제외. `.env` 는 protect-paths 가
+  Edit 를 막으므로 실질적으로 사람이 직접 고치며, 그 경우 이 알림은 안 뜬다 — 수동 재빌드를 기억할 것.
+- **`.claude/hooks/docker-rebuild-stop.mjs`** (Stop, 옵트인): `AUTO_DOCKER_REBUILD=1` 일 때만, sentinel 이
+  있으면 턴 종료 시 재빌드 실행을 지시한다(`decision: block`). Bash 로 실행을 위임해 빌드 로그가 세션에
+  보이고 healthy 확인까지 검증되며, 성공 후 sentinel 을 지우면 다음 종료는 자동 통과한다. `stop_hook_active`
+  가드로 무한 루프를 막는다. env 미설정이면 아무 것도 하지 않는다(알림은 이미 센서가 했다).
+
+**왜 핫리로드는 트리거가 아닌가**: dev 오버라이드가 소스를 바인드 마운트하고 `CHOKIDAR_USEPOLLING`/
+`VITE_USE_POLLING` 으로 폴링하므로 `.ts/.tsx` 저장은 재컴파일된다. Prisma 엔티티는 `migrate` 로, DB 데이터는
+런타임 쿼리로 반영된다 — 모두 재빌드 불필요. (단 함정 #4 처럼 Windows 바인드 마운트에서 watch 가 변경을
+놓치면 `docker restart <svc>` 로 개별 재기동한다 — 이건 재빌드가 아니라 재시작이다.)
+
 ## 관련 파일
 
 - `init.sh` — 환경 부트스트랩(개발 DB + 테스트 DB)
 - `feature_list.json` — 진행 상태 정규 소스
 - `CLAUDE.md` — 시작 루틴·완료 규칙·절대 규칙
 - `.claude/commands/` — `ready` · `implement` · `finish` · 설계 명령들
-- `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks`
+- `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks` · `docker-rebuild-sensor` · `docker-rebuild-stop`
 - `docs/handoff/` — 세션 간 인계 노트
 - `docs/harness-gap-analysis.md` — 가이드(claude-code-guide) 대비 하네스 갭/보강 권고
 - `docs/harness-changelog.md` — 하네스 자체 변경 이력(가이드 12.5)
