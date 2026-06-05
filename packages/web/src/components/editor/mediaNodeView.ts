@@ -9,16 +9,27 @@ export interface MediaViewSpec {
   onDelete: () => void;
 }
 
-// 동작 핸들러를 버튼 DOM 에 실어두는 키. ProseMirror editable 안에서는 버튼의 자체 click
-// 이벤트가 발동하지 않으므로(에디터 root 가 trusted 마우스 이벤트를 가로챔), 트리거는
-// 에디터의 handleDOMEvents.mousedown 가 이 핸들러를 직접 호출하는 방식으로 한다.
-export const MEDIA_ACTION_KEY = '__mediaAction';
-
-type MediaActionEl = HTMLElement & { [MEDIA_ACTION_KEY]?: () => void };
+// 미디어 컨트롤(교체/삭제) 버튼 동작.
+// ProseMirror editable 안에서는 두 가지 함정이 있다:
+//   1) PM root 가 mousedown 을 가로채 NodeView 를 재선택·재렌더 → 우리 click 이 유실된다.
+//   2) NodeView.stopEvent === true 이면 PM 이 이 NodeView 안 이벤트를 "처리하지 않음"으로
+//      간주해 editorProps.handleDOMEvents 도 호출되지 않는다.
+// 따라서 우회 경로를 두지 말고, 버튼 자체에 mousedown 리스너를 직접 붙여 PM 보다 먼저
+// preventDefault + stopPropagation 으로 차단한 뒤 동작을 즉시 실행한다.
+function bindMediaButton(btn: HTMLButtonElement, action: () => void): void {
+  btn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    action();
+  });
+  // mousedown 이 click 까지 이어지지 않게 click 도 차단(이미 동작은 끝났다).
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+}
 
 // 프레임워크 비의존 DOM 빌더 — 미디어 미리보기 + 호버 오버레이(교체/삭제).
-// 버튼에는 data-media-action 과 __mediaAction(실제 동작)을 실어, RichEditor 의
-// handleDOMEvents.mousedown 가 호출한다.
 export function buildMediaView(spec: MediaViewSpec): { dom: HTMLElement } {
   const root = document.createElement('div');
   root.className = 'ab-media-node';
@@ -62,7 +73,8 @@ export function buildMediaView(spec: MediaViewSpec): { dom: HTMLElement } {
     replaceBtn.setAttribute('aria-label', '교체');
     replaceBtn.setAttribute('data-media-action', 'replace');
     replaceBtn.textContent = '🔄 교체';
-    (replaceBtn as MediaActionEl)[MEDIA_ACTION_KEY] = () => input.click();
+    // file picker 열기는 사용자 제스처(mousedown) 안에서 동기 호출해야 한다.
+    bindMediaButton(replaceBtn, () => input.click());
 
     overlay.appendChild(replaceBtn);
     frame.appendChild(input);
@@ -74,23 +86,12 @@ export function buildMediaView(spec: MediaViewSpec): { dom: HTMLElement } {
   deleteBtn.setAttribute('aria-label', '삭제');
   deleteBtn.setAttribute('data-media-action', 'delete');
   deleteBtn.textContent = '🗑 삭제';
-  (deleteBtn as MediaActionEl)[MEDIA_ACTION_KEY] = () => spec.onDelete();
+  bindMediaButton(deleteBtn, () => spec.onDelete());
   overlay.appendChild(deleteBtn);
 
   frame.appendChild(overlay);
   root.appendChild(frame);
   return { dom: root };
-}
-
-// RichEditor 의 handleDOMEvents.mousedown 에서 호출. 미디어 컨트롤이면 동작을 실행하고 true 반환.
-export function runMediaActionFrom(target: EventTarget | null): boolean {
-  const el =
-    target instanceof HTMLElement
-      ? (target.closest('[data-media-action]') as MediaActionEl | null)
-      : null;
-  if (!el) return false;
-  el[MEDIA_ACTION_KEY]?.();
-  return true;
 }
 
 type UploadMediaFn = (

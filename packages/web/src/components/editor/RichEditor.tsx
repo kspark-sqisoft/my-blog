@@ -13,7 +13,6 @@ import {
   TextColorClass,
   Video,
 } from './extensions';
-import { runMediaActionFrom } from './mediaNodeView';
 import { Toolbar } from './Toolbar';
 
 interface RichEditorProps {
@@ -56,18 +55,6 @@ export function RichEditor({
       attributes: {
         'aria-label': ariaLabel,
         class: `ab-rich-editor${invalid ? ' invalid' : ''}`,
-      },
-      handleDOMEvents: {
-        // 미디어 컨트롤(교체/삭제)은 ProseMirror editable 안이라 버튼 자체 click 이 발동하지
-        // 않는다(에디터 root 가 trusted 마우스 이벤트를 가로챔). 그래서 PM 이 확실히 받는
-        // mousedown 단계에서 동작을 직접 실행한다. 처리했으면 true(기본 동작/선택 방지).
-        mousedown: (_view, event) => {
-          if (runMediaActionFrom(event.target)) {
-            event.preventDefault();
-            return true;
-          }
-          return false;
-        },
       },
     },
   });

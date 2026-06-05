@@ -1,10 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildMediaView, runMediaActionFrom } from './mediaNodeView';
+import { buildMediaView } from './mediaNodeView';
 
 // buildMediaView 는 TipTap 비의존 DOM 빌더 — 미리보기 + 삭제/교체 컨트롤.
-// ProseMirror editable 안에서는 버튼 자체 click 이 발동하지 않으므로, 트리거는
-// runMediaActionFrom(에디터 mousedown 에서 호출)이 담당한다.
+// 버튼은 자체 mousedown 리스너로 동작한다(ProseMirror 가 click 을 가로채는 것을
+// 피하기 위해 mousedown 단계에서 직접 실행 + 이벤트 차단).
 // (TipTap 어댑터 mediaNodeView() 통합은 RichEditor 브라우저 e2e 로 검증)
+
+function fireMouseDown(el: Element): void {
+  el.dispatchEvent(
+    new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+  );
+}
 
 describe('buildMediaView', () => {
   it('이미지는 <img> 미리보기로 렌더한다(주소 텍스트 아님)', () => {
@@ -34,7 +40,7 @@ describe('buildMediaView', () => {
     expect(video?.hasAttribute('controls')).toBe(true);
   });
 
-  it('삭제 액션 트리거 시 onDelete 가 호출된다', () => {
+  it('삭제 버튼 mousedown 시 onDelete 가 호출된다(PM 가로채기 방지 위해 mousedown)', () => {
     const onDelete = vi.fn();
     const { dom } = buildMediaView({
       kind: 'image',
@@ -45,8 +51,27 @@ describe('buildMediaView', () => {
     });
     const delBtn = dom.querySelector('[data-media-action="delete"]');
     expect(delBtn).not.toBeNull();
-    expect(runMediaActionFrom(delBtn)).toBe(true);
+    fireMouseDown(delBtn!);
     expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('교체 버튼 mousedown 시 숨겨진 file input 의 click() 을 호출한다', () => {
+    const { dom } = buildMediaView({
+      kind: 'image',
+      src: '/uploads/a.png',
+      canReplace: true,
+      onReplace: vi.fn(),
+      onDelete: vi.fn(),
+    });
+    const replaceBtn = dom.querySelector('[data-media-action="replace"]');
+    expect(replaceBtn).not.toBeNull();
+    const input = dom.querySelector<HTMLInputElement>(
+      'input[aria-label="이미지 교체"]',
+    );
+    expect(input).not.toBeNull();
+    const clickSpy = vi.spyOn(input!, 'click');
+    fireMouseDown(replaceBtn!);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
   it('교체용 파일 선택 시 onReplace(file) 가 호출된다', () => {
@@ -58,7 +83,6 @@ describe('buildMediaView', () => {
       onReplace,
       onDelete: vi.fn(),
     });
-    expect(dom.querySelector('[data-media-action="replace"]')).not.toBeNull();
     const input = dom.querySelector<HTMLInputElement>(
       'input[aria-label="이미지 교체"]',
     );
@@ -82,9 +106,20 @@ describe('buildMediaView', () => {
     expect(dom.querySelector('[data-media-action="delete"]')).not.toBeNull();
   });
 
-  it('runMediaActionFrom 은 미디어 컨트롤이 아니면 false 를 반환한다', () => {
-    const div = document.createElement('div');
-    expect(runMediaActionFrom(div)).toBe(false);
-    expect(runMediaActionFrom(null)).toBe(false);
+  it('버튼 mousedown 은 stopPropagation 으로 차단된다(PM 까지 도달하지 않는다)', () => {
+    const { dom } = buildMediaView({
+      kind: 'image',
+      src: '/uploads/a.png',
+      canReplace: true,
+      onReplace: vi.fn(),
+      onDelete: vi.fn(),
+    });
+    const parent = document.createElement('div');
+    parent.appendChild(dom);
+    const parentSpy = vi.fn();
+    parent.addEventListener('mousedown', parentSpy);
+    const delBtn = dom.querySelector('[data-media-action="delete"]') as Element;
+    fireMouseDown(delBtn);
+    expect(parentSpy).not.toHaveBeenCalled();
   });
 });
