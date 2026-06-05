@@ -1,4 +1,4 @@
-import { Mark, mergeAttributes, Node } from '@tiptap/core';
+import { Extension, Mark, mergeAttributes, Node } from '@tiptap/core';
 import Image from '@tiptap/extension-image';
 import { mediaNodeView } from './mediaNodeView';
 
@@ -133,10 +133,127 @@ export const MediaImage = Image.extend<{ onUploadMedia?: UploadMediaFn }>({
   },
 });
 
+// 형광펜: <mark> 태그. (색은 단일 — 화이트리스트에 mark 태그만 허용)
+export const Highlight = Mark.create({
+  name: 'highlight',
+  parseHTML() {
+    return [{ tag: 'mark' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['mark', mergeAttributes(HTMLAttributes), 0];
+  },
+  addCommands() {
+    return {
+      toggleHighlight:
+        () =>
+        ({ commands }) =>
+          commands.toggleMark(this.name),
+    };
+  },
+});
+
+// 위첨자 <sup> / 아래첨자 <sub> — 상호 배타(excludes).
+export const Superscript = Mark.create({
+  name: 'superscript',
+  excludes: 'subscript',
+  parseHTML() {
+    return [{ tag: 'sup' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['sup', mergeAttributes(HTMLAttributes), 0];
+  },
+  addCommands() {
+    return {
+      toggleSuperscript:
+        () =>
+        ({ commands }) =>
+          commands.toggleMark(this.name),
+    };
+  },
+});
+
+export const Subscript = Mark.create({
+  name: 'subscript',
+  excludes: 'superscript',
+  parseHTML() {
+    return [{ tag: 'sub' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['sub', mergeAttributes(HTMLAttributes), 0];
+  },
+  addCommands() {
+    return {
+      toggleSubscript:
+        () =>
+        ({ commands }) =>
+          commands.toggleMark(this.name),
+    };
+  },
+});
+
+// 블록 정렬: 문단/제목에 align 속성을 추가하고 Tailwind 클래스로 렌더(인라인 style 금지, ADR-0021).
+// 좌측은 기본값이라 클래스 없음. setAlign('left'|'center'|'right').
+type AlignValue = 'left' | 'center' | 'right';
+
+export const TextAlignClass = Extension.create<{ types: string[] }>({
+  name: 'textAlignClass',
+  addOptions() {
+    return { types: ['paragraph', 'heading'] };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          align: {
+            default: null as AlignValue | null,
+            parseHTML: (el): AlignValue | null => {
+              const cls = el.getAttribute('class') ?? '';
+              if (cls.includes('text-center')) return 'center';
+              if (cls.includes('text-right')) return 'right';
+              return null;
+            },
+            renderHTML: (attrs: { align?: AlignValue | null }) => {
+              if (attrs.align === 'center') return { class: 'text-center' };
+              if (attrs.align === 'right') return { class: 'text-right' };
+              return {};
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setAlign:
+        (value: AlignValue) =>
+        ({ commands }) => {
+          // 좌측 = null(클래스 제거). 가운데/오른쪽 = 해당 값.
+          const align = value === 'left' ? null : value;
+          return this.options.types.every((type) =>
+            commands.updateAttributes(type, { align }),
+          );
+        },
+    };
+  },
+});
+
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     video: {
       setVideo: (attrs: { src: string }) => ReturnType;
+    };
+    highlight: {
+      toggleHighlight: () => ReturnType;
+    };
+    superscript: {
+      toggleSuperscript: () => ReturnType;
+    };
+    subscript: {
+      toggleSubscript: () => ReturnType;
+    };
+    textAlignClass: {
+      setAlign: (value: 'left' | 'center' | 'right') => ReturnType;
     };
   }
 }

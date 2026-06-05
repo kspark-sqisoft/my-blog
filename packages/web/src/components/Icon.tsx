@@ -43,6 +43,42 @@ const PATHS: Record<string, React.ReactNode> = {
       <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
     </>
   ),
+  // 에디터 툴바 아이콘 (T-WEB-307)
+  undo: <path d="M9 7 4 11.5l5 4.5M4 11.5h9.5a5.5 5.5 0 0 1 0 11H8" />,
+  redo: <path d="M15 7l5 4.5-5 4.5M20 11.5h-9.5a5.5 5.5 0 0 0 0 11H16" />,
+  'list-bullet': (
+    <>
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <circle cx="4.5" cy="6" r="1" />
+      <circle cx="4.5" cy="12" r="1" />
+      <circle cx="4.5" cy="18" r="1" />
+    </>
+  ),
+  'list-ordered': (
+    <path d="M10 6h10M10 12h10M10 18h10M4 4.5h1.5V9M4 9h3M4.2 14.5h2.3v1.6L4.2 18.5h2.6" />
+  ),
+  quote: (
+    <path d="M7 7H4.5v4H7l-1.5 4M16 7h-2.5v4H16l-1.5 4" />
+  ),
+  codeblock: (
+    <>
+      <rect x="3" y="4.5" width="18" height="15" rx="2" />
+      <path d="M9 9.5 7 12l2 2.5M15 9.5l2 2.5-2 2.5" />
+    </>
+  ),
+  link: (
+    <path d="M10 13a4.5 4.5 0 0 0 6.4 0l2.1-2.1a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2M14 11a4.5 4.5 0 0 0-6.4 0l-2.1 2.1a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
+  ),
+  rule: <path d="M4 12h16" />,
+  highlight: (
+    <>
+      <path d="M4 20.5h5M5 17l-1 3.5 3.5-1 9.5-9.5-2.5-2.5L5 17Z" />
+      <path d="M13 7l4 4" />
+    </>
+  ),
+  'align-left': <path d="M4 6h16M4 10.5h10M4 15h16M4 19.5h10" />,
+  'align-center': <path d="M4 6h16M7 10.5h10M4 15h16M7 19.5h10" />,
+  'align-right': <path d="M4 6h16M10 10.5h10M4 15h16M10 19.5h10" />,
 };
 
 export function Icon({ name, size = 18 }: { name: string; size?: number }) {

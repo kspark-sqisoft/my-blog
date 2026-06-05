@@ -1286,6 +1286,27 @@
         "버그 회귀 없음: web lint/typecheck/unit(88) + e2e(6) 통과"
       ],
       "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-WEB-307",
+      "title": "에디터 툴바 아이콘 재디자인 + 서식 확장(실행취소·정렬·형광펜·위/아래첨자)",
+      "epic": "E11",
+      "context": "WEB",
+      "priority": 68,
+      "deps": [
+        "T-WEB-301"
+      ],
+      "status": "done",
+      "feature": "rich-text-editor",
+      "tdd_first": true,
+      "acceptance": [
+        "실행취소/되돌리기, 형광펜(<mark>), 위/아래첨자(<sup>/<sub>), 블록 정렬(좌/중/우) 추가",
+        "정렬은 인라인 style 금지(ADR-0021) 준수 — text-center/text-right 클래스 기반(shared 화이트리스트 + 서버 sanitize + RichContent 정합)",
+        "형광펜/첨자는 새 의존성 없이 커스텀 마크로 구현",
+        "툴바를 아이콘 기반으로 재디자인(B/I/U/S·x²/x₂ 글자, 나머지 아이콘 + 그룹 구분선)",
+        "회귀 없음: web lint/typecheck/unit(93) + api(markdown-to-html 10) + e2e(6) 통과"
+      ],
+      "completed_at": "2026-06-05"
     }
   ]
 }

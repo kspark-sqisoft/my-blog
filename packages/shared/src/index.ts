@@ -14,5 +14,13 @@ export type { AdminUserDto, UpdateUserRoleDto } from './dto/user';
 export type { UploadResultDto } from './dto/upload';
 export type { Paginated } from './dto/pagination';
 // 본문 HTML 화이트리스트 (ADR-0021). 서버/클라 sanitize 단일 소스.
-export { richHtmlSchema, RICH_HTML_SPAN_CLASSES } from './rich-html-schema';
-export type { RichHtmlSchema, RichHtmlSpanClass } from './rich-html-schema';
+export {
+  richHtmlSchema,
+  RICH_HTML_SPAN_CLASSES,
+  RICH_HTML_ALIGN_CLASSES,
+} from './rich-html-schema';
+export type {
+  RichHtmlSchema,
+  RichHtmlSpanClass,
+  RichHtmlAlignClass,
+} from './rich-html-schema';

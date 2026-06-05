@@ -134,6 +134,62 @@ describe('RichEditor (T-WEB-301)', () => {
     });
   });
 
+  // T-WEB-307: 형광펜/위·아래첨자/정렬/실행취소
+  function selectAll(editorEl: HTMLElement) {
+    act(() => {
+      editorEl.focus();
+      fireEvent.keyDown(editorEl, { key: 'a', code: 'KeyA', ctrlKey: true });
+    });
+  }
+
+  it('형광펜 버튼 → <mark> 로 직렬화된다', async () => {
+    const { onChange } = setup();
+    selectAll(await screen.findByLabelText('본문'));
+    fireEvent.click(screen.getByRole('button', { name: '형광펜' }));
+    await waitFor(() =>
+      expect(onChange.mock.calls.at(-1)?.[0] ?? '').toMatch(
+        /<mark>안녕<\/mark>/,
+      ),
+    );
+  });
+
+  it('위첨자 버튼 → <sup> 로 직렬화된다', async () => {
+    const { onChange } = setup();
+    selectAll(await screen.findByLabelText('본문'));
+    fireEvent.click(screen.getByRole('button', { name: '위첨자' }));
+    await waitFor(() =>
+      expect(onChange.mock.calls.at(-1)?.[0] ?? '').toMatch(/<sup>안녕<\/sup>/),
+    );
+  });
+
+  it('아래첨자 버튼 → <sub> 로 직렬화된다', async () => {
+    const { onChange } = setup();
+    selectAll(await screen.findByLabelText('본문'));
+    fireEvent.click(screen.getByRole('button', { name: '아래첨자' }));
+    await waitFor(() =>
+      expect(onChange.mock.calls.at(-1)?.[0] ?? '').toMatch(/<sub>안녕<\/sub>/),
+    );
+  });
+
+  it('가운데 정렬 → 문단에 text-center 클래스가 부착된다(인라인 style 부재)', async () => {
+    const { onChange } = setup();
+    selectAll(await screen.findByLabelText('본문'));
+    fireEvent.click(screen.getByRole('button', { name: '가운데 정렬' }));
+    await waitFor(() => {
+      const last = onChange.mock.calls.at(-1)?.[0] ?? '';
+      expect(last).toMatch(/<p[^>]+class="[^"]*text-center/);
+      expect(last).not.toMatch(/style=/);
+    });
+  });
+
+  it('실행취소/되돌리기 버튼이 렌더된다(동작은 TipTap history 내장)', async () => {
+    setup();
+    expect(
+      await screen.findByRole('button', { name: /실행취소/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /되돌리기/ })).toBeInTheDocument();
+  });
+
   it('생성된 HTML 에는 인라인 style 이 들어가지 않는다 (회귀 가드)', async () => {
     const { onChange } = setup();
     const editorEl = await screen.findByLabelText('본문');

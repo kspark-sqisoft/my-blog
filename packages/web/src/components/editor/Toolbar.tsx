@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { Editor } from '@tiptap/react';
 import { RICH_HTML_SPAN_CLASSES } from '@blog/shared';
+import { Icon } from '../Icon';
 
 interface ToolbarProps {
   editor: Editor;
@@ -40,29 +41,39 @@ COLOR_OPTIONS.forEach((c) => {
     throw new Error(`color class ${c.class} not in RICH_HTML_SPAN_CLASSES`);
 });
 
+// 버튼: 아이콘(icon) 또는 글자/텍스트(label) 중 하나로 렌더한다.
 function Btn({
   on,
-  active,
+  active = false,
+  disabled = false,
   title,
+  icon,
   label,
 }: {
   on: () => void;
-  active: boolean;
+  active?: boolean;
+  disabled?: boolean;
   title: string;
-  label: string;
+  icon?: string;
+  label?: string;
 }) {
   return (
     <button
       type="button"
       onClick={on}
+      disabled={disabled}
       title={title}
       aria-label={title}
       aria-pressed={active}
       className={`ab-tb-btn${active ? ' active' : ''}`}
     >
-      {label}
+      {icon ? <Icon name={icon} size={17} /> : label}
     </button>
   );
+}
+
+function Sep() {
+  return <span className="ab-tb-sep" aria-hidden="true" />;
 }
 
 export function Toolbar({ editor, onUploadMedia }: ToolbarProps) {
@@ -94,8 +105,48 @@ export function Toolbar({ editor, onUploadMedia }: ToolbarProps) {
     }
   };
 
+  const alignActive = (v: 'center' | 'right') => editor.isActive({ align: v });
+  const alignLeftActive = !alignActive('center') && !alignActive('right');
+
   return (
     <div className="ab-rich-toolbar" role="toolbar" aria-label="본문 서식">
+      {/* 실행취소 / 되돌리기 */}
+      <Btn
+        on={() => editor.chain().focus().undo().run()}
+        disabled={!editor.can().undo()}
+        title="실행취소 (Ctrl/Cmd+Z)"
+        icon="undo"
+      />
+      <Btn
+        on={() => editor.chain().focus().redo().run()}
+        disabled={!editor.can().redo()}
+        title="되돌리기 (Ctrl/Cmd+Shift+Z)"
+        icon="redo"
+      />
+      <Sep />
+
+      {/* 제목 */}
+      <Btn
+        on={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        active={editor.isActive('heading', { level: 1 })}
+        title="제목 1"
+        label="H1"
+      />
+      <Btn
+        on={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        active={editor.isActive('heading', { level: 2 })}
+        title="제목 2"
+        label="H2"
+      />
+      <Btn
+        on={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        active={editor.isActive('heading', { level: 3 })}
+        title="제목 3"
+        label="H3"
+      />
+      <Sep />
+
+      {/* 인라인 서식 */}
       <Btn
         on={() => editor.chain().focus().toggleBold().run()}
         active={editor.isActive('bold')}
@@ -121,68 +172,94 @@ export function Toolbar({ editor, onUploadMedia }: ToolbarProps) {
         label="S"
       />
       <Btn
+        on={() => editor.chain().focus().toggleHighlight().run()}
+        active={editor.isActive('highlight')}
+        title="형광펜"
+        icon="highlight"
+      />
+      <Btn
         on={() => editor.chain().focus().toggleCode().run()}
         active={editor.isActive('code')}
         title="인라인 코드"
         label="</>"
       />
-      <span className="ab-tb-sep" aria-hidden="true" />
       <Btn
-        on={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        active={editor.isActive('heading', { level: 1 })}
-        title="제목 1"
-        label="H1"
+        on={() => editor.chain().focus().toggleSuperscript().run()}
+        active={editor.isActive('superscript')}
+        title="위첨자"
+        label="x²"
       />
       <Btn
-        on={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        active={editor.isActive('heading', { level: 2 })}
-        title="제목 2"
-        label="H2"
+        on={() => editor.chain().focus().toggleSubscript().run()}
+        active={editor.isActive('subscript')}
+        title="아래첨자"
+        label="x₂"
       />
-      <Btn
-        on={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        active={editor.isActive('heading', { level: 3 })}
-        title="제목 3"
-        label="H3"
-      />
-      <span className="ab-tb-sep" aria-hidden="true" />
+      <Sep />
+
+      {/* 목록 / 블록 */}
       <Btn
         on={() => editor.chain().focus().toggleBulletList().run()}
         active={editor.isActive('bulletList')}
         title="글머리표"
-        label="•"
+        icon="list-bullet"
       />
       <Btn
         on={() => editor.chain().focus().toggleOrderedList().run()}
         active={editor.isActive('orderedList')}
         title="번호 매기기"
-        label="1."
+        icon="list-ordered"
       />
       <Btn
         on={() => editor.chain().focus().toggleBlockquote().run()}
         active={editor.isActive('blockquote')}
         title="인용"
-        label="❝"
+        icon="quote"
       />
       <Btn
         on={() => editor.chain().focus().toggleCodeBlock().run()}
         active={editor.isActive('codeBlock')}
         title="코드 블록"
-        label="{ }"
+        icon="codeblock"
       />
+      <Sep />
+
+      {/* 정렬 */}
+      <Btn
+        on={() => editor.chain().focus().setAlign('left').run()}
+        active={alignLeftActive}
+        title="왼쪽 정렬"
+        icon="align-left"
+      />
+      <Btn
+        on={() => editor.chain().focus().setAlign('center').run()}
+        active={alignActive('center')}
+        title="가운데 정렬"
+        icon="align-center"
+      />
+      <Btn
+        on={() => editor.chain().focus().setAlign('right').run()}
+        active={alignActive('right')}
+        title="오른쪽 정렬"
+        icon="align-right"
+      />
+      <Sep />
+
+      {/* 링크 / 구분선 */}
       <Btn
         on={onLink}
         active={editor.isActive('link')}
         title="링크"
-        label="🔗"
+        icon="link"
       />
       <Btn
         on={() => editor.chain().focus().setHorizontalRule().run()}
-        active={false}
         title="가로 구분선"
-        label="—"
+        icon="rule"
       />
-      <span className="ab-tb-sep" aria-hidden="true" />
+      <Sep />
+
+      {/* 색 / 크기 */}
       <label className="ab-tb-select">
         색
         <select
@@ -235,16 +312,19 @@ export function Toolbar({ editor, onUploadMedia }: ToolbarProps) {
           <option value="__reset__">기본(해제)</option>
         </select>
       </label>
+
+      {/* 미디어 */}
       {onUploadMedia && (
         <>
-          <span className="ab-tb-sep" aria-hidden="true" />
+          <Sep />
           <button
             type="button"
-            className="ab-tb-btn"
+            className="ab-tb-btn media"
             onClick={() => fileRef.current?.click()}
             title="이미지 또는 MP4 비디오 업로드"
+            aria-label="이미지 또는 MP4 비디오 업로드"
           >
-            📷 미디어
+            <Icon name="image" size={16} /> 미디어
           </button>
           <input
             ref={fileRef}

@@ -3,7 +3,16 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import { useEffect } from 'react';
-import { FontSizeClass, MediaImage, TextColorClass, Video } from './extensions';
+import {
+  FontSizeClass,
+  Highlight,
+  MediaImage,
+  Subscript,
+  Superscript,
+  TextAlignClass,
+  TextColorClass,
+  Video,
+} from './extensions';
 import { runMediaActionFrom } from './mediaNodeView';
 import { Toolbar } from './Toolbar';
 
@@ -36,6 +45,10 @@ export function RichEditor({
       Video.configure({ onUploadMedia }),
       TextColorClass,
       FontSizeClass,
+      Highlight,
+      Superscript,
+      Subscript,
+      TextAlignClass,
     ],
     content: value || '',
     onUpdate: ({ editor }) => onChange(editor.getHTML()),

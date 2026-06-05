@@ -1483,6 +1483,107 @@ a {
   }
 }
 
+/* 리치 에디터 + 아이콘 툴바 — T-WEB-307 */
+.ab-rich-editor-wrap {
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.ab-rich-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border-2);
+  background: var(--surface-2);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.ab-tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.12s;
+}
+.ab-tb-btn:hover:not(:disabled) {
+  background: var(--surface-3, rgba(127, 127, 127, 0.14));
+  color: var(--text);
+}
+.ab-tb-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ab-tb-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.ab-tb-btn.media {
+  gap: 5px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.ab-tb-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 3px 5px;
+  background: var(--border-2);
+}
+.ab-tb-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-3);
+  margin: 0 2px;
+}
+.ab-tb-select select {
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12.5px;
+  padding: 4px 6px;
+  outline: none;
+}
+.ab-rich-editor {
+  min-height: 360px;
+  padding: 16px;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.ab-rich-editor.invalid {
+  box-shadow: inset 0 0 0 2px var(--danger);
+}
+.ab-rich-editor:focus-within {
+  /* 컨테이너가 포커스 링을 표현 */
+}
+.ab-rich-editor-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.ab-rich-editor mark,
+.ab-rich-content mark {
+  background: #fde68a;
+  color: inherit;
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
 /* 에디터 미디어 미리보기 + 호버 오버레이(교체/삭제) — T-WEB-306 */
 .ab-media-node {
   position: relative;

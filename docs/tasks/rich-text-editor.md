@@ -142,6 +142,15 @@ Tailwind 클래스로만. 기존 글은 일회성 마이그레이션으로 conte
   3. ProseMirror editable 내부 클릭 유실 회피: `handleDOMEvents.mousedown` 로 트리거(buildMediaView + runMediaActionFrom).
   4. 회귀 없음: web lint/typecheck/unit(88) + e2e(6) 통과.
 
+#### T-WEB-307 — 에디터 툴바 아이콘 재디자인 + 서식 확장
+- priority: 68 / 의존: T-WEB-301 / status: done (2026-06-05)
+- acceptance:
+  1. 실행취소/되돌리기, 형광펜(`<mark>`), 위/아래첨자(`<sup>/<sub>`), 블록 정렬(좌/중/우) 추가.
+  2. 정렬은 인라인 style 금지(ADR-0021) 준수 — `text-center/text-right` 클래스 기반(shared 화이트리스트 + 서버 sanitize + RichContent 정합).
+  3. 형광펜/첨자는 새 의존성 없이 커스텀 마크로 구현.
+  4. 툴바 아이콘 재디자인(B/I/U/S·x²/x₂ 글자, 나머지 SVG 아이콘 + 그룹 구분선).
+  5. 회귀 없음: web lint/typecheck/unit(93) + api(markdown-to-html 10) + e2e(6) 통과.
+
 ## 범위 외
 - 표(table)/임베드 카드, 협업 편집(yjs), 글 이력/버전.
 - 임의 hex 색/px 크기 — 화이트리스트 프리셋만.

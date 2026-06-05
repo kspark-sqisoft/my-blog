@@ -22,6 +22,12 @@ export const RICH_HTML_SPAN_CLASSES = [
 
 export type RichHtmlSpanClass = (typeof RICH_HTML_SPAN_CLASSES)[number];
 
+// 블록 정렬(문단/제목)은 인라인 style 금지 정책(ADR-0021) 때문에 Tailwind 클래스로 표현한다.
+// 좌측 정렬은 기본값이라 클래스를 부여하지 않는다(가운데/오른쪽만).
+export const RICH_HTML_ALIGN_CLASSES = ['text-center', 'text-right'] as const;
+
+export type RichHtmlAlignClass = (typeof RICH_HTML_ALIGN_CLASSES)[number];
+
 // sanitize-html 의 IOptions 모양에 호환되도록 설계. (런타임 의존은 각 패키지에서 import)
 export interface RichHtmlSchema {
   readonly allowedTags: readonly string[];
@@ -47,6 +53,9 @@ export const richHtmlSchema: RichHtmlSchema = {
     's',
     'code',
     'span',
+    'mark',
+    'sup',
+    'sub',
     'ul',
     'ol',
     'li',
@@ -64,14 +73,21 @@ export const richHtmlSchema: RichHtmlSchema = {
     code: ['class'],
     pre: ['class'],
     p: ['class'],
+    h1: ['class'],
+    h2: ['class'],
+    h3: ['class'],
   },
   allowedClasses: {
     // 시각 서식은 Tailwind 클래스로만 — 인라인 style 우회 차단(ADR-0021).
     span: RICH_HTML_SPAN_CLASSES as unknown as readonly string[],
+    // 블록 정렬 클래스(문단/제목).
+    p: RICH_HTML_ALIGN_CLASSES as unknown as readonly string[],
+    h1: RICH_HTML_ALIGN_CLASSES as unknown as readonly string[],
+    h2: RICH_HTML_ALIGN_CLASSES as unknown as readonly string[],
+    h3: RICH_HTML_ALIGN_CLASSES as unknown as readonly string[],
     // 코드 블록 언어 표시 등은 후속에 추가.
     code: [],
     pre: [],
-    p: [],
   },
   // javascript:/data:/vbscript:/file: 등은 누락 → sanitize-html 이 url 자체를 제거.
   allowedSchemes: ['http', 'https', 'mailto', 'tel'],
