@@ -83,6 +83,7 @@ describe('CommentForm', () => {
       email: 'kim@x.com',
       name: '박기순',
       role: 'MEMBER',
+      avatarUrl: null,
     });
     renderForm();
     expect(screen.queryByLabelText('이름(선택)')).not.toBeInTheDocument();
@@ -96,6 +97,7 @@ describe('CommentForm', () => {
       email: 'kim@x.com',
       name: '박기순',
       role: 'MEMBER',
+      avatarUrl: null,
     });
     mockedApi.post.mockResolvedValueOnce({ data: { id: 'c3' } });
     renderForm();

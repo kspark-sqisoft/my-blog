@@ -1,6 +1,7 @@
 import type { CommentDto } from '@blog/shared';
 import { useState } from 'react';
 import { fmtDate } from '../lib/format';
+import { Avatar } from './Avatar';
 import { CommentForm } from './CommentForm';
 import { Icon } from './Icon';
 
@@ -21,7 +22,7 @@ function CommentNode({
   return (
     <li className="ab-comment">
       <div className="ab-comment-head">
-        <span className="ab-avatar">{name[0]}</span>
+        <Avatar src={comment.authorAvatarUrl} name={name} size="sm" />
         <div>
           <p className="ab-comment-name">{name}</p>
           <p className="ab-comment-date">{fmtDate(comment.createdAt)}</p>

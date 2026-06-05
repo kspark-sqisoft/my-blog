@@ -20,6 +20,7 @@ interface AuthState {
     name: string,
   ) => Promise<boolean>;
   fetchMe: () => Promise<void>;
+  setUser: (user: AuthUserDto) => void; // 프로필 수정 후 스토어 갱신 (ADR-0025)
   logout: () => Promise<void>;
 }
 
@@ -75,6 +76,10 @@ export const useAuth = create<AuthState>((set) => ({
     } catch {
       set({ user: null, status: 'unauthenticated' });
     }
+  },
+
+  setUser(user) {
+    set({ user, status: 'authenticated' });
   },
 
   async logout() {

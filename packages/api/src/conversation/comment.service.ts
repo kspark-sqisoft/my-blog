@@ -17,8 +17,10 @@ export interface CreateCommentInput {
 // 답글 최대 깊이 (최상위=0, 답글=1, 답글의 답글=2 — ADR-0013)
 const MAX_DEPTH = 2;
 
-// 작성자 이름·userId까지 포함해 조회 (ADR-0018)
-const withUser = { user: { select: { name: true } } } as const;
+// 작성자 이름·아바타·userId까지 포함해 조회 (ADR-0018, ADR-0025)
+const withUser = {
+  user: { select: { name: true, avatarUrl: true } },
+} as const;
 
 type CommentRow = {
   id: string;
@@ -28,7 +30,7 @@ type CommentRow = {
   displayName: string | null;
   body: string;
   createdAt: Date;
-  user: { name: string } | null;
+  user: { name: string; avatarUrl: string | null } | null;
 };
 
 @Injectable()
@@ -129,6 +131,7 @@ export class CommentService {
       userId: comment.userId,
       // 표시 이름: 로그인 회원은 계정 이름(실명), 익명은 displayName
       authorName: comment.user?.name ?? comment.displayName,
+      authorAvatarUrl: comment.user?.avatarUrl ?? null, // 익명·미설정은 null (ADR-0025)
       displayName: comment.displayName,
       body: comment.body,
       createdAt: comment.createdAt.toISOString(),

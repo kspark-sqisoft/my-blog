@@ -2,6 +2,7 @@ import type { Paginated, PostSummaryDto } from '@blog/shared';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { fmtDate } from '../lib/format';
+import { Avatar } from './Avatar';
 import { PostCardCover } from './PostCardCover';
 
 // 목록 쿼리 결과를 로딩/에러/빈/정상 상태로 렌더한다 (acceptance #3)
@@ -43,7 +44,14 @@ export function PostListView({
             </Link>
             {post.summary && <p className="ab-card-sum">{post.summary}</p>}
             <div className="ab-meta">
-              <span>{post.authorName}</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Avatar
+                  src={post.authorAvatarUrl}
+                  name={post.authorName}
+                  size="sm"
+                />
+                {post.authorName}
+              </span>
               <span>{fmtDate(post.publishedAt)}</span>
             </div>
             {post.tags.length > 0 && (

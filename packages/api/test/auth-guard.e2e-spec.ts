@@ -75,13 +75,19 @@ describe('JwtAuthGuard + JwtStrategy (e2e)', () => {
     await app.close();
   });
 
-  it('유효한 access_token 쿠키 → 200 + req.user{ id, email, name, role }', () => {
+  it('유효한 access_token 쿠키 → 200 + req.user{ id, email, name, role, avatarUrl }', () => {
     const token = jwt.sign({ sub: userId, email });
     return request(app.getHttpServer())
       .get('/api/me-probe')
       .set('Cookie', `access_token=${token}`)
       .expect(200)
-      .expect({ id: userId, email, name: '프로브', role: 'ADMIN' });
+      .expect({
+        id: userId,
+        email,
+        name: '프로브',
+        role: 'ADMIN',
+        avatarUrl: null,
+      });
   });
 
   it('DB에 없는 sub(삭제된 계정) → 401', () => {

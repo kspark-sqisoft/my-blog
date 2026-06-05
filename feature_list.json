@@ -1531,6 +1531,107 @@
         "web unit 102 + typecheck 통과(회귀 없음)"
       ],
       "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-PROF-001",
+      "title": "User.avatarUrl 스키마 + AuthUserDto",
+      "epic": "E16",
+      "context": "AUTH",
+      "priority": 81,
+      "deps": ["T-INFRA-001"],
+      "status": "done",
+      "feature": "profile-avatar",
+      "tdd_first": true,
+      "acceptance": [
+        "User.avatarUrl String? 컬럼 + 추가 전용 마이그레이션(ADR-0025), 양 DB 적용",
+        "AuthUserDto 에 avatarUrl: string|null (login/register/me/PATCH 공통)",
+        "jwt.strategy·auth.service 가 avatarUrl 을 일관 반환"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-PROF-002",
+      "title": "아바타 업로드 엔드포인트(인증·이미지 전용·2MB)",
+      "epic": "E16",
+      "context": "AUTH",
+      "priority": 82,
+      "deps": ["T-PROF-001"],
+      "status": "done",
+      "feature": "profile-avatar",
+      "tdd_first": true,
+      "acceptance": [
+        "POST /api/profile/avatar 로그인 전 역할(비로그인 401), 이미지 전용(비이미지/mp4 400), 2MB 초과 413",
+        "기존 StorageProvider 재사용 → { url }(로컬 /uploads), 운영자 업로드와 분리",
+        "절대규칙 #9: 반환 URL 200 + image content-type 왕복 검증(e2e)"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-PROF-003",
+      "title": "프로필 수정 API (PATCH /api/auth/me)",
+      "epic": "E16",
+      "context": "AUTH",
+      "priority": 83,
+      "deps": ["T-PROF-001"],
+      "status": "done",
+      "feature": "profile-avatar",
+      "tdd_first": true,
+      "acceptance": [
+        "PATCH /api/auth/me 인증 필수, 본인 name(1~50)·avatarUrl 수정 → { user }",
+        "avatarUrl 은 로컬 /uploads 경로 또는 null 만 허용(외부 URL 400)",
+        "이메일·비밀번호 변경 불가, GET /me 반영, e2e 통과"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-PROF-004",
+      "title": "댓글·글 응답에 authorAvatarUrl 노출",
+      "epic": "E16",
+      "context": "PUB",
+      "priority": 84,
+      "deps": ["T-PROF-001"],
+      "status": "done",
+      "feature": "profile-avatar",
+      "tdd_first": true,
+      "acceptance": [
+        "CommentDto·PostSummaryDto·PostDetailDto 에 authorAvatarUrl(shared)",
+        "Comment/Post 서비스가 작성자 avatarUrl join → 익명·미설정 null",
+        "api 단위 143 + e2e 87 통과(회귀 없음)"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-PROF-005",
+      "title": "웹 — Avatar 컴포넌트 + NavBar(이메일/아바타) + /profile 페이지",
+      "epic": "E16",
+      "context": "WEB",
+      "priority": 85,
+      "deps": ["T-PROF-002", "T-PROF-003"],
+      "status": "done",
+      "feature": "profile-avatar",
+      "tdd_first": true,
+      "acceptance": [
+        "Avatar 컴포넌트(이미지 또는 이니셜 폴백), NavBar 우측 아바타+이메일 → /profile, 앱 로드 시 fetchMe",
+        "/profile(로그인 필요): 이메일 읽기전용 + 이름 편집 + 아바타 업로드/미리보기/제거 → PATCH 저장",
+        "web unit(Avatar·Profile·NavBar) + typecheck 통과"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-PROF-006",
+      "title": "웹 — 댓글·글 작성자에 아바타 표시",
+      "epic": "E16",
+      "context": "WEB",
+      "priority": 86,
+      "deps": ["T-PROF-004", "T-PROF-005"],
+      "status": "done",
+      "feature": "profile-avatar",
+      "tdd_first": true,
+      "acceptance": [
+        "CommentTree·PostDetail 메타·PostListView 카드에 작성자 Avatar 표시(authorAvatarUrl)",
+        "아바타 없으면 이니셜 폴백, 회귀 없음(web unit 통과)"
+      ],
+      "completed_at": "2026-06-05"
     }
   ]
 }

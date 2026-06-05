@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArticleToc } from '../components/ArticleToc';
+import { Avatar } from '../components/Avatar';
 import { CommentSection } from '../components/CommentSection';
 import { Icon } from '../components/Icon';
 import { LikeButton } from '../components/LikeButton';
@@ -81,7 +82,14 @@ export function PostDetail() {
             <header className="ab-article-head">
               <h1 className="ab-article-title">{post.title}</h1>
               <div className="ab-meta">
-                <span>{post.authorName}</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Avatar
+                    src={post.authorAvatarUrl}
+                    name={post.authorName}
+                    size="sm"
+                  />
+                  {post.authorName}
+                </span>
                 <span className="ab-dot">·</span>
                 <span>{fmtDate(post.publishedAt)}</span>
                 {readingMinutes > 0 && (

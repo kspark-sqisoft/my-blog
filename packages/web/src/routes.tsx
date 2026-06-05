@@ -1,10 +1,12 @@
 import type { RouteObject } from 'react-router-dom';
+import { ProtectedRoute } from './auth/ProtectedRoute';
 import { RoleRoute } from './auth/RoleRoute';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { Dashboard } from './pages/admin/Dashboard';
 import { PostEditor } from './pages/admin/PostEditor';
 import { Login } from './pages/Login';
+import { Profile } from './pages/Profile';
 import { Register } from './pages/Register';
 import { UserManagement } from './pages/admin/UserManagement';
 import { PostDetail } from './pages/PostDetail';
@@ -20,6 +22,15 @@ export const routes: RouteObject[] = [
       { path: '/', element: <PostList /> },
       { path: '/posts/:slug', element: <PostDetail /> },
       { path: '/tags/:name', element: <TagPosts /> },
+      // 프로필: 로그인 필요(역할 무관) — ADR-0025
+      {
+        path: '/profile',
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
   { path: '/login', element: <Login /> },

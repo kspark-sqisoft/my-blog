@@ -12,6 +12,8 @@ export type { CommentDto, CreateCommentDto } from './dto/comment';
 export type { LikeStateDto, ViewCountDto } from './dto/engagement';
 export type { TagDto } from './dto/tag';
 export type { AuthUserDto, UserRole, RegisterDto } from './dto/auth';
+export { updateProfileSchema } from './dto/profile';
+export type { UpdateProfileDto, AvatarUploadResultDto } from './dto/profile';
 export type { AdminUserDto, UpdateUserRoleDto } from './dto/user';
 export type { UploadResultDto } from './dto/upload';
 export type { Paginated } from './dto/pagination';

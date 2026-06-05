@@ -7,6 +7,7 @@ export interface AuthUserDto {
   email: string;
   name: string;
   role: UserRole;
+  avatarUrl: string | null; // 아바타 이미지 URL (ADR-0025). 로컬 /uploads 경로 또는 null
 }
 
 // 회원가입 입력 (ADR-0018). 가입은 항상 MEMBER로 생성되며 클라이언트는 role을 지정하지 못한다.

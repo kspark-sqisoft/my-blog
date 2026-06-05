@@ -552,6 +552,43 @@ E5 이후 → E6 테스트 격리·CI(INFRA) → E7 애플 리뉴얼·대표 이
 
 ---
 
+## E16. 사용자 프로필 + 아바타 (profile-avatar, ADR-0025)
+
+> 로그인 사용자가 상단에서 본인 이메일/아바타를 보고, `/profile` 에서 이름·아바타를 편집한다.
+> 작성자 아바타를 댓글·글에 표시. 아바타는 전용 인증 업로드(이미지·로컬 /uploads 만).
+
+#### T-PROF-001 — User.avatarUrl 스키마 + AuthUserDto
+- priority: 81 · 의존: T-INFRA-001 · status: done · tdd_first: true
+- 변경: `prisma/schema.prisma`, `migrations/*_add_user_avatar_url/`, `@blog/shared`(auth), `auth.service`·`jwt.strategy`
+- acceptance: User.avatarUrl String?(추가 전용 마이그레이션) / AuthUserDto.avatarUrl(login·register·me·PATCH 공통) / 일관 반환.
+
+#### T-PROF-002 — 아바타 업로드 엔드포인트(인증·이미지 전용·2MB)
+- priority: 82 · 의존: T-PROF-001 · status: done · tdd_first: true
+- 변경: `src/profile/{profile.controller,profile.module}.ts`, `@blog/shared`(profile), e2e
+- acceptance: POST /api/profile/avatar 로그인(비로그인 401)·이미지 전용(400)·2MB 초과 413 / StorageProvider 재사용 →{url} / 절대규칙 #9 왕복.
+
+#### T-PROF-003 — 프로필 수정 API (PATCH /api/auth/me)
+- priority: 83 · 의존: T-PROF-001 · status: done · tdd_first: true
+- 변경: `auth.controller`, `auth.service`, `dto/update-profile.dto.ts`, e2e
+- acceptance: name(1~50)·avatarUrl 수정 →{user} / avatarUrl 로컬 /uploads|null 만(외부 URL 400) / 이메일·비번 불변.
+
+#### T-PROF-004 — 댓글·글 응답에 authorAvatarUrl 노출
+- priority: 84 · 의존: T-PROF-001 · status: done · tdd_first: true
+- 변경: `@blog/shared`(comment·post), `comment.service`, `post.service`
+- acceptance: CommentDto·PostSummary·PostDetail 에 authorAvatarUrl / 작성자 join, 익명·미설정 null / api 143·e2e 87.
+
+#### T-PROF-005 — 웹: Avatar + NavBar(이메일/아바타) + /profile
+- priority: 85 · 의존: T-PROF-002, T-PROF-003 · status: done · tdd_first: true
+- 변경: `components/Avatar.tsx`, `components/NavBar.tsx`, `pages/Profile.tsx`, `profile/useProfile.ts`, `auth/useAuth.ts`, `routes.tsx`, `*.test.tsx`
+- acceptance: Avatar(이미지|이니셜) / NavBar 아바타+이메일→/profile + 앱 로드 fetchMe / /profile 편집(이메일 읽기전용·이름·아바타) → PATCH 저장.
+
+#### T-PROF-006 — 웹: 댓글·글 작성자 아바타 표시
+- priority: 86 · 의존: T-PROF-004, T-PROF-005 · status: done · tdd_first: true
+- 변경: `components/CommentTree.tsx`, `components/PostListView.tsx`, `pages/PostDetail.tsx`
+- acceptance: 댓글·글 카드·상세 메타에 작성자 Avatar(authorAvatarUrl), 없으면 이니셜 폴백.
+
+---
+
 ## 요약
 
 | 에픽 | Context | 스토리 | 태스크 수 |

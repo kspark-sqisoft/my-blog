@@ -64,6 +64,7 @@ export class AuthService {
     email: string;
     name: string;
     role: AuthUserDto['role'];
+    avatarUrl: string | null;
   }): Promise<LoginResult> {
     const accessToken = await this.jwt.signAsync({
       sub: user.id,
@@ -76,7 +77,37 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role,
+        avatarUrl: user.avatarUrl,
       },
+    };
+  }
+
+  // 프로필 수정 (ADR-0025): 본인 이름·아바타만. avatarUrl 은 로컬 /uploads 경로 또는 null.
+  // (경로 형식 검증은 컨트롤러 DTO(class-validator)가 강제한다.)
+  async updateProfile(
+    userId: string,
+    input: { name?: string; avatarUrl?: string | null },
+  ): Promise<AuthUserDto> {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.avatarUrl !== undefined && { avatarUrl: input.avatarUrl }),
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        avatarUrl: true,
+      },
+    });
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
     };
   }
 }

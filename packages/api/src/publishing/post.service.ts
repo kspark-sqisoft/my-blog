@@ -53,10 +53,10 @@ export interface Actor {
   role: UserRole;
 }
 
-// 관계 포함 Post 조회 시 사용할 형태 (태그 + 작성자 표시 이름 — ADR-0017)
+// 관계 포함 Post 조회 시 사용할 형태 (태그 + 작성자 표시 이름·아바타 — ADR-0017, ADR-0025)
 const withTags = {
   postTags: { include: { tag: true } },
-  author: { select: { name: true } },
+  author: { select: { name: true, avatarUrl: true } },
 } as const;
 
 type PostWithTags = {
@@ -73,7 +73,7 @@ type PostWithTags = {
   createdAt: Date;
   updatedAt: Date;
   postTags: { tag: { name: string } }[];
-  author: { name: string };
+  author: { name: string; avatarUrl: string | null };
 };
 
 @Injectable()
@@ -417,6 +417,7 @@ export class PostService {
       summary: toSummaryText(body, SUMMARY_MAX),
       tags: post.postTags.map((pt) => pt.tag.name),
       authorName: post.author.name,
+      authorAvatarUrl: post.author.avatarUrl ?? null,
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       coverImageUrl: extractFirstImageUrl(body),
       viewCount: post.viewCount,
@@ -459,6 +460,7 @@ export class PostService {
       status: post.status,
       authorId: post.authorId,
       authorName: post.author.name,
+      authorAvatarUrl: post.author.avatarUrl ?? null,
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),

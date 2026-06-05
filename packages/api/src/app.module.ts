@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { PublishingModule } from './publishing/publishing.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { EngagementModule } from './engagement/engagement.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { EngagementModule } from './engagement/engagement.module';
     PublishingModule,
     ConversationModule,
     EngagementModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

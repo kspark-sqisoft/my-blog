@@ -40,3 +40,7 @@
 ## 조회수 (View Count)- 정의: 글이 열린 횟수. **방문자 키별 30분 창**에서 1회만 집계해 새로고침·프리페치·봇 과다집계를 줄인다(ADR-0024). GET 의 부수효과가 아니라 글을 연 시점에 별도 기록한다.- 소속 Context: Engagement- 코드 표현: `PostView(postId,visitorKey)`(Prisma), `POST /api/posts/:id/view`, `ViewCountDto{viewCount}`. 비정규화 카운터 `Post.viewCount`- UI 표현: 상세 메타의 눈 아이콘 + 숫자- 동의어 금지: 조회(Hit), 페이지뷰(PV 단독), 노출(Impression) — "조회수"로 통일
 
 ## 방문자 키 (Visitor Key)- 정의: 조회수 dedup 을 위해 방문자를 식별하는 키. 로그인이면 `user:{id}`, 비로그인이면 `sha256(ip|user-agent)`. **원문 IP·UA 는 저장하지 않고 해시만** 둔다(PII 최소화, ADR-0024).- 소속 Context: Engagement- 코드 표현: `PostView.visitorKey`, api `visitorKeyFrom(req, userId?)`- 주의: 공유 IP·시크릿창에서는 부정확할 수 있는 근사 지표다(완벽한 봇 차단은 범위 외)
+
+## 프로필 (Profile)- 정의: 로그인 사용자가 자기 표시 정보(이름·아바타)를 보고 바꾸는 화면/개념 (ADR-0025). 이메일은 식별자라 읽기전용, 비밀번호 변경은 범위 외.- 소속 Context: Auth (User Aggregate 의 표시 속성)- 코드 표현: `PATCH /api/auth/me`(`UpdateProfileDto`), 웹 `/profile`(`pages/Profile.tsx`)- UI 표현: 상단 네비의 아바타+이메일 클릭 → 프로필 페이지- 동의어 금지: 계정설정(Account Settings 단독), 마이페이지 — "프로필"로 통일
+
+## 아바타 (Avatar)- 정의: 사용자를 시각적으로 대표하는 이미지. 없으면 이름 첫 글자 이니셜로 폴백한다 (ADR-0025). 로컬 업로드(`/uploads/...`)만 허용(외부 URL 거부).- 소속 Context: Auth(User.avatarUrl) — 작성자 표시로 Publishing/Conversation 응답에 `authorAvatarUrl` 로 파생 노출- 코드 표현: `User.avatarUrl`(Prisma), `AuthUserDto.avatarUrl`·`PostSummary/Detail.authorAvatarUrl`·`CommentDto.authorAvatarUrl`(shared), 업로드 `POST /api/profile/avatar`, 웹 `<Avatar>` 컴포넌트- UI 표현: 네비·프로필·댓글·글 작성자에 표시되는 원형 이미지(또는 이니셜)- 동의어 금지: 프로필사진(Profile Picture 단독), 썸네일 — "아바타"로 통일

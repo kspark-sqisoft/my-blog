@@ -16,6 +16,8 @@
 | POST | `/api/auth/login` | 로그인 | 공개 |
 | POST | `/api/auth/logout` | 로그아웃 | 공개 |
 | GET | `/api/auth/me` | 세션 확인 | 쿠키 |
+| PATCH | `/api/auth/me` | 프로필(이름·아바타) 수정 | 로그인 |
+| POST | `/api/profile/avatar` | 아바타 이미지 업로드 | 로그인 |
 | GET | `/api/posts` | 발행 글 목록(coverImageUrl 포함) | 공개 |
 | GET | `/api/posts/:id/related` | 관련 글(태그 겹침 우선) | 공개 |
 | GET | `/api/posts/:id` | 발행 글 상세 | 공개 |

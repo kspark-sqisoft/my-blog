@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
@@ -15,6 +16,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 const ACCESS_COOKIE = 'access_token';
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -77,5 +79,20 @@ export class AuthController {
   @Get('me')
   me(@Req() req: Request): { user: AuthUserDto } {
     return { user: req.user as AuthUserDto };
+  }
+
+  // 프로필 수정 (ADR-0025): 본인 이름·아바타만. 인증 필요.
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  async updateMe(
+    @Body() dto: UpdateProfileDto,
+    @Req() req: Request,
+  ): Promise<{ user: AuthUserDto }> {
+    const actor = req.user as AuthUserDto;
+    const user = await this.auth.updateProfile(actor.id, {
+      name: dto.name,
+      avatarUrl: dto.avatarUrl,
+    });
+    return { user };
   }
 }

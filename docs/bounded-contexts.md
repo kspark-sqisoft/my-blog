@@ -59,15 +59,16 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 
 | 항목 | 내용 |
 |---|---|
-| **책임** | User를 인증·식별하고 **역할(Role)로 권한을 부여**한다. 이메일이 유일 식별자. 회원가입·로그인·역할 관리의 주체. 모든 쓰기 권한의 근거. |
-| **Aggregate Root** | `User` (Entity) — `role`(`UserRole`: ADMIN/AUTHOR/MEMBER)을 속성으로 가진다 |
+| **책임** | User를 인증·식별하고 **역할(Role)로 권한을 부여**한다. 이메일이 유일 식별자. 회원가입·로그인·역할 관리 + **프로필(이름·아바타) 관리**의 주체. 모든 쓰기 권한의 근거. |
+| **Aggregate Root** | `User` (Entity) — `role`(`UserRole`)·표시 속성 `name`·`avatarUrl`(ADR-0025)을 가진다 |
 | **다른 객체** | `UserRole` (Value Object — enum) |
-| **Domain Events** | `UserRegistered`, `UserRoleChanged` (ADR-0018) |
+| **Domain Events** | `UserRegistered`, `UserRoleChanged` (ADR-0018), `ProfileUpdated` (ADR-0025) |
 | **다른 Context 의존** | 없음 — 다른 Context가 User를 `userId`로 참조한다(역방향 의존 없음, 가장 안정적) |
 
 - 공개 회원가입은 기본 역할 `AUTHOR`로 생성한다(가입 즉시 본인 글 작성 — ADR-0019, ADR-0018의 기본 `MEMBER`를 갱신). 운영자(`ADMIN`)는 글쓰기 권한을 회수하려면 `MEMBER`로 강등할 수 있다.
 - 권한 검사: 정적 역할은 가드(`RolesGuard`), 리소스 소유권(AUTHOR 본인 글)은 서비스 계층에서 판정한다(ADR-0018). 운영자 Post 목록/상세도 actor로 스코프한다(ADMIN 전체 / AUTHOR 본인 — ADR-0019).
 - 최초 `ADMIN`은 시드로 부트스트랩한다(ADR-0002는 ADR-0018로 supersede — 공개 가입 추가).
+- 프로필(ADR-0025): 본인 `name`·`avatarUrl`만 수정(`PATCH /api/auth/me`). 아바타는 전용 업로드(`POST /api/profile/avatar`, 인증·이미지 전용)로 로컬 `/uploads` 에 저장하고 경로만 보관. `avatarUrl`은 Publishing/Conversation 응답에 `authorAvatarUrl`로 파생 노출된다(작성자 표시).
 
 ## Context 간 의존 다이어그램
 

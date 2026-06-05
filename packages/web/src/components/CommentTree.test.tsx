@@ -10,7 +10,7 @@ import { CommentTree } from './CommentTree';
 const tree: CommentDto[] = [
   {
     id: 'c0',
-    postId: 'p1',
+    postId: 'p1', authorAvatarUrl: null,
     parentId: null,
     depth: 0,
     userId: null,
@@ -21,7 +21,7 @@ const tree: CommentDto[] = [
     replies: [
       {
         id: 'c1',
-        postId: 'p1',
+        postId: 'p1', authorAvatarUrl: null,
         parentId: 'c0',
         depth: 1,
         userId: null,
@@ -32,7 +32,7 @@ const tree: CommentDto[] = [
         replies: [
           {
             id: 'c2',
-            postId: 'p1',
+            postId: 'p1', authorAvatarUrl: null,
             parentId: 'c1',
             depth: 2,
             userId: null,
@@ -76,7 +76,7 @@ describe('CommentTree', () => {
     const comments: CommentDto[] = [
       {
         id: 'm0',
-        postId: 'p1',
+        postId: 'p1', authorAvatarUrl: null,
         parentId: null,
         depth: 0,
         userId: 'u1',
@@ -101,7 +101,7 @@ describe('CommentTree', () => {
     const comments: CommentDto[] = [
       {
         id: 'm1',
-        postId: 'p1',
+        postId: 'p1', authorAvatarUrl: null,
         parentId: null,
         depth: 0,
         userId: 'u1',
