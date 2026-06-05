@@ -1416,7 +1416,7 @@
       "deps": [
         "T-READ-102"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "reading-experience",
       "tdd_first": true,
       "acceptance": [
@@ -1424,7 +1424,8 @@
         "IntersectionObserver 로 현재 섹션 활성 하이라이트, 클릭 시 해당 헤딩으로 스크롤",
         "toc 비면 목차 숨김 + 본문 풀폭, PostDetail 을 본문+TOC 2단 그리드로",
         "회귀 없음: web 단위(ArticleToc render/scroll-spy mock) 통과"
-      ]
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-READ-104",

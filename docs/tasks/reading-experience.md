@@ -24,7 +24,7 @@
   4. 상세 페이지 코드블록이 하이라이트되어 렌더. 회귀 없음: web 단위(article-enhance 신규 spec) 통과.
 
 #### T-READ-103 — TOC 사이드바 + 스크롤스파이
-- priority: 74 / 의존: T-READ-102 / status: todo
+- priority: 74 / 의존: T-READ-102 / status: done (2026-06-05)
 - acceptance:
   1. `ArticleToc` 가 `toc[]` 를 sticky 사이드바 목차로 렌더(데스크톱), 모바일 `<details>` 접이식.
   2. IntersectionObserver 로 현재 섹션 활성 하이라이트, 클릭 시 해당 헤딩으로 스크롤.

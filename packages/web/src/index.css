@@ -242,6 +242,97 @@ a {
 .ab-reading {
   max-width: 760px;
 }
+
+/* T-READ-103: 글 목차(TOC) 사이드바 + 2단 그리드 */
+.ab-reading--with-toc {
+  max-width: 1080px;
+}
+.ab-reading-col {
+  min-width: 0; /* 그리드 셀 안에서 코드블록 가로 스크롤이 레이아웃을 밀지 않게 */
+}
+.ab-toc-aside {
+  margin: 0 0 28px;
+}
+.ab-toc {
+  border: 0;
+}
+.ab-toc-title {
+  list-style: none;
+  cursor: pointer;
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.ab-toc-title::-webkit-details-marker {
+  display: none;
+}
+.ab-toc-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  border-left: 1px solid var(--border-2);
+}
+.ab-toc-item {
+  margin: 0;
+}
+.ab-toc-item a {
+  display: block;
+  margin-left: -1px;
+  padding: 6px 12px;
+  border-left: 2px solid transparent;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--text-3);
+  text-decoration: none;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+.ab-toc-item a:hover {
+  color: var(--text);
+}
+.ab-toc-item a.active {
+  color: var(--accent-text);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+.ab-toc-item.lv2 a {
+  padding-left: 24px;
+}
+.ab-toc-item.lv3 a {
+  padding-left: 36px;
+}
+/* 헤딩 앵커 이동 시 상단 여백(고정 헤더 가림 방지) + 부드러운 스크롤 */
+.ab-rich-content :is(h1, h2, h3) {
+  scroll-margin-top: 90px;
+}
+@media (min-width: 1024px) {
+  .ab-reading--with-toc .ab-reading-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 56px;
+    align-items: start;
+  }
+  .ab-reading--with-toc .ab-reading-col {
+    order: 1;
+  }
+  .ab-reading--with-toc .ab-toc-aside {
+    order: 2;
+    margin: 0;
+  }
+  .ab-toc {
+    position: sticky;
+    top: 96px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  .ab-toc-title {
+    pointer-events: none; /* 데스크톱은 항상 펼친 상태 유지 */
+  }
+}
 .ab-masthead {
   padding: 72px 0 44px;
   text-align: center;
