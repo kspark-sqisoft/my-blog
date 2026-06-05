@@ -32,6 +32,16 @@ export interface PostDetailDto {
   updatedAt: string; // ISO 8601
 }
 
+// 관련 글 항목 (T-READ-104). 태그 겹침 기반 추천. 카드 표시용 최소 필드.
+export interface RelatedPostDto {
+  id: string;
+  slug: string; // canonical 링크 /posts/{slug}
+  title: string;
+  tags: string[];
+  publishedAt: string | null; // ISO 8601
+  coverImageUrl: string | null; // 대표 이미지(본문 첫 이미지) URL, 없으면 null
+}
+
 // 운영자 대시보드 목록 항목 (초안 포함, status 노출)
 export interface AdminPostSummaryDto {
   id: string;

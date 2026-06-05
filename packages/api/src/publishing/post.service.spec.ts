@@ -544,4 +544,99 @@ describe('PostService (통합)', () => {
       service.getForAdmin('no-such-id', adminActor),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  // T-READ-104: 관련 글 (태그 겹침 우선 → 최신 보완, 자기 제외, 발행글만)
+  describe('getRelated (관련 글)', () => {
+    // 발행글 생성 + publishedAt 지정(정렬 검증용)
+    async function publishWith(
+      title: string,
+      tags: string[],
+      publishedAt: string,
+    ) {
+      const draft = await service.create({
+        title,
+        contentMarkdown: `# ${title}`,
+        authorId,
+        tags,
+      });
+      await service.publish(draft.id, adminActor);
+      await prisma.post.update({
+        where: { id: draft.id },
+        data: { publishedAt: new Date(publishedAt) },
+      });
+      return draft;
+    }
+
+    it('공유 태그가 많은 글을 먼저, 그다음 publishedAt 최신순으로 정렬한다', async () => {
+      const source = await publishWith('소스', ['a', 'b'], '2026-01-01');
+      const two = await publishWith('둘공유', ['a', 'b'], '2026-01-02'); // 2겹침
+      const one = await publishWith('하나공유', ['a'], '2026-06-01'); // 1겹침(더 최신)
+
+      const related = await service.getRelated(source.slug, 4);
+      // 겹친 수가 우선 → two(2) 가 one(1) 보다 먼저(최신이어도)
+      expect(related.map((r) => r.id)).toEqual([two.id, one.id]);
+    });
+
+    it('공유 태그가 부족하면 최신 글로 채운다', async () => {
+      const source = await publishWith('소스2', ['a'], '2026-01-01');
+      const shared = await publishWith('공유', ['a'], '2026-02-01');
+      const recentNew = await publishWith('최신', ['z'], '2026-06-05');
+      const recentOld = await publishWith('옛날', ['y'], '2026-03-01');
+
+      const related = await service.getRelated(source.slug, 3);
+      // 겹침 글(shared) 먼저, 나머지는 최신순(recentNew → recentOld)
+      expect(related.map((r) => r.id)).toEqual([
+        shared.id,
+        recentNew.id,
+        recentOld.id,
+      ]);
+    });
+
+    it('초안은 관련 글에 포함하지 않는다', async () => {
+      const source = await publishWith('소스3', ['a'], '2026-01-01');
+      const draft = await service.create({
+        title: '초안공유',
+        contentMarkdown: 'x',
+        authorId,
+        tags: ['a'],
+      });
+      const pub = await publishWith('발행공유', ['a'], '2026-02-01');
+
+      const ids = (await service.getRelated(source.slug, 4)).map((r) => r.id);
+      expect(ids).toContain(pub.id);
+      expect(ids).not.toContain(draft.id);
+    });
+
+    it('limit 을 넘지 않고 자기 자신을 제외한다', async () => {
+      const source = await publishWith('소스4', ['a'], '2026-01-01');
+      await publishWith('p1', ['a'], '2026-02-01');
+      await publishWith('p2', ['a'], '2026-03-01');
+      await publishWith('p3', ['a'], '2026-04-01');
+
+      const related = await service.getRelated(source.slug, 2);
+      expect(related).toHaveLength(2);
+      expect(related.map((r) => r.id)).not.toContain(source.id);
+    });
+
+    it('관련 글 항목은 id·slug·title·tags·publishedAt·coverImageUrl 를 담는다', async () => {
+      const source = await publishWith('소스5', ['a'], '2026-01-01');
+      await publishWith('이웃', ['a'], '2026-02-01');
+
+      const [first] = await service.getRelated(source.slug, 4);
+      expect(first).toMatchObject({
+        title: '이웃',
+        tags: ['a'],
+      });
+      expect(typeof first.id).toBe('string');
+      expect(typeof first.slug).toBe('string');
+      expect(first).toHaveProperty('publishedAt');
+      expect(first).toHaveProperty('coverImageUrl');
+    });
+
+    it('발행되지 않았거나 없는 글의 관련 글은 NotFound', async () => {
+      await expect(
+        service.getRelated('no-such-slug', 4),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
 });

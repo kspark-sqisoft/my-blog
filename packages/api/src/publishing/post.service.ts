@@ -8,6 +8,7 @@ import type {
   Paginated,
   PostDetailDto,
   PostSummaryDto,
+  RelatedPostDto,
   UserRole,
 } from '@blog/shared';
 import { BadRequestException } from '@nestjs/common';
@@ -260,6 +261,72 @@ export class PostService {
     return this.toDetail(post);
   }
 
+  // 관련 글 (T-READ-104, ADR-0023): 공유 태그 수 desc → publishedAt desc, 자기 제외,
+  // 부족분은 최신 발행글로 보완. 발행글만. 소스 글이 없거나 미발행이면 404.
+  async getRelated(idOrSlug: string, limit = 4): Promise<RelatedPostDto[]> {
+    const take = Math.max(1, Math.min(limit || 4, 20));
+    const source = await this.prisma.post.findFirst({
+      where: {
+        status: 'PUBLISHED',
+        OR: [{ slug: idOrSlug }, { id: idOrSlug }],
+      },
+      include: withTags,
+    });
+    if (!source) {
+      throw new NotFoundException('Post를 찾을 수 없습니다.');
+    }
+
+    const sourceTags = source.postTags.map((pt) => pt.tag.name);
+    const picked: PostWithTags[] = [];
+    const seen = new Set<string>([source.id]);
+
+    // 1) 태그 겹침 우선 (겹친 수 desc → publishedAt desc)
+    if (sourceTags.length > 0) {
+      const sharing = await this.prisma.post.findMany({
+        where: {
+          status: 'PUBLISHED',
+          id: { not: source.id },
+          postTags: { some: { tag: { name: { in: sourceTags } } } },
+        },
+        include: withTags,
+      });
+      sharing
+        .map((p) => ({
+          p,
+          shared: p.postTags.filter((pt) => sourceTags.includes(pt.tag.name))
+            .length,
+        }))
+        .sort(
+          (a, b) =>
+            b.shared - a.shared ||
+            (b.p.publishedAt?.getTime() ?? 0) -
+              (a.p.publishedAt?.getTime() ?? 0),
+        )
+        .forEach(({ p }) => {
+          if (picked.length < take && !seen.has(p.id)) {
+            picked.push(p);
+            seen.add(p.id);
+          }
+        });
+    }
+
+    // 2) 부족분은 최신 발행글로 보완
+    if (picked.length < take) {
+      const recent = await this.prisma.post.findMany({
+        where: { status: 'PUBLISHED', id: { notIn: [...seen] } },
+        orderBy: { publishedAt: 'desc' },
+        take: take - picked.length,
+        include: withTags,
+      });
+      recent.forEach((p) => {
+        picked.push(p);
+        seen.add(p.id);
+      });
+    }
+
+    return picked.map((p) => this.toRelated(p));
+  }
+
   // 제목에서 유일한 슬러그 생성(ADR-0022). 충돌이면 -2, -3 … 부여.
   private async generateUniqueSlug(title: string): Promise<string> {
     const base = slugify(title);
@@ -338,6 +405,19 @@ export class PostService {
       summary: toSummaryText(body, SUMMARY_MAX),
       tags: post.postTags.map((pt) => pt.tag.name),
       authorName: post.author.name,
+      publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+      coverImageUrl: extractFirstImageUrl(body),
+    };
+  }
+
+  // 관련 글 카드용 매핑 (T-READ-104). 본문에서 대표 이미지 추출.
+  private toRelated(post: PostWithTags): RelatedPostDto {
+    const body = post.contentHtml || post.contentMarkdown;
+    return {
+      id: post.id,
+      slug: post.slug,
+      title: post.title,
+      tags: post.postTags.map((pt) => pt.tag.name),
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       coverImageUrl: extractFirstImageUrl(body),
     };

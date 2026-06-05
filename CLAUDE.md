@@ -17,6 +17,7 @@
 | POST | `/api/auth/logout` | 로그아웃 | 공개 |
 | GET | `/api/auth/me` | 세션 확인 | 쿠키 |
 | GET | `/api/posts` | 발행 글 목록(coverImageUrl 포함) | 공개 |
+| GET | `/api/posts/:id/related` | 관련 글(태그 겹침 우선) | 공개 |
 | GET | `/api/posts/:id` | 발행 글 상세 | 공개 |
 | POST | `/api/posts` | 글 생성(초안) | 운영자 |
 | PATCH | `/api/posts/:id` | 글 수정 | 운영자 |

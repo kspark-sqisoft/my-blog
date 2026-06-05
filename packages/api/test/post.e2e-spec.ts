@@ -368,4 +368,40 @@ describe('PostController (e2e)', () => {
     // contentHtml 가 자동으로 채워진다(서버가 마크다운 변환·sanitize)
     expect(body.contentHtml).toMatch(/<h1>헤딩<\/h1>/);
   });
+
+  // T-READ-104: 관련 글
+  it('공개 GET /api/posts/:idOrSlug/related — 태그 겹침 우선, 자기 제외, 발행글만', async () => {
+    async function makePublished(title: string, tags: string[]) {
+      const res = await request(app.getHttpServer())
+        .post('/api/posts')
+        .set('Cookie', cookie)
+        .send({ title, contentMarkdown: `# ${title}`, tags })
+        .expect(201);
+      const { id, slug } = res.body as { id: string; slug: string };
+      await request(app.getHttpServer())
+        .post(`/api/posts/${id}/publish`)
+        .set('Cookie', cookie)
+        .expect(200);
+      return { id, slug };
+    }
+
+    const source = await makePublished('관련소스', ['a', 'b']);
+    const strong = await makePublished('강한관련', ['a', 'b']); // 2겹침
+    const weak = await makePublished('약한관련', ['a']); // 1겹침
+
+    const res = await request(app.getHttpServer())
+      .get(`/api/posts/${encodeURIComponent(source.slug)}/related?limit=4`)
+      .expect(200);
+    const items = res.body as Array<{ id: string; tags: string[] }>;
+    const ids = items.map((i) => i.id);
+    expect(ids).not.toContain(source.id); // 자기 제외
+    expect(ids[0]).toBe(strong.id); // 겹침 많은 글 먼저
+    expect(ids).toContain(weak.id);
+  });
+
+  it('관련 글: 없는/미발행 글은 404', async () => {
+    await request(app.getHttpServer())
+      .get('/api/posts/no-such-slug/related')
+      .expect(404);
+  });
 });

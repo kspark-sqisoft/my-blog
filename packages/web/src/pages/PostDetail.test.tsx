@@ -63,7 +63,7 @@ describe('PostDetail 페이지', () => {
 
   it('제목, 발행일, Tag, 마크다운 본문을 렌더한다', async () => {
     mockedApi.get.mockImplementation((url: string) =>
-      url.endsWith('/comments')
+      url.endsWith('/comments') || url.endsWith('/related')
         ? Promise.resolve({ data: [] })
         : Promise.resolve({ data: detail() }),
     );
@@ -88,7 +88,7 @@ describe('PostDetail 페이지', () => {
   // ADR-0022: cuid 로 들어오면 canonical 슬러그 URL 로 replace
   it('cuid 로 진입하면 슬러그 URL 로 교체한다', async () => {
     mockedApi.get.mockImplementation((url: string) =>
-      url.endsWith('/comments')
+      url.endsWith('/comments') || url.endsWith('/related')
         ? Promise.resolve({ data: [] })
         : Promise.resolve({ data: detail({ id: 'cuid123', slug: 'nestjs-입문' }) }),
     );

@@ -3,6 +3,7 @@ export type {
   PostStatus,
   PostSummaryDto,
   PostDetailDto,
+  RelatedPostDto,
   AdminPostSummaryDto,
   CreatePostDto,
   UpdatePostDto,

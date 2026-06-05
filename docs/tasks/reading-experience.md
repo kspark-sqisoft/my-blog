@@ -32,7 +32,7 @@
   4. 회귀 없음: web 단위(ArticleToc render/scroll-spy mock) 통과.
 
 #### T-READ-104 — 관련 글 API + shared 타입 + web 섹션
-- priority: 75 / 의존: T-WEB-309 / status: todo
+- priority: 75 / 의존: T-WEB-309 / status: done (2026-06-05)
 - acceptance:
   1. shared `RelatedPostDto`(id·slug·title·coverImageUrl?·publishedAt·tags) 정의(양쪽 import).
   2. `GET /api/posts/:idOrSlug/related?limit=4`: 발행글 중 공유 태그 수 desc → publishedAt desc, 자기 제외, 부족분 최신 보완.

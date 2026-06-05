@@ -4,6 +4,7 @@ import { ArticleToc } from '../components/ArticleToc';
 import { CommentSection } from '../components/CommentSection';
 import { Icon } from '../components/Icon';
 import { ReadingArticle } from '../components/ReadingArticle';
+import { RelatedPosts } from '../components/RelatedPosts';
 import type { TocItem } from '../lib/article-enhance';
 import { fmtDate } from '../lib/format';
 import { estimateReadingTime } from '../lib/reading-time';
@@ -95,6 +96,7 @@ export function PostDetail() {
               />
             </div>
           </article>
+          <RelatedPosts idOrSlug={post.slug} />
           <CommentSection postId={post.id} />
         </div>
       </div>

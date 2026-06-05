@@ -2,9 +2,7 @@ import type { Paginated, PostSummaryDto } from '@blog/shared';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { fmtDate } from '../lib/format';
-
-// 비디오로 분기할 URL 확장자(ADR-0020). Markdown.tsx 의 VIDEO_EXTENSIONS 와 한 쌍.
-const VIDEO_COVER_EXT = /\.mp4(?:\?|#|$)/i;
+import { PostCardCover } from './PostCardCover';
 
 // 목록 쿼리 결과를 로딩/에러/빈/정상 상태로 렌더한다 (acceptance #3)
 export function PostListView({
@@ -37,27 +35,7 @@ export function PostListView({
       {items.map((post) => (
         <li key={post.id} className="ab-card">
           <Link to={`/posts/${post.slug}`} className="ab-card-cover-link">
-            {post.coverImageUrl ? (
-              VIDEO_COVER_EXT.test(post.coverImageUrl) ? (
-                // 비디오 커버: 첫 프레임만 표시. controls 없음 → 카드 클릭은 상세 이동만.
-                <video
-                  className="ab-card-cover"
-                  src={post.coverImageUrl}
-                  preload="metadata"
-                  muted
-                  playsInline
-                />
-              ) : (
-                <img
-                  className="ab-card-cover"
-                  src={post.coverImageUrl}
-                  alt=""
-                  loading="lazy"
-                />
-              )
-            ) : (
-              <div className="ab-ph ab-card-cover" />
-            )}
+            <PostCardCover coverImageUrl={post.coverImageUrl} />
           </Link>
           <div className="ab-card-body">
             <Link to={`/posts/${post.slug}`}>

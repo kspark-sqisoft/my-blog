@@ -18,6 +18,7 @@ import type {
   Paginated,
   PostDetailDto,
   PostSummaryDto,
+  RelatedPostDto,
 } from '@blog/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -46,6 +47,16 @@ export class PostController {
       tag: query.tag,
       q: query.q,
     });
+  }
+
+  // 공개: 관련 글 (태그 겹침 우선 → 최신 보완). :id 보다 먼저 선언해 라우팅 충돌 방지.
+  @Get(':id/related')
+  related(
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+  ): Promise<RelatedPostDto[]> {
+    const n = limit ? Number(limit) : undefined;
+    return this.posts.getRelated(id, Number.isFinite(n) ? n : undefined);
   }
 
   // 공개: 발행 Post 상세 (초안은 404)

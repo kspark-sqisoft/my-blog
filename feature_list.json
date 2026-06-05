@@ -1436,7 +1436,7 @@
       "deps": [
         "T-WEB-309"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "reading-experience",
       "tdd_first": true,
       "acceptance": [
@@ -1444,7 +1444,8 @@
         "GET /api/posts/:idOrSlug/related?limit=4: 발행글 중 공유 태그 수 desc → publishedAt desc, 자기 제외, 부족분 최신 보완",
         "web useRelatedPosts 훅 + RelatedPosts 카드 그리드, 비거나 에러면 섹션 숨김",
         "회귀 없음: api 단위(related 정렬·자기제외·보완·발행만) + web 단위 통과"
-      ]
+      ],
+      "completed_at": "2026-06-05"
     }
   ]
 }
