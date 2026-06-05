@@ -40,14 +40,14 @@ describe('TagPosts 페이지', () => {
           },
         ],
         page: 1,
-        pageSize: 10,
+        pageSize: 20,
         total: 1,
       },
     });
     renderAtTag('nestjs');
     expect(await screen.findByText('태그 글')).toBeInTheDocument();
     expect(mockedApi.get).toHaveBeenCalledWith('/posts', {
-      params: { page: 1, pageSize: 10, tag: 'nestjs' },
+      params: { page: 1, pageSize: 20, tag: 'nestjs' },
     });
   });
 });

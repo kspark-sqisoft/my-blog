@@ -3,7 +3,7 @@ import { Pagination } from '../components/Pagination';
 import { PostListView } from '../components/PostListView';
 import { usePosts } from '../posts/usePosts';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 export function TagPosts() {
   const { name = '' } = useParams();

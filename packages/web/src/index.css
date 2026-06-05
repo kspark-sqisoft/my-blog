@@ -484,7 +484,7 @@ a {
 /* ============================ CARDS / GRID ============================ */
 .ab-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 28px 30px;
   list-style: none;
   padding: 0;
@@ -496,51 +496,81 @@ a {
   gap: 24px;
 }
 .ab-card {
+  position: relative;
   cursor: pointer;
   transition: 0.25s;
   text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* 이미지 없을 때의 본문 영역을 기준 높이로 — 커버가 있으면 이 높이를 나눠 쓴다. */
+  height: 300px;
 }
 .ab-card:hover {
   transform: translateY(-4px);
-}
-.ab-card .ab-ph {
-  transition: 0.3s;
-}
-.ab-card:hover .ab-ph {
   box-shadow: var(--shadow-md);
 }
-.ab-card-cover-link {
-  display: block;
+/* 카드 전체를 클릭 가능하게 — 제목 링크가 카드 전체를 덮는다 (stretched link). */
+.ab-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+/* 태그 등 카드 안 내부 링크는 stretched link 위로 떠서 그대로 클릭된다. */
+.ab-card-body .ab-tags {
+  position: relative;
+  z-index: 2;
 }
 .ab-card-cover {
   width: 100%;
-  aspect-ratio: 3 / 2;
-  border-radius: var(--r-md);
+  /* 카드 높이의 45% (본문 55%) */
+  height: 45%;
+  flex: 0 0 45%;
   object-fit: cover;
   display: block;
-  border: 1px solid var(--border-2);
-  transition: 0.3s;
-}
-.ab-card:hover .ab-card-cover {
-  box-shadow: var(--shadow-md);
+  border: 0;
+  border-bottom: 1px solid var(--border-2);
 }
 .ab-card-body {
-  padding: 18px 4px 0;
+  padding: 18px 18px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 .ab-card-title {
   font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.22;
-  margin: 8px 0 0;
+  margin: 0;
   color: var(--text);
   text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .ab-card-sum {
   font-size: 15px;
   color: var(--text-2);
   line-height: 1.5;
   margin: 9px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* 커버가 없으면 본문에 더 많은 줄을 보여준다 — 빈 공간을 요약으로 채운다. */
+.ab-card:not(:has(.ab-card-cover)) .ab-card-sum {
+  -webkit-line-clamp: 7;
+}
+.ab-card:not(:has(.ab-card-cover)) .ab-card-title {
+  -webkit-line-clamp: 3;
 }
 
 /* ============================ META ============================ */
@@ -1677,6 +1707,11 @@ a {
 }
 
 /* ============================ RESPONSIVE ============================ */
+@media (max-width: 1200px) {
+  .ab-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 @media (max-width: 920px) {
   .ab-hero {
     grid-template-columns: 1fr;

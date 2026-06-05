@@ -35,11 +35,11 @@ export function PostListView({
     <ul className="ab-grid">
       {items.map((post) => (
         <li key={post.id} className="ab-card">
-          <Link to={`/posts/${post.slug}`} className="ab-card-cover-link">
+          {post.coverImageUrl && (
             <PostCardCover coverImageUrl={post.coverImageUrl} />
-          </Link>
+          )}
           <div className="ab-card-body">
-            <Link to={`/posts/${post.slug}`}>
+            <Link to={`/posts/${post.slug}`} className="ab-card-link">
               <h2 className="ab-card-title">{post.title}</h2>
             </Link>
             {post.summary && <p className="ab-card-sum">{post.summary}</p>}

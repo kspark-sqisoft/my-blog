@@ -6,7 +6,7 @@ import { useDebouncedValue } from '../lib/useDebouncedValue';
 import { SITE } from '../lib/site';
 import { usePosts } from '../posts/usePosts';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 export function PostList() {
   const [searchParams, setSearchParams] = useSearchParams();

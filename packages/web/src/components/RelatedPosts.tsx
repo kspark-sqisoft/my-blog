@@ -17,11 +17,11 @@ export function RelatedPosts({ idOrSlug }: { idOrSlug: string }) {
       <ul className="ab-grid ab-related-grid">
         {items.map((post) => (
           <li key={post.id} className="ab-card">
-            <Link to={`/posts/${post.slug}`} className="ab-card-cover-link">
+            {post.coverImageUrl && (
               <PostCardCover coverImageUrl={post.coverImageUrl} />
-            </Link>
+            )}
             <div className="ab-card-body">
-              <Link to={`/posts/${post.slug}`}>
+              <Link to={`/posts/${post.slug}`} className="ab-card-link">
                 <h3 className="ab-card-title">{post.title}</h3>
               </Link>
               <div className="ab-meta">

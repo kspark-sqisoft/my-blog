@@ -39,13 +39,13 @@ describe('PostList 페이지', () => {
 
   it('발행 글 목록을 렌더한다', async () => {
     mockedApi.get.mockResolvedValueOnce({
-      data: { items: [summary()], page: 1, pageSize: 10, total: 1 },
+      data: { items: [summary()], page: 1, pageSize: 20, total: 1 },
     });
     renderList();
     expect(await screen.findByText('첫 글')).toBeInTheDocument();
     expect(screen.getByText('홍길동')).toBeInTheDocument();
     expect(mockedApi.get).toHaveBeenCalledWith('/posts', {
-      params: { page: 1, pageSize: 10 },
+      params: { page: 1, pageSize: 20 },
     });
   });
 
@@ -57,7 +57,7 @@ describe('PostList 페이지', () => {
 
   it('글이 없으면 빈 상태 메시지를 보여준다', async () => {
     mockedApi.get.mockResolvedValueOnce({
-      data: { items: [], page: 1, pageSize: 10, total: 0 },
+      data: { items: [], page: 1, pageSize: 20, total: 0 },
     });
     renderList();
     expect(await screen.findByText(/글이 없습니다/)).toBeInTheDocument();
@@ -71,14 +71,14 @@ describe('PostList 페이지', () => {
 
   it('다음 페이지로 이동하면 page=2 로 다시 조회한다', async () => {
     mockedApi.get.mockResolvedValue({
-      data: { items: [summary()], page: 1, pageSize: 10, total: 25 },
+      data: { items: [summary()], page: 1, pageSize: 20, total: 25 },
     });
     renderList();
     await screen.findByText('첫 글');
     fireEvent.click(screen.getByRole('button', { name: /다음/ }));
     await waitFor(() =>
       expect(mockedApi.get).toHaveBeenCalledWith('/posts', {
-        params: { page: 2, pageSize: 10 },
+        params: { page: 2, pageSize: 20 },
       }),
     );
   });
@@ -86,7 +86,7 @@ describe('PostList 페이지', () => {
   // T-WEB-308: 제목·본문 키워드 검색(디바운스, 비우면 전체)
   it('검색어 입력 시 디바운스 후 q 파라미터로 조회한다', async () => {
     mockedApi.get.mockResolvedValue({
-      data: { items: [summary()], page: 1, pageSize: 10, total: 1 },
+      data: { items: [summary()], page: 1, pageSize: 20, total: 1 },
     });
     renderList();
     await screen.findByText('첫 글');
@@ -95,14 +95,14 @@ describe('PostList 페이지', () => {
     });
     await waitFor(() =>
       expect(mockedApi.get).toHaveBeenCalledWith('/posts', {
-        params: { page: 1, pageSize: 10, q: 'nest' },
+        params: { page: 1, pageSize: 20, q: 'nest' },
       }),
     );
   });
 
   it('검색어를 비우면 q 없이(전체) 다시 조회한다', async () => {
     mockedApi.get.mockResolvedValue({
-      data: { items: [summary()], page: 1, pageSize: 10, total: 1 },
+      data: { items: [summary()], page: 1, pageSize: 20, total: 1 },
     });
     renderList('/?q=nest');
     await screen.findByText('첫 글');
@@ -111,7 +111,7 @@ describe('PostList 페이지', () => {
     fireEvent.change(input, { target: { value: '' } });
     await waitFor(() =>
       expect(mockedApi.get).toHaveBeenLastCalledWith('/posts', {
-        params: { page: 1, pageSize: 10 },
+        params: { page: 1, pageSize: 20 },
       }),
     );
   });
@@ -122,7 +122,7 @@ describe('PostList 페이지', () => {
       data: {
         items: [summary({ coverImageUrl: '/uploads/clip.mp4' })],
         page: 1,
-        pageSize: 10,
+        pageSize: 20,
         total: 1,
       },
     });
@@ -148,7 +148,7 @@ describe('PostList 페이지', () => {
       data: {
         items: [summary({ coverImageUrl: '/uploads/a.jpg' })],
         page: 1,
-        pageSize: 10,
+        pageSize: 20,
         total: 1,
       },
     });
