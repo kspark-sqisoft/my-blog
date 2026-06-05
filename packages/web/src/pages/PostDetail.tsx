@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArticleToc } from '../components/ArticleToc';
 import { CommentSection } from '../components/CommentSection';
 import { Icon } from '../components/Icon';
+import { LikeButton } from '../components/LikeButton';
 import { ReadingArticle } from '../components/ReadingArticle';
 import { RelatedPosts } from '../components/RelatedPosts';
 import type { TocItem } from '../lib/article-enhance';
 import { fmtDate } from '../lib/format';
 import { estimateReadingTime } from '../lib/reading-time';
 import { usePost } from '../posts/usePost';
+import { useRecordView } from '../posts/useEngagement';
 
 export function PostDetail() {
   const { slug = '' } = useParams();
@@ -34,6 +36,17 @@ export function PostDetail() {
       navigate(`/posts/${canonical}`, { replace: true });
     }
   }, [query.data, slug, navigate]);
+
+  // ADR-0024: 글을 연 시점에 조회 1회 핑(서버가 30분 dedup). 글당 한 번만 발사.
+  const recordView = useRecordView();
+  const viewedId = useRef<string | null>(null);
+  const postId = query.data?.id;
+  useEffect(() => {
+    if (postId && viewedId.current !== postId) {
+      viewedId.current = postId;
+      recordView.mutate(postId);
+    }
+  }, [postId, recordView]);
 
   if (query.isPending) {
     return (
@@ -77,6 +90,13 @@ export function PostDetail() {
                     <span className="ab-meta-read">{readingMinutes}분 읽기</span>
                   </>
                 )}
+                <span className="ab-dot">·</span>
+                <span
+                  className="inline-flex items-center gap-1"
+                  aria-label="조회수"
+                >
+                  <Icon name="eye" size={15} /> {post.viewCount}
+                </span>
               </div>
               {post.tags.length > 0 && (
                 <div className="ab-tags">
@@ -96,6 +116,10 @@ export function PostDetail() {
               />
             </div>
           </article>
+          {/* ADR-0024: 좋아요(참여) */}
+          <div className="mt-8 flex justify-center">
+            <LikeButton post={post} />
+          </div>
           <RelatedPosts idOrSlug={post.slug} />
           <CommentSection postId={post.id} />
         </div>

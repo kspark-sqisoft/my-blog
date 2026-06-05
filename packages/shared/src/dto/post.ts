@@ -11,6 +11,8 @@ export interface PostSummaryDto {
   authorName: string; // 작성자 표시 이름 (ADR-0017)
   publishedAt: string | null; // ISO 8601
   coverImageUrl: string | null; // 본문 첫 이미지(대표 이미지) URL, 없으면 null
+  viewCount: number; // 조회수 (ADR-0024)
+  likeCount: number; // 좋아요 수 (ADR-0024)
 }
 
 // 상세
@@ -30,6 +32,9 @@ export interface PostDetailDto {
   publishedAt: string | null; // ISO 8601
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
+  viewCount: number; // 조회수 (ADR-0024)
+  likeCount: number; // 좋아요 수 (ADR-0024)
+  likedByMe: boolean; // 요청자가 좋아요를 눌렀는지 (비로그인=false) (ADR-0024)
 }
 
 // 관련 글 항목 (T-READ-104). 태그 겹침 기반 추천. 카드 표시용 최소 필드.

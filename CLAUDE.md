@@ -30,6 +30,9 @@
 | PATCH | `/api/admin/users/:id/role` | 역할 변경 | 운영자(ADMIN) |
 | GET | `/api/posts/:postId/comments` | 댓글 목록 | 공개 |
 | POST | `/api/posts/:postId/comments` | 댓글/답글 작성 | 공개 |
+| POST | `/api/posts/:postId/like` | 좋아요(멱등) | 로그인 |
+| DELETE | `/api/posts/:postId/like` | 좋아요 취소(멱등) | 로그인 |
+| POST | `/api/posts/:postId/view` | 조회 기록(30분 dedup) | 공개 |
 | GET | `/api/tags` | 태그 목록 | 공개 |
 | POST | `/api/uploads` | 이미지 업로드 | 운영자 |
 <!-- AUTO-MANAGED:endpoints:end -->

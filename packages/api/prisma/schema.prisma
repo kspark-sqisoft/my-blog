@@ -38,6 +38,7 @@ model User {
 
   posts    Post[]
   comments Comment[] // 로그인 회원이 작성한 댓글 (ADR-0018)
+  likes    Like[] // 로그인 회원이 누른 좋아요 (ADR-0024)
 
   @@map("users")
 }
@@ -55,6 +56,10 @@ model Post {
   author          User       @relation(fields: [authorId], references: [id])
   postTags        PostTag[]
   comments        Comment[]
+  viewCount       Int        @default(0) // 비정규화 조회수 카운터 (ADR-0024). 진실원천=PostView
+  likeCount       Int        @default(0) // 비정규화 좋아요 카운터 (ADR-0024). 진실원천=Like
+  likes           Like[]
+  views           PostView[]
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
@@ -99,4 +104,30 @@ model Comment {
   @@index([postId])
   @@index([userId])
   @@map("comments")
+}
+
+// 좋아요 (Engagement Context — ADR-0024). 로그인 1인 1글 1좋아요(복합 PK로 강제).
+model Like {
+  postId    String
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([postId, userId])
+  @@index([userId])
+  @@map("likes")
+}
+
+// 조회 기록 (Engagement Context — ADR-0024). 방문자키별 1행 유지, 30분 창 dedup 은 서비스가 판정.
+// visitorKey = 로그인 'user:{id}' | 비로그인 sha256(ip|ua) (원문 IP/UA 미저장 — PII 최소화).
+model PostView {
+  postId       String
+  visitorKey   String
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  lastViewedAt DateTime @default(now())
+
+  @@id([postId, visitorKey])
+  @@index([postId])
+  @@map("post_views")
 }

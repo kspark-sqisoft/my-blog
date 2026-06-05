@@ -502,6 +502,56 @@ E5 이후 → E6 테스트 격리·CI(INFRA) → E7 애플 리뉴얼·대표 이
 
 ---
 
+## E15. 참여 — 좋아요 + 조회수 (engagement, ADR-0024)
+
+> (E14 는 읽기경험(reading-experience) 에픽 — `docs/tasks/reading-experience.md` 미러. 참여는 E15.)
+
+> 새 **Engagement Context**(`EngagementModule`). 좋아요는 로그인 토글 + `Like` 조인테이블,
+> 조회수는 별도 `POST /view` + 방문자키 30분 dedup, 비정규화 카운터(`viewCount`/`likeCount`).
+> (E9~E13 의 사람읽기 미러는 생략되어 있음 — 진행 정규 소스는 `feature_list.json`.)
+
+#### T-ENG-001 — 참여 스키마(Like/PostView + viewCount/likeCount 카운터)
+- priority: 72 · 의존: T-INFRA-001 · status: done · tdd_first: true
+- 변경: `packages/api/prisma/schema.prisma`, `prisma/migrations/*_add_engagement_likes_views/`
+- acceptance:
+  1. `Like(postId,userId)` 복합 PK + `PostView(postId,visitorKey)` 복합 PK 모델(ADR-0024).
+  2. `Post.viewCount`/`likeCount` `Int @default(0)` 비정규화 카운터.
+  3. 추가 전용 마이그레이션(ADD COLUMN/CREATE TABLE) — dev·blog_test 적용, `prisma validate` 통과.
+
+#### T-ENG-002 — 좋아요 API(POST/DELETE 토글, 로그인, 멱등, likedByMe)
+- priority: 73 · 의존: T-ENG-001 · status: done · tdd_first: true
+- 변경: `src/engagement/{engagement.service,engagement.controller,engagement.module}.ts`, `*.spec.ts`, `test/engagement.e2e-spec.ts`
+- acceptance:
+  1. `POST/DELETE /api/posts/:id/like` 로그인 필수(비로그인 401), 멱등 토글.
+  2. 1인 1글 1좋아요(복합 PK), `likeCount` 동일 트랜잭션 증감 → `{likeCount,likedByMe}`.
+  3. 미발행/없는 글 404, 단위 + e2e 통과.
+
+#### T-ENG-003 — 조회수 API(POST view + 방문자키 30분 dedup)
+- priority: 74 · 의존: T-ENG-001 · status: done · tdd_first: true
+- 변경: `src/engagement/{engagement.service,engagement.controller,visitor-key}.ts`, `*.spec.ts`, e2e
+- acceptance:
+  1. `POST /api/posts/:id/view` 공개, 방문자키(`user:{id}` | `sha256(ip|ua)`)별 30분 1회 집계.
+  2. 원문 IP/UA 미저장(해시만), `viewCount` 동일 트랜잭션 증가 → `{viewCount}`.
+  3. 미발행/없는 글 404, dedup·재집계 e2e 통과.
+
+#### T-ENG-004 — 상세/목록 응답에 카운트 + likedByMe 노출
+- priority: 75 · 의존: T-ENG-002, T-ENG-003 · status: done · tdd_first: true
+- 변경: `@blog/shared`(`dto/post`, `dto/engagement`), `src/publishing/{post.service,post.controller}.ts`, e2e
+- acceptance:
+  1. `PostDetailDto`에 `viewCount/likeCount/likedByMe`, `PostSummaryDto`에 `viewCount/likeCount`.
+  2. `GET /api/posts/:idOrSlug`에 `OptionalJwtAuthGuard` → 로그인 `likedByMe=true`, 비로그인 false.
+  3. api 단위 137 + e2e 71 통과(회귀 없음).
+
+#### T-ENG-005 — 웹(좋아요 버튼 + 조회수 + view 핑)
+- priority: 76 · 의존: T-ENG-004 · status: done · tdd_first: true
+- 변경: `packages/web/src/posts/useEngagement.ts`, `components/LikeButton.tsx`, `components/Icon.tsx`, `pages/PostDetail.tsx`, `*.test.tsx`
+- acceptance:
+  1. 상세에 좋아요 토글 버튼(낙관적 업데이트, 비로그인 클릭 시 401→`/login`) + 조회수(eye).
+  2. 마운트 시 `POST /view` 1회 핑(글당 1회), `useEngagement` 훅으로 호출.
+  3. web unit 102 + typecheck 통과(회귀 없음).
+
+---
+
 ## 요약
 
 | 에픽 | Context | 스토리 | 태스크 수 |

@@ -34,3 +34,9 @@
 ## 리치 에디터 (Rich Editor)- 정의: 본문 작성용 WYSIWYG 에디터(TipTap 기반, ProseMirror 위). 표준 서식 + 색·크기 프리셋 + 미디어 업로드를 한 화면에서 제공한다(ADR-0021).- 소속 Context: Publishing (프레젠테이션)- 코드 표현: `packages/web/src/components/editor/RichEditor.tsx` + `Toolbar.tsx`. 확장: `StarterKit`, `Link`, `Underline`, `Image`, 커스텀 `Video`, `TextStyle`, `Color`, 커스텀 `FontSize`- UI 표현: `/admin/posts/new` 와 `/admin/posts/:id/edit` 의 본문 입력 영역- 동의어 금지: WYSIWYG(통칭), Editor(범용) — 코드/문서는 "리치 에디터"
 
 ## 테마 (Theme)- 정의: 화면 색상 모드. 라이트/다크 두 가지. 사용자가 토글로 전환하며 선택은 브라우저에 보존된다.- 소속 Context: WEB(프레젠테이션 — 도메인 Bounded Context 아님)- 코드 표현: `useTheme`(zustand), `document.documentElement[data-theme]`, localStorage `blog-theme`- UI 표현: 상단 네비게이션의 해/달 아이콘 토글- 동의어 금지: 스킨(Skin), 다크모드(단독 사용) — 모드 일반은 "테마"로 통일
+
+## 좋아요 (Like)- 정의: 로그인 사용자가 글에 1회 표시하는 호감 신호. **1인 1글 1좋아요**이고 취소(토글) 가능하다(ADR-0024). 비로그인은 누를 수 없다(정확성을 위해 댓글의 익명 허용과 다른 선택).- 소속 Context: Engagement- 코드 표현: `Like(postId,userId)` 복합 PK(Prisma), `POST/DELETE /api/posts/:id/like`, `LikeStateDto{likeCount,likedByMe}`(`packages/shared`). 비정규화 카운터 `Post.likeCount`- UI 표현: 상세 화면 본문 하단의 하트 버튼(`likedByMe`면 채워짐) + 누적 수- 동의어 금지: 추천(Recommend), 하트(Heart 단독), 좋아함 — "좋아요"로 통일
+
+## 조회수 (View Count)- 정의: 글이 열린 횟수. **방문자 키별 30분 창**에서 1회만 집계해 새로고침·프리페치·봇 과다집계를 줄인다(ADR-0024). GET 의 부수효과가 아니라 글을 연 시점에 별도 기록한다.- 소속 Context: Engagement- 코드 표현: `PostView(postId,visitorKey)`(Prisma), `POST /api/posts/:id/view`, `ViewCountDto{viewCount}`. 비정규화 카운터 `Post.viewCount`- UI 표현: 상세 메타의 눈 아이콘 + 숫자- 동의어 금지: 조회(Hit), 페이지뷰(PV 단독), 노출(Impression) — "조회수"로 통일
+
+## 방문자 키 (Visitor Key)- 정의: 조회수 dedup 을 위해 방문자를 식별하는 키. 로그인이면 `user:{id}`, 비로그인이면 `sha256(ip|user-agent)`. **원문 IP·UA 는 저장하지 않고 해시만** 둔다(PII 최소화, ADR-0024).- 소속 Context: Engagement- 코드 표현: `PostView.visitorKey`, api `visitorKeyFrom(req, userId?)`- 주의: 공유 IP·시크릿창에서는 부정확할 수 있는 근사 지표다(완벽한 봇 차단은 범위 외)

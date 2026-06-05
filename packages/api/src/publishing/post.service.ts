@@ -68,6 +68,8 @@ type PostWithTags = {
   status: 'DRAFT' | 'PUBLISHED';
   publishedAt: Date | null;
   authorId: string;
+  viewCount: number;
+  likeCount: number;
   createdAt: Date;
   updatedAt: Date;
   postTags: { tag: { name: string } }[];
@@ -247,7 +249,11 @@ export class PostService {
 
   // 발행된 Post 상세 (공개). 초안/없음은 NotFound로 숨긴다.
   // 공개 상세 (ADR-0022): slug 우선, 없으면 cuid 로 발행글 조회. cuid 링크 호환.
-  async getPublishedDetail(idOrSlug: string): Promise<PostDetailDto> {
+  // viewerId: 로그인 사용자면 좋아요 여부(likedByMe)를 함께 계산한다(ADR-0024).
+  async getPublishedDetail(
+    idOrSlug: string,
+    viewerId?: string,
+  ): Promise<PostDetailDto> {
     const post = await this.prisma.post.findFirst({
       where: {
         status: 'PUBLISHED',
@@ -258,7 +264,13 @@ export class PostService {
     if (!post) {
       throw new NotFoundException('Post를 찾을 수 없습니다.');
     }
-    return this.toDetail(post);
+    const likedByMe = viewerId
+      ? !!(await this.prisma.like.findUnique({
+          where: { postId_userId: { postId: post.id, userId: viewerId } },
+          select: { postId: true },
+        }))
+      : false;
+    return this.toDetail(post, likedByMe);
   }
 
   // 관련 글 (T-READ-104, ADR-0023): 공유 태그 수 desc → publishedAt desc, 자기 제외,
@@ -407,6 +419,8 @@ export class PostService {
       authorName: post.author.name,
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       coverImageUrl: extractFirstImageUrl(body),
+      viewCount: post.viewCount,
+      likeCount: post.likeCount,
     };
   }
 
@@ -434,7 +448,7 @@ export class PostService {
     };
   }
 
-  private toDetail(post: PostWithTags): PostDetailDto {
+  private toDetail(post: PostWithTags, likedByMe = false): PostDetailDto {
     return {
       id: post.id,
       slug: post.slug,
@@ -448,6 +462,9 @@ export class PostService {
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
+      viewCount: post.viewCount,
+      likeCount: post.likeCount,
+      likedByMe,
     };
   }
 }

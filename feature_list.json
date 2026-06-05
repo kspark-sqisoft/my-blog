@@ -1446,6 +1446,91 @@
         "회귀 없음: api 단위(related 정렬·자기제외·보완·발행만) + web 단위 통과"
       ],
       "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-ENG-001",
+      "title": "참여 스키마 — Like/PostView + viewCount/likeCount 카운터",
+      "epic": "E15",
+      "context": "ENG",
+      "priority": 76,
+      "deps": ["T-INFRA-001"],
+      "status": "done",
+      "feature": "engagement",
+      "tdd_first": true,
+      "acceptance": [
+        "Like(postId,userId) 복합 PK + PostView(postId,visitorKey) 복합 PK 모델(ADR-0024)",
+        "Post.viewCount/likeCount Int @default(0) 비정규화 카운터",
+        "추가 전용 마이그레이션(ADD COLUMN/CREATE TABLE) — dev·blog_test 적용, prisma validate 통과"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-ENG-002",
+      "title": "좋아요 API — POST/DELETE 토글(로그인, 멱등, likedByMe)",
+      "epic": "E15",
+      "context": "ENG",
+      "priority": 77,
+      "deps": ["T-ENG-001"],
+      "status": "done",
+      "feature": "engagement",
+      "tdd_first": true,
+      "acceptance": [
+        "POST/DELETE /api/posts/:id/like 로그인 필수(비로그인 401), 멱등 토글",
+        "1인 1글 1좋아요(복합 PK), likeCount 동일 트랜잭션 증감 → {likeCount,likedByMe}",
+        "미발행/없는 글 404, EngagementService 단위 + e2e 통과"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-ENG-003",
+      "title": "조회수 API — POST view + 방문자키 30분 dedup",
+      "epic": "E15",
+      "context": "ENG",
+      "priority": 78,
+      "deps": ["T-ENG-001"],
+      "status": "done",
+      "feature": "engagement",
+      "tdd_first": true,
+      "acceptance": [
+        "POST /api/posts/:id/view 공개, 방문자키(로그인 user:{id} | sha256(ip|ua))별 30분 1회 집계",
+        "원문 IP/UA 미저장(해시만), viewCount 동일 트랜잭션 증가 → {viewCount}",
+        "미발행/없는 글 404, dedup·재집계 e2e 통과"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-ENG-004",
+      "title": "상세/목록 응답에 카운트 + likedByMe 노출",
+      "epic": "E15",
+      "context": "ENG",
+      "priority": 79,
+      "deps": ["T-ENG-002", "T-ENG-003"],
+      "status": "done",
+      "feature": "engagement",
+      "tdd_first": true,
+      "acceptance": [
+        "PostDetailDto 에 viewCount/likeCount/likedByMe, PostSummaryDto 에 viewCount/likeCount(shared)",
+        "GET /api/posts/:idOrSlug 에 OptionalJwtAuthGuard → 로그인 likedByMe=true, 비로그인 false",
+        "api 단위 137 + e2e 72 통과(회귀 없음)"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-ENG-005",
+      "title": "웹 — 좋아요 버튼 + 조회수 표시 + view 핑(PostDetail)",
+      "epic": "E15",
+      "context": "WEB",
+      "priority": 80,
+      "deps": ["T-ENG-004"],
+      "status": "done",
+      "feature": "engagement",
+      "tdd_first": true,
+      "acceptance": [
+        "상세에 좋아요 토글 버튼(낙관적 업데이트, 비로그인 클릭 시 401→/login) + 조회수(eye)",
+        "마운트 시 POST /view 1회 핑(글당 1회), useEngagement 훅으로 호출",
+        "web unit 102 + typecheck 통과(회귀 없음)"
+      ],
+      "completed_at": "2026-06-05"
     }
   ]
 }

@@ -21,6 +21,7 @@ import type {
   RelatedPostDto,
 } from '@blog/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -59,10 +60,13 @@ export class PostController {
     return this.posts.getRelated(id, Number.isFinite(n) ? n : undefined);
   }
 
-  // 공개: 발행 Post 상세 (초안은 404)
+  // 공개: 발행 Post 상세 (초안은 404).
+  // OptionalJwtAuthGuard: 로그인이면 likedByMe 계산용 viewerId 를 넘긴다 (ADR-0024).
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':id')
-  detail(@Param('id') id: string): Promise<PostDetailDto> {
-    return this.posts.getPublishedDetail(id);
+  detail(@Param('id') id: string, @Req() req: Request): Promise<PostDetailDto> {
+    const user = req.user as AuthUserDto | undefined;
+    return this.posts.getPublishedDetail(id, user?.id);
   }
 
   // 작성자/운영자: 생성(초안)

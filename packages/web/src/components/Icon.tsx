@@ -76,6 +76,10 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M13 7l4 4" />
     </>
   ),
+  // 참여(ADR-0024): 좋아요 하트. 채움은 부모의 [&_svg]:fill-current 로 처리.
+  heart: (
+    <path d="M12 20.3 4.7 13a4.6 4.6 0 1 1 6.5-6.5l.8.8.8-.8A4.6 4.6 0 1 1 19.3 13Z" />
+  ),
   'align-left': <path d="M4 6h16M4 10.5h10M4 15h16M4 19.5h10" />,
   'align-center': <path d="M4 6h16M7 10.5h10M4 15h16M7 19.5h10" />,
   'align-right': <path d="M4 6h16M10 10.5h10M4 15h16M10 19.5h10" />,

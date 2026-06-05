@@ -9,7 +9,7 @@
 
 ## Context 목록
 
-blog-mvp는 3개의 Bounded Context로 구성된다: **Publishing**, **Conversation**, **Auth**.
+blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversation**, **Engagement**, **Auth**.
 
 ### Publishing
 
@@ -40,6 +40,20 @@ blog-mvp는 3개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 - Comment는 대상 Post를 `postId`로만 참조한다 (Post 객체 직접 참조 금지).
 - 답글도 다른 Comment를 `parentId`로 참조하며 깊이 2까지만 허용한다(서비스 계층에서 강제 — ADR-0013).
 - 작성자 식별은 **선택적**이다: 로그인이면 `userId`로 실명(User.name), 비로그인이면 `displayName`로 익명. `userId` FK는 `onDelete: SetNull`이라 사용자 삭제 시 댓글은 익명으로 보존된다(ADR-0018).
+
+### Engagement
+
+| 항목 | 내용 |
+|---|---|
+| **책임** | 독자가 발행된 Post에 참여(좋아요·조회)하는 신호를 기록·집계한다(ADR-0024). |
+| **Aggregate Root** | `Like`, `PostView` (각각 Entity — 글에 대한 독자 행동 기록) |
+| **다른 객체** | 비정규화 카운터 `Post.likeCount`/`Post.viewCount`는 파생값(진실원천은 `Like`/`PostView` 행) |
+| **Domain Events** | `PostLiked`, `PostUnliked`, `PostViewed` |
+| **다른 Context 의존** | Publishing을 안다 — `postId`로 Post 참조. Auth를 안다 — 좋아요는 `userId`(로그인 필수)로 User 참조. 조회는 비로그인이면 방문자 키 해시로 식별(Auth 불필요). |
+
+- 좋아요는 **로그인 1인 1글 1개**(`Like` 복합 PK)이며 토글로 취소 가능하다(ADR-0024). 댓글과 달리 익명을 허용하지 않는다(정확성 우선).
+- 조회는 **방문자 키별 30분 dedup**으로 집계하며, 카운터는 토글/기록과 같은 트랜잭션에서 증감한다.
+- 카운터는 파생값이므로 드리프트 시 `Like`/`PostView`에서 재집계할 수 있다.
 
 ### Auth
 
@@ -88,6 +102,7 @@ blog-mvp는 3개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 |---|---|---|
 | Publishing | `PublishingModule` (또는 `PostModule`) | Post CRUD·발행, Tag 분류·탐색, 이미지 업로드(StorageProvider) |
 | Conversation | `ConversationModule` (또는 `CommentModule`) | Comment 작성·조회, 깊이 2 답글 |
+| Engagement | `EngagementModule` | 좋아요 토글(로그인), 조회수 dedup 집계, 비정규화 카운터 관리(ADR-0024) |
 | Auth | `AuthModule` | User 인증(회원가입·로그인), 역할 관리(`RolesGuard`/`@Roles`), 쓰기/관리 권한 검증. 사용자 관리 API 포함 |
 
 > 모듈 경계는 Context 경계와 1:1로 맞춘다. 모듈 간 호출은 ID 기반 인터페이스로만 한다.
