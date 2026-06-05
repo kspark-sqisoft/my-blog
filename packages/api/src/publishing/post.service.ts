@@ -21,6 +21,7 @@ export interface ListPublishedParams {
   page?: number;
   pageSize?: number;
   tag?: string;
+  q?: string;
 }
 
 const DEFAULT_PAGE = 1;
@@ -168,10 +169,18 @@ export class PostService {
   ): Promise<Paginated<PostSummaryDto>> {
     const page = params.page ?? DEFAULT_PAGE;
     const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+    // 키워드: 제목·본문(평문 contentMarkdown) 부분일치, 대소문자 무시. 공백뿐이면 무시.
+    const q = params.q?.trim();
     const where = {
       status: 'PUBLISHED' as const,
       ...(params.tag && {
         postTags: { some: { tag: { name: params.tag } } },
+      }),
+      ...(q && {
+        OR: [
+          { title: { contains: q, mode: 'insensitive' as const } },
+          { contentMarkdown: { contains: q, mode: 'insensitive' as const } },
+        ],
       }),
     };
 

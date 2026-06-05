@@ -83,6 +83,39 @@ describe('PostList 페이지', () => {
     );
   });
 
+  // T-WEB-308: 제목·본문 키워드 검색(디바운스, 비우면 전체)
+  it('검색어 입력 시 디바운스 후 q 파라미터로 조회한다', async () => {
+    mockedApi.get.mockResolvedValue({
+      data: { items: [summary()], page: 1, pageSize: 10, total: 1 },
+    });
+    renderList();
+    await screen.findByText('첫 글');
+    fireEvent.change(screen.getByLabelText('글 검색'), {
+      target: { value: 'nest' },
+    });
+    await waitFor(() =>
+      expect(mockedApi.get).toHaveBeenCalledWith('/posts', {
+        params: { page: 1, pageSize: 10, q: 'nest' },
+      }),
+    );
+  });
+
+  it('검색어를 비우면 q 없이(전체) 다시 조회한다', async () => {
+    mockedApi.get.mockResolvedValue({
+      data: { items: [summary()], page: 1, pageSize: 10, total: 1 },
+    });
+    renderList('/?q=nest');
+    await screen.findByText('첫 글');
+    const input = screen.getByLabelText('글 검색') as HTMLInputElement;
+    expect(input.value).toBe('nest'); // URL q 로 초기화
+    fireEvent.change(input, { target: { value: '' } });
+    await waitFor(() =>
+      expect(mockedApi.get).toHaveBeenLastCalledWith('/posts', {
+        params: { page: 1, pageSize: 10 },
+      }),
+    );
+  });
+
   // T-WEB-203: 목록 카드 비디오 첫 프레임 커버 (ADR-0020)
   it('coverImageUrl 이 .mp4 면 카드 커버에 <video> 첫 프레임을 표시한다 (controls 없음)', async () => {
     mockedApi.get.mockResolvedValueOnce({

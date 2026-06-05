@@ -295,6 +295,26 @@ a {
   white-space: nowrap;
   color: var(--text);
 }
+/* 목록 키워드 검색 입력 — T-WEB-308 */
+.ab-search {
+  flex: 0 1 280px;
+  min-width: 140px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--r-sm);
+  padding: 8px 13px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: 0.18s;
+}
+.ab-search::placeholder {
+  color: var(--text-3);
+}
+.ab-search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
 .ab-text-link {
   display: inline-flex;
   align-items: center;

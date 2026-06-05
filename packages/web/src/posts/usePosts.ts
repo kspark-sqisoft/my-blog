@@ -6,9 +6,10 @@ export interface PostsQuery {
   page?: number;
   pageSize?: number;
   tag?: string;
+  q?: string;
 }
 
-// 발행 Post 목록 조회 (GET /api/posts). tag 지정 시 필터.
+// 발행 Post 목록 조회 (GET /api/posts). tag 필터 / q 키워드 검색(제목·본문).
 export function usePosts(params: PostsQuery) {
   return useQuery({
     queryKey: ['posts', params],

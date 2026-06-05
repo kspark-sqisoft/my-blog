@@ -147,6 +147,44 @@ describe('PostController (e2e)', () => {
     expect(mine?.authorName).toBe('post-e2e');
   });
 
+  // T-PUB-107: 공개 목록 키워드 검색(?q=)
+  it('공개 GET /api/posts?q= 는 제목/본문 부분일치만 반환(비우면 전체)', async () => {
+    const stamp = Date.now();
+    const kw = `zzq${stamp}`; // 충돌 없는 고유 키워드
+    const hitTitle = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({ title: `제목 ${kw}`, contentMarkdown: '본문' })
+      .expect(201);
+    const hitBody = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({ title: '평범한 제목', contentMarkdown: `본문에 ${kw} 포함` })
+      .expect(201);
+    for (const r of [hitTitle, hitBody]) {
+      const id = (r.body as { id: string }).id;
+      await request(app.getHttpServer())
+        .post(`/api/posts/${id}/publish`)
+        .set('Cookie', cookie)
+        .expect(200);
+    }
+
+    const res = await request(app.getHttpServer())
+      .get(`/api/posts?q=${kw}`)
+      .expect(200);
+    const body = res.body as { items: { id: string }[]; total: number };
+    const ids = body.items.map((p) => p.id);
+    expect(ids).toContain((hitTitle.body as { id: string }).id);
+    expect(ids).toContain((hitBody.body as { id: string }).id);
+    expect(body.total).toBe(2); // 고유 키워드라 정확히 2건
+
+    // q 비면 전체(>= 방금 2건)
+    const all = await request(app.getHttpServer())
+      .get('/api/posts?q=')
+      .expect(200);
+    expect((all.body as { total: number }).total).toBeGreaterThanOrEqual(2);
+  });
+
   it('공개 GET /api/posts/:id — 발행 200, 초안 404', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/posts')

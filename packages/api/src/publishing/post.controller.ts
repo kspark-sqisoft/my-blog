@@ -44,6 +44,7 @@ export class PostController {
       page: query.page,
       pageSize: query.pageSize,
       tag: query.tag,
+      q: query.q,
     });
   }
 

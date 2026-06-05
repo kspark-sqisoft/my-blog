@@ -289,6 +289,63 @@ describe('PostService (통합)', () => {
     expect(page.total).toBe(1);
   });
 
+  // T-PUB-107: 키워드 검색(제목·본문 부분일치, 대소문자 무시)
+  it('listPublished는 q로 제목/본문을 부분일치 검색한다(대소문자 무시)', async () => {
+    const byTitle = await service.create({
+      title: 'NestJS 입문',
+      contentMarkdown: '서버 기초',
+      authorId,
+    });
+    const byBody = await service.create({
+      title: '잡담',
+      contentMarkdown: '오늘 nestjs 강의를 들었다',
+      authorId,
+    });
+    const noMatch = await service.create({
+      title: '여행기',
+      contentMarkdown: '제주도 후기',
+      authorId,
+    });
+    await service.publish(byTitle.id, adminActor);
+    await service.publish(byBody.id, adminActor);
+    await service.publish(noMatch.id, adminActor);
+
+    const page = await service.listPublished({
+      page: 1,
+      pageSize: 10,
+      q: 'nestjs',
+    });
+    const ids = page.items.map((p) => p.id);
+    expect(ids).toContain(byTitle.id); // 제목 대소문자 무시 매칭
+    expect(ids).toContain(byBody.id); // 본문 매칭
+    expect(ids).not.toContain(noMatch.id);
+    expect(page.total).toBe(2);
+  });
+
+  it('listPublished는 q가 비면(공백 포함) 전체를 반환한다', async () => {
+    const a = await service.create({
+      title: 'A',
+      contentMarkdown: 'a',
+      authorId,
+    });
+    const b = await service.create({
+      title: 'B',
+      contentMarkdown: 'b',
+      authorId,
+    });
+    await service.publish(a.id, adminActor);
+    await service.publish(b.id, adminActor);
+
+    const page = await service.listPublished({
+      page: 1,
+      pageSize: 10,
+      q: '   ',
+    });
+    const ids = page.items.map((p) => p.id);
+    expect(ids).toContain(a.id);
+    expect(ids).toContain(b.id);
+  });
+
   it('listPublished는 본문 첫 이미지를 coverImageUrl로 노출한다(없으면 null)', async () => {
     const withImg = await service.create({
       title: '커버 있음',

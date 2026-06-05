@@ -1307,6 +1307,26 @@
         "회귀 없음: web lint/typecheck/unit(93) + api(markdown-to-html 10) + e2e(6) 통과"
       ],
       "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-WEB-308",
+      "title": "리스트 제목·본문 키워드 검색(디바운스, 비우면 전체)",
+      "epic": "E12",
+      "context": "WEB",
+      "priority": 69,
+      "deps": [
+        "T-PUB-004"
+      ],
+      "status": "done",
+      "feature": "list-search",
+      "tdd_first": true,
+      "acceptance": [
+        "GET /api/posts?q= 로 제목·본문(평문) 부분일치 검색(대소문자 무시), q 비면 전체",
+        "리스트 검색 입력 → useDebouncedValue(300ms) 후 조회, 비우면 전체 복원",
+        "검색어를 URL ?q= 에 반영(공유/새로고침 보존), q 변경 시 1페이지로 리셋",
+        "회귀 없음: api(post.service 29, post e2e 20) + web(unit 97, e2e 7) 통과"
+      ],
+      "completed_at": "2026-06-05"
     }
   ]
 }
