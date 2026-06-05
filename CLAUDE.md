@@ -66,6 +66,19 @@ dev 스택은 한 번만 `docker compose -f docker-compose.yml -f docker-compose
   자동 수행하도록 유도하고(빌드 로그가 세션에 보임), 성공 후 sentinel 을 지워 다음 종료는 통과시킨다.
 - 끄려면 환경변수를 빼거나 `OMC_SKIP_HOOKS` 사용. (배경/설계는 `docs/harness.md` 운영 함정 #6)
 
+## 동시 작업 — 격리 worktree 권장 (하네스가 안내)
+
+여러 세션/작업이 **같은 워킹트리**에서 같은 파일을 동시에 고치면 서로 덮어쓰거나 머지 충돌이 난다.
+독립적인 기능을 병렬로 진행할 때는 **격리 worktree**에서 작업한다: `EnterWorktree`(권장) 또는
+`bash scripts/worktree-new.sh <name>`. 작업·검증·커밋 후 default 브랜치(`main`)로 머지한다.
+
+- default 브랜치(`main`)의 메인 체크아웃에서 **기능 소스**(`packages/*/src/**`, `prisma/schema.prisma`)를
+  편집하면 **PostToolUse 훅 `worktree-guard`** 가 worktree 사용을 **세션당 1회** 권유한다(비차단 — 단발
+  핫픽스·문서 수정이면 무시 가능). 별도 브랜치이거나 이미 worktree 안이면 안내하지 않는다.
+- worktree 함정: dev Docker 스택은 **메인 디렉터리** 소스를 바인드 마운트하므로 worktree 편집은 핫리로드로
+  안 보인다 → worktree 에서는 TDD(jest/vitest)로 검증하고, 브라우저 도그푸딩은 메인에서. db 는 메인 컨테이너
+  (5433)를 재사용한다(별도 스택 기동 시 포트 충돌). (배경은 `docs/harness.md` 운영 함정 #7)
+
 ## 데이터 입력 주의 (한글 깨짐)
 
 Windows Git Bash 의 `curl -d '{"title":"한글..."}'` 는 비ASCII 를 깨뜨려 ��� 로 저장된다.

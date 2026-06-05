@@ -56,6 +56,7 @@
 |---|---|---|
 | PreToolUse(Edit\|Write) | `protect-paths` | `.env`·확정(Accepted) ADR 수정 **차단(exit 2)** |
 | PostToolUse(Edit\|Write) | `docker-rebuild-sensor` | 도커 재빌드 트리거(deps/Dockerfile/compose/.env) 감지 → 정확한 명령 알림 + sentinel 기록(비차단) |
+| PostToolUse(Edit\|Write) | `worktree-guard` | default 브랜치(main) 메인 체크아웃에서 기능 소스 첫 편집 시 worktree 사용 권유(세션당 1회, 비차단) |
 | UserPromptSubmit | `tdd-reminder` | 구현 의도면 RED→GREEN→REFACTOR 리마인드 |
 | UserPromptSubmit | `session-ready` | "준비"/`/ready` 면 시작 루틴 주입 |
 | Stop | `verify-done-tasks` | 미커밋 `status=done`(MD+JSON) 감지 시 검증·커밋 유도 |
@@ -223,13 +224,35 @@ docker compose -f docker-compose.e2e.yml -p my-blog-e2e down -v
 런타임 쿼리로 반영된다 — 모두 재빌드 불필요. (단 함정 #4 처럼 Windows 바인드 마운트에서 watch 가 변경을
 놓치면 `docker restart <svc>` 로 개별 재기동한다 — 이건 재빌드가 아니라 재시작이다.)
 
+### 7. 같은 워킹트리 동시 작업 → 파일 덮어쓰기 (worktree-guard 안내)
+**증상**: 두 세션(또는 두 작업)이 같은 워킹트리에서 같은 파일을 동시에 고치면, 한쪽 저장이 다른 쪽을
+덮어쓰거나 커밋 시 머지 충돌이 난다. (참여(C)·읽기경험(B)을 동시에 진행할 때 `PostDetail.tsx` 가 겹쳐
+실제로 충돌을 해결해야 했다 — 격리 worktree 로 분리해 사고를 피했다.)
+
+**원인**: 한 디렉터리를 두 작업이 공유하면 파일시스템 수준에서 서로의 변경을 보호할 수 없다.
+
+**해결(적용됨, 안내형)**: `.claude/hooks/worktree-guard.mjs` (PostToolUse Edit|Write, **비차단**).
+default 브랜치(`main`)의 **메인 체크아웃**에서 **기능 소스**(`packages/{api,web,shared}/src/**`,
+`prisma/schema.prisma`)를 편집하면, 격리 worktree 사용을 **세션당 1회** 권유한다(차단하지 않음 —
+단발 핫픽스·문서 수정까지 막으면 번거로우므로). 판정:
+- 링크된 worktree(`git-dir != git-common-dir`)면 이미 격리 → 안내 안 함.
+- 메인 체크아웃이라도 별도 브랜치면 → 안내 안 함(브랜치도 격리).
+- `main` + 메인 체크아웃 + 기능 소스 → 1회 안내(EnterWorktree 또는 `scripts/worktree-new.sh`).
+- "1회"는 `.claude/.worktree-guard-warned` sentinel(gitignore)로 관리하고, `session-start` 가 매 세션
+  시작에 지워 새 세션마다 다시 안내한다.
+
+**worktree 작업 시 함정(함정 #6 연계)**: dev Docker 스택은 **메인 디렉터리** 소스를 바인드 마운트하므로,
+worktree 편집은 핫리로드로 안 보인다. worktree 에서는 TDD(jest/vitest)로 검증하고, 브라우저 도그푸딩은
+메인 디렉터리에서 한다. worktree 에서 `init.sh` 의 `docker compose up -d db` 는 호스트 5433 포트가 메인
+db 와 충돌하니, **메인 db(5433)를 재사용**(prisma generate + migrate deploy 만)하면 된다.
+
 ## 관련 파일
 
 - `init.sh` — 환경 부트스트랩(개발 DB + 테스트 DB)
 - `feature_list.json` — 진행 상태 정규 소스
 - `CLAUDE.md` — 시작 루틴·완료 규칙·절대 규칙
 - `.claude/commands/` — `ready` · `implement` · `finish` · 설계 명령들
-- `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks` · `docker-rebuild-sensor` · `docker-rebuild-stop`
+- `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks` · `docker-rebuild-sensor` · `docker-rebuild-stop` · `worktree-guard`
 - `docs/handoff/` — 세션 간 인계 노트
 - `docs/harness-gap-analysis.md` — 가이드(claude-code-guide) 대비 하네스 갭/보강 권고
 - `docs/harness-changelog.md` — 하네스 자체 변경 이력(가이드 12.5)

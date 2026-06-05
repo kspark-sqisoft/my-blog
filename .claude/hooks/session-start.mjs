@@ -8,6 +8,13 @@ import path from 'node:path';
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
+// worktree-guard 의 "세션당 1회" sentinel 을 매 세션 시작에 초기화한다(다음 안내 허용).
+try {
+  fs.unlinkSync(path.join(root, '.claude', '.worktree-guard-warned'));
+} catch {
+  /* 없으면 그만 */
+}
+
 function latestHandoff() {
   try {
     const dir = path.join(root, 'docs', 'handoff');

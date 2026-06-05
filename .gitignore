@@ -31,3 +31,6 @@ Thumbs.db
 
 # 도커 재빌드 센서의 펜딩 상태(transient — docker-rebuild-sensor/stop 훅)
 .claude/.docker-dirty.json
+
+# worktree-guard 의 세션당 1회 안내 sentinel (transient)
+.claude/.worktree-guard-warned
