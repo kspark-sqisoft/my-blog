@@ -1,15 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CommentSection } from '../components/CommentSection';
 import { Icon } from '../components/Icon';
 import { RichContent } from '../components/RichContent';
 import { fmtDate } from '../lib/format';
+import { estimateReadingTime } from '../lib/reading-time';
 import { usePost } from '../posts/usePost';
 
 export function PostDetail() {
   const { slug = '' } = useParams();
   const navigate = useNavigate();
   const query = usePost(slug);
+
+  // T-READ-101: 읽는 시간(분). 본문에서 렌더타임 계산(ADR-0023). 0 이면 표시 숨김.
+  const readingMinutes = useMemo(
+    () =>
+      estimateReadingTime(
+        query.data?.contentHtml || query.data?.contentMarkdown || '',
+      ),
+    [query.data],
+  );
 
   // ADR-0022: cuid 등 canonical 슬러그가 아닌 경로로 들어오면 슬러그 URL 로 정리(replace).
   useEffect(() => {
@@ -45,7 +55,14 @@ export function PostDetail() {
           <h1 className="ab-article-title">{post.title}</h1>
           <div className="ab-meta">
             <span>{post.authorName}</span>
+            <span className="ab-dot">·</span>
             <span>{fmtDate(post.publishedAt)}</span>
+            {readingMinutes > 0 && (
+              <>
+                <span className="ab-dot">·</span>
+                <span className="ab-meta-read">{readingMinutes}분 읽기</span>
+              </>
+            )}
           </div>
           {post.tags.length > 0 && (
             <div className="ab-tags">

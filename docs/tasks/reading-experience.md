@@ -8,7 +8,7 @@
 ## 태스크
 
 #### T-READ-101 — 읽는 시간 유틸 + 헤더 표시
-- priority: 72 / 의존: T-WEB-309 / status: todo
+- priority: 72 / 의존: T-WEB-309 / status: done (2026-06-05)
 - acceptance:
   1. `estimateReadingTime(html)` 순수 함수: 태그 제거 후 글자 수 → 분(한글 ~500자/분, 최소 1분).
   2. 빈 본문/태그만 있는 경우 안전(최소 1분 또는 0 처리 명시), HTML 엔티티·공백 정규화.

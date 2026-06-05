@@ -1376,7 +1376,7 @@
       "deps": [
         "T-WEB-309"
       ],
-      "status": "todo",
+      "status": "done",
       "feature": "reading-experience",
       "tdd_first": true,
       "acceptance": [
@@ -1384,7 +1384,8 @@
         "빈 본문/태그만 있는 경우 안전, HTML 엔티티·공백 정규화",
         "PostDetail 헤더 meta 에 '· N분 읽기' 표시(저자·날짜 옆)",
         "회귀 없음: web 단위 테스트 통과(reading-time 신규 spec 포함)"
-      ]
+      ],
+      "completed_at": "2026-06-05"
     },
     {
       "id": "T-READ-102",
