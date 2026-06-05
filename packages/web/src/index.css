@@ -326,10 +326,12 @@ a {
   .ab-reading--with-toc .ab-toc-aside {
     order: 2;
     margin: 0;
-  }
-  .ab-toc {
+    /* grid item 자체를 sticky 로 올린다. sticky 의 컨테이닝 블록이
+       grid 컨테이너(.ab-reading-main)가 되어 본문 길이만큼 끈끈하게 붙는다.
+       자식(.ab-toc) 에 걸면 align-items:start 때문에 부모 높이가 콘텐츠 높이라 동작 X. */
     position: sticky;
     top: 96px;
+    align-self: start;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
   }
