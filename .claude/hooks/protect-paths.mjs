@@ -2,7 +2,13 @@
 // PreToolUse(Edit|Write) 가드.
 // (1) .env 류 파일 수정 차단 — 환경 비밀 보호 (.env.example 은 허용)
 // (2) 확정(Accepted/Superseded) ADR 수정 차단 — immutable, 새 ADR로 supersede
+// (3) 적용된 마이그레이션 파일 수정 차단 — immutable, 변경은 새 migration 으로
 // 차단 시 exit 2 + stderr 메시지 → Claude에게 피드백됨.
+//
+// PROTECTED-PATHS: env adr migrations
+//   (위 한 줄은 harness-doctor 가 문서 주장과 대조하는 기계 판독용 선언이다.
+//    실제 차단 로직과 항상 일치시킬 것. feature_list 무결성은 PreToolUse 가 아니라
+//    verify-done-tasks(Stop) + /finish 가 강제한다 — 여기서 직접수정을 막지 않는다.)
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -55,6 +61,21 @@ if (/\/docs\/adr\/\d{4}-[^/]*\.md$/.test(norm)) {
     }
   } catch {
     // 파일이 아직 없으면(새 ADR 생성) 허용
+  }
+}
+
+// (3) 적용된 마이그레이션 보호 (prisma/migrations/<ts>_*/*.sql, migration_lock.toml)
+// 이미 존재하는 파일만 차단(immutable). 새 마이그레이션 생성은 허용한다.
+if (/\/prisma\/migrations\/[^/]+\/(migration\.sql|.+\.sql)$|\/prisma\/migrations\/migration_lock\.toml$/.test(
+  norm,
+)) {
+  if (fs.existsSync(filePath)) {
+    process.stderr.write(
+      `[차단] ${base} 는 이미 적용된 마이그레이션으로 immutable 입니다.\n` +
+        `스키마를 바꾸려면 기존 파일을 수정하지 말고 'prisma migrate dev --name ...' 로 새 마이그레이션을 만드세요.\n` +
+        `(데이터 손실 가능성은 prisma-helper MCP 의 check_migration_destructive 로 먼저 점검하세요.)`,
+    );
+    process.exit(2);
   }
 }
 

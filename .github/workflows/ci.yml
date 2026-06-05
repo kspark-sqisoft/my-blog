@@ -89,6 +89,9 @@ jobs:
       - name: MCP tool unit (prisma-helper)
         run: pnpm mcp:test
 
+      - name: Harness doctor (거버넌스 드리프트 센서)
+        run: pnpm harness:doctor
+
   web-e2e:
     name: Web E2E (Playwright, isolated stack)
     runs-on: ubuntu-latest
@@ -168,3 +171,16 @@ jobs:
       - name: Duplication (jscpd)
         continue-on-error: true
         run: pnpm gc:dup
+
+  secrets:
+    name: Secret scan (gitleaks, 규칙 #4 강제)
+    runs-on: ubuntu-latest
+    # 차단형: 하드코딩된 비밀/토큰이 발견되면 머지를 막는다(.env 편집 차단만으로는 못 잡음).
+    # 워킹트리(dir) 스캔 — 로컬 docker 스캔과 동일. allowlist 는 .gitleaks.toml.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: gitleaks (working tree scan)
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \
+            dir /repo --config /repo/.gitleaks.toml --no-banner --redact

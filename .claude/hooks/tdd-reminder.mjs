@@ -21,11 +21,17 @@ try {
 
 const prompt = String(input.prompt || '');
 
-// 구현/기능 작업 의도 신호 (한/영) + 태스크 ID 패턴
+// 구현/기능 작업 의도 신호 (한/영) + 태스크 ID 패턴.
+// 주의: '추가해/작성해' 같은 광의어는 문서·거버넌스 작업("핸드오프 작성해", "ADR 추가해")에도
+// 걸려 과발화한다 → 아래 excludeRe 로 비구현 맥락을 먼저 걸러낸다(경보 피로 방지).
 const implRe =
-  /(구현|만들|기능\s*추가|추가해|작성해|implement|feature|build|\/implement|T-[A-Z]+-\d)/i;
+  /(구현|만들|기능\s*추가|코드\s*추가|implement|\bfeature\b|\bbuild\b|\/implement|T-[A-Z]+-\d)/i;
 
-if (implRe.test(prompt)) {
+// 비구현(문서/거버넌스/조회) 의도 — 매칭되면 TDD 리마인드를 생략한다.
+const excludeRe =
+  /(핸드오프|handoff|문서|docs?|글로서리|glossary|용어|adr|prd|trd|bounded|커밋|commit|푸시|push|리뷰|review|분석|analy|설명|정리|확인|조회|읽어|보여|리팩터|refactor|이름\s*변경|rename|마이그레이션\s*문서)/i;
+
+if (implRe.test(prompt) && !excludeRe.test(prompt)) {
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {

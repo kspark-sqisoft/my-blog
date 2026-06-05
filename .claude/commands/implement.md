@@ -17,5 +17,10 @@ argument-hint: [태스크ID]--
    c. pnpm --filter @blog/{영향패키지} test
    d. pnpm --filter @blog/{영향패키지} test:e2e (있는 경우)
 7. acceptance 검증 - 각 acceptance 항목이 실제로 동작하는지 확인 - 가능하면 curl이나 Playwright MCP로 실제 호출
+   - DB 가드(스키마 변경 시 필수, `prisma-helper` MCP 호출):
+     · `prisma/schema.prisma` 나 `prisma/migrations/**` 가 변경됐으면 → **check_migration_destructive** 로 파괴적 변경(데이터 손실) 점검
+     · 새 모델/필드로 조회(where/orderBy/FK)를 추가했으면 → **check_index** 로 인덱스 누락(성능) 점검
+     · 로깅/응답에 사용자 데이터가 섞였으면 → **scan_pii_logging** 으로 PII 로깅 점검
+     (도구가 경고를 내면 멈추고 보고. 단순 capability 가 아니라 검증 루프의 일부다.)
 8. 완료 처리 - docs/tasks/ 의 $ARGUMENTS status를 "done"으로 - docs/handoff/{날짜}-{태스크ID}.md 작성 - 메시지 `feat({domain}):	{요약}	(refs	$ARGUMENTS)` 로 commit
    절대 금지:- 검증 통과 전 status="done"- acceptance 일부 누락 후 "거의 다 됐다" 보고- 의존하지 않는 다른 태스크의 파일 건드리기- 테스트 없이 구현 코드 작성

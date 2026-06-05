@@ -9,11 +9,11 @@
 | # | 가이드 메커니즘 | 근거(장) | 우리 상태 | 비고 |
 |---|---|---|---|---|
 | 1 | `init.sh` 1커맨드 부트스트랩 + 헬스체크 | 12 STEP1 | ✅ 보유 | `init.sh` |
-| 2 | `feature_list.json` 진행 상태 정규 소스 | 12 STEP3 | ✅ 보유 | 35개 태스크 |
+| 2 | `feature_list.json` 진행 상태 정규 소스 | 12 STEP3 | ✅ 보유 | 68개 태스크 (harness-doctor 가 이 수치 ↔ JSON 정합 검사) |
 | 3 | Phase별 슬래시 명령(/prd~/finish) | 11 | ✅ 보유 | `.claude/commands/` 9종 |
 | 4 | `tdd-feature` 스킬(Red-Green-Refactor 강제) | 12 STEP6 | ✅ 보유 | description 자동 트리거 |
-| 5 | 세션 시작 루틴 훅("준비") | 12 STEP2 | ✅ 보유 | `session-ready.mjs` + `/ready` |
-| 6 | 보호 경로 훅(.env/ADR/migrations) | 7, 12 STEP5 | ✅ 보유 | `protect-paths.mjs`(PreToolUse — 가이드보다 강함, 쓰기 전 차단) |
+| 5 | 세션 시작 루틴 훅 | 12 STEP2 | ✅ 보유 | `session-start.mjs`(SessionStart 자동) + `session-ready.mjs`(`/ready` 수동 전체 루틴) |
+| 6 | 보호 경로 훅(.env/ADR/migrations) | 7, 12 STEP5 | ✅ 보유 | `protect-paths.mjs`(PreToolUse, `PROTECTED-PATHS:` 마커 = 정규 소스; harness-doctor 가 문서와 정합 검사) |
 | 7 | 검증 없는 done 차단(Stop 훅) | 12 STEP5, 16 | ✅ 보유 | `verify-done-tasks.mjs` |
 | 8 | DDD/ADR/handoff 문서 환류 | 11 P1·3·5·10 | ✅ 보유 | glossary/bc/adr/handoff |
 | 9 | **편집 후 자동 포맷/린트 훅(PostToolUse)** | 7, 12 STEP5 | ✅ **추가됨(v0.2)** | 이전엔 공백 → `format-edited.mjs` |

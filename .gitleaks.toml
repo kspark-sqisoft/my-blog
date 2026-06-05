@@ -1,0 +1,21 @@
+# gitleaks 설정 — 규칙 #4(시크릿 commit 금지)를 CI 에서 결정론적으로 강제.
+# 기본 룰셋을 확장하고, 실제 시크릿이 아닌 알려진 placeholder/스캐폴드만 allowlist 한다.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "my-blog 알려진 비-시크릿(스캐폴드/placeholder/예시)"
+paths = [
+  # NestJS 스캐폴드 README 의 CircleCI 뱃지 placeholder 토큰(abc123def456)
+  '''packages/api/README\.md''',
+  # 예시 환경파일(실값 없음, .env 자체는 protect-paths + .gitignore 로 별도 보호)
+  '''\.env\.example$''',
+  # 잠금파일(integrity 해시는 시크릿이 아님)
+  '''pnpm-lock\.yaml$''',
+]
+# 테스트/문서에서 쓰는 명시적 더미 값 — 실제 자격증명이 아님
+regexes = [
+  '''abc123def456''',
+  '''change-me''',
+  '''test-secret''',
+]

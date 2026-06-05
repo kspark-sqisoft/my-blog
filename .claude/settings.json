@@ -1,6 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.mjs\"",
+            "timeout": 15,
+            "statusMessage": "세션 컨텍스트 주입(최신 handoff + 다음 후보)"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
@@ -10,7 +23,7 @@
             "shell": "bash",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-paths.mjs\"",
             "timeout": 15,
-            "statusMessage": "보호 경로 점검(.env/ADR)"
+            "statusMessage": "보호 경로 점검(.env/ADR/migrations)"
           }
         ]
       }
@@ -38,6 +51,19 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/verify-done-tasks.mjs\"",
             "timeout": 15,
             "statusMessage": "done 태스크 검증 점검"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/precompact-note.mjs\"",
+            "timeout": 15,
+            "statusMessage": "compaction 전 작업 상태 스냅샷"
           }
         ]
       }

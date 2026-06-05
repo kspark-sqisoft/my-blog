@@ -466,46 +466,8 @@ E5 이후 → E6 테스트 격리·CI(INFRA) → E7 애플 리뉴얼·대표 이
 
 ## E7. 애플 리뉴얼 + 대표 이미지 (apple-redesign)
 
-### S7.1 디자인 시스템 · 대표 이미지
-
-#### T-WEB-009 — 애플 스타일 디자인 시스템 + 레이아웃 + 테마 토글
-- priority: 31
-- 변경 파일: `packages/web/src/index.css`, `src/components/layout/*`, `src/theme/useTheme.ts`, `*.test.tsx`
-- acceptance criteria:
-  1. 시맨틱 CSS 토큰 + `ab-*` 클래스로 공개·운영자 화면 렌더(인라인 style 없음).
-  2. 라이트/다크 테마 토글 `[data-theme]`·localStorage 반영 + 새로고침 유지(useTheme.test RED→GREEN).
-  3. 공개/운영자/로그인 레이아웃 중첩 라우트 분리 + 기존 라우트 경로 전부 등록.
-  4. 기존 단위 테스트·E2E 셀렉터 회귀 없이 통과.
-- 예상: 2h
-- 의존: T-WEB-007, T-WEB-008
-- status: done
-- tdd_first: true
-
-#### T-PUB-103 — 목록 요약 평문화 + 대표 이미지 파생(coverImageUrl)
-- priority: 32
-- 변경 파일: `packages/api/src/publishing/cover-image.ts`, `markdown-summary.ts`, `post.service.ts`, `@blog/shared`, `*.spec.ts`
-- acceptance criteria:
-  1. `extractFirstImageUrl()`: 본문 마크다운/HTML 첫 이미지 URL 반환, 없으면 null(cover-image.spec).
-  2. `toSummaryText()`: 이미지/코드/링크/헤딩/강조 제거 평문(markdown-summary.spec).
-  3. `PostSummaryDto.coverImageUrl` 추가 + listPublished 파생(추가 DB 조회 없음).
-  4. 라이브 `GET /api/posts` 응답에 coverImageUrl 포함 + 요약 평문.
-- 예상: 1.5h
-- 의존: T-PUB-009
-- status: done
-- tdd_first: true
-
-#### T-WEB-010 — 글 목록 카드 대표 이미지 표시
-- priority: 33
-- 변경 파일: `packages/web/src/components/PostListView.tsx`, `*.test.tsx`
-- acceptance criteria:
-  1. coverImageUrl 있으면 `img.ab-card-cover`(3:2, object-fit cover) 렌더.
-  2. coverImageUrl 없으면 줄무늬 플레이스홀더(`.ab-ph`)로 대체.
-  3. 제목/태그 링크·`a[href^=/posts/]` 등 기존 셀렉터·접근성 유지.
-  4. 실 환경에서 본문 첫 이미지가 카드 커버로 실제 로드(naturalWidth>0).
-- 예상: 1h
-- 의존: T-PUB-103, T-WEB-009
-- status: done
-- tdd_first: true
+> 이 에픽(T-WEB-009 · T-PUB-103 · T-WEB-010)의 정규 미러는 `docs/tasks/apple-redesign.md` 다.
+> (중복 정의 제거 — harness-changelog v0.6. 진행 상태 정규 소스는 `feature_list.json`.)
 
 ---
 
