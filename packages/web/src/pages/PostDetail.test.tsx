@@ -1,6 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { render, screen, waitFor } from '@testing-library/react';
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../lib/api', () => ({ api: { get: vi.fn(), post: vi.fn() } }));
@@ -10,13 +15,27 @@ import { PostDetail } from './PostDetail';
 
 const mockedApi = api as unknown as { get: ReturnType<typeof vi.fn> };
 
+// 현재 경로를 노출하는 프로브(리다이렉트 검증용)
+function LocationProbe() {
+  const loc = useLocation();
+  return <div data-testid="loc">{loc.pathname}</div>;
+}
+
 function renderDetail(id = 'p1') {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
       <MemoryRouter initialEntries={[`/posts/${id}`]}>
         <Routes>
-          <Route path="/posts/:id" element={<PostDetail />} />
+          <Route
+            path="/posts/:slug"
+            element={
+              <>
+                <PostDetail />
+                <LocationProbe />
+              </>
+            }
+          />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -25,6 +44,7 @@ function renderDetail(id = 'p1') {
 
 const detail = (over: Record<string, unknown> = {}) => ({
   id: 'p1',
+  slug: 'p1', // 라우트 param 과 동일 → 리다이렉트 없음
   title: '상세 제목',
   contentMarkdown: '# 본문 헤딩\n\n내용 단락',
   contentHtml: '<h1>본문 헤딩</h1><p>내용 단락</p>',
@@ -63,5 +83,19 @@ describe('PostDetail 페이지', () => {
     mockedApi.get.mockRejectedValueOnce(new Error('404'));
     renderDetail('nope');
     expect(await screen.findByRole('alert')).toBeInTheDocument();
+  });
+
+  // ADR-0022: cuid 로 들어오면 canonical 슬러그 URL 로 replace
+  it('cuid 로 진입하면 슬러그 URL 로 교체한다', async () => {
+    mockedApi.get.mockImplementation((url: string) =>
+      url.endsWith('/comments')
+        ? Promise.resolve({ data: [] })
+        : Promise.resolve({ data: detail({ id: 'cuid123', slug: 'nestjs-입문' }) }),
+    );
+    renderDetail('cuid123');
+    await screen.findByText('상세 제목');
+    await waitFor(() =>
+      expect(screen.getByTestId('loc').textContent).toBe('/posts/nestjs-입문'),
+    );
   });
 });

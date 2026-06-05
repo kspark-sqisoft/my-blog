@@ -15,6 +15,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { extractFirstImageUrl } from './cover-image';
 import { convertMarkdownToHtml, sanitizeRichHtml } from './markdown-to-html';
 import { toSummaryText } from './markdown-summary';
+import { slugify } from './slugify';
 import { TagService } from './tag.service';
 
 export interface ListPublishedParams {
@@ -59,6 +60,7 @@ const withTags = {
 
 type PostWithTags = {
   id: string;
+  slug: string;
   title: string;
   contentMarkdown: string;
   contentHtml: string;
@@ -82,8 +84,10 @@ export class PostService {
     const tagNames = input.tags ?? [];
     this.tags.assertWithinLimit(tagNames);
     const { contentMarkdown, contentHtml } = this.resolveBody(input);
+    const slug = await this.generateUniqueSlug(input.title);
     const post = await this.prisma.post.create({
       data: {
+        slug,
         title: input.title,
         contentMarkdown,
         contentHtml,
@@ -241,15 +245,36 @@ export class PostService {
   }
 
   // 발행된 Post 상세 (공개). 초안/없음은 NotFound로 숨긴다.
-  async getPublishedDetail(id: string): Promise<PostDetailDto> {
+  // 공개 상세 (ADR-0022): slug 우선, 없으면 cuid 로 발행글 조회. cuid 링크 호환.
+  async getPublishedDetail(idOrSlug: string): Promise<PostDetailDto> {
     const post = await this.prisma.post.findFirst({
-      where: { id, status: 'PUBLISHED' },
+      where: {
+        status: 'PUBLISHED',
+        OR: [{ slug: idOrSlug }, { id: idOrSlug }],
+      },
       include: withTags,
     });
     if (!post) {
       throw new NotFoundException('Post를 찾을 수 없습니다.');
     }
     return this.toDetail(post);
+  }
+
+  // 제목에서 유일한 슬러그 생성(ADR-0022). 충돌이면 -2, -3 … 부여.
+  private async generateUniqueSlug(title: string): Promise<string> {
+    const base = slugify(title);
+    let candidate = base;
+    let n = 1;
+    while (
+      await this.prisma.post.findUnique({
+        where: { slug: candidate },
+        select: { id: true },
+      })
+    ) {
+      n += 1;
+      candidate = `${base}-${n}`;
+    }
+    return candidate;
   }
 
   // 발행 (ADR-0005). 멱등: 이미 발행이면 publishedAt 유지.
@@ -308,6 +333,7 @@ export class PostService {
     const body = post.contentHtml || post.contentMarkdown;
     return {
       id: post.id,
+      slug: post.slug,
       title: post.title,
       summary: toSummaryText(body, SUMMARY_MAX),
       tags: post.postTags.map((pt) => pt.tag.name),
@@ -331,6 +357,7 @@ export class PostService {
   private toDetail(post: PostWithTags): PostDetailDto {
     return {
       id: post.id,
+      slug: post.slug,
       title: post.title,
       contentMarkdown: post.contentMarkdown,
       contentHtml: post.contentHtml,

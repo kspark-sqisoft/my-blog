@@ -45,6 +45,7 @@ model User {
 // 게시글 (Publishing Context, Aggregate Root)
 model Post {
   id              String     @id @default(cuid())
+  slug            String     @unique // URL 슬러그 (ADR-0022). 생성 시 제목에서 파생, 유일
   title           String
   contentMarkdown String     // @deprecated T-INFRA-303 마이그레이션 후 후속 ADR 에서 drop (ADR-0021)
   contentHtml     String     @default("") // 본문 HTML(sanitize 통과). ADR-0021. T-INFRA-303 가 채움

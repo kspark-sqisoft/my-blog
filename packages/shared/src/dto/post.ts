@@ -4,6 +4,7 @@ export type PostStatus = 'DRAFT' | 'PUBLISHED';
 // 목록 항목 (요약)
 export interface PostSummaryDto {
   id: string;
+  slug: string; // URL 슬러그 (ADR-0022). canonical 링크는 /posts/{slug}
   title: string;
   summary: string;
   tags: string[];
@@ -18,6 +19,7 @@ export interface PostSummaryDto {
 // T-PUB-301 이 contentHtml 을 required 로 회수하고 contentMarkdown 을 응답에서 제거한다.
 export interface PostDetailDto {
   id: string;
+  slug: string; // URL 슬러그 (ADR-0022)
   title: string;
   contentMarkdown: string; // @deprecated T-PUB-301 에서 응답·DB drop
   contentHtml?: string; // sanitize 통과한 본문 HTML (ADR-0021) — T-PUB-301 에서 required 전환

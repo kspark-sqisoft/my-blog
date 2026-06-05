@@ -18,7 +18,7 @@ export const routes: RouteObject[] = [
     element: <PublicLayout />,
     children: [
       { path: '/', element: <PostList /> },
-      { path: '/posts/:id', element: <PostDetail /> },
+      { path: '/posts/:slug', element: <PostDetail /> },
       { path: '/tags/:name', element: <TagPosts /> },
     ],
   },

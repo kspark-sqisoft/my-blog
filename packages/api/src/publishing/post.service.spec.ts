@@ -60,6 +60,51 @@ describe('PostService (통합)', () => {
     expect([...post.tags].sort()).toEqual(['ddd', 'nestjs']);
   });
 
+  // 슬러그 (ADR-0022)
+  it('create 시 제목에서 슬러그를 부여한다(한글 보존)', async () => {
+    const post = await service.create({
+      title: 'NestJS 입문',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    expect(post.slug).toBe('nestjs-입문');
+  });
+
+  it('같은 제목이면 슬러그를 -2, -3 으로 유일화한다', async () => {
+    const a = await service.create({
+      title: '중복',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    const b = await service.create({
+      title: '중복',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    const c = await service.create({
+      title: '중복',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    expect(a.slug).toBe('중복');
+    expect(b.slug).toBe('중복-2');
+    expect(c.slug).toBe('중복-3');
+  });
+
+  it('getPublishedDetail 은 slug 와 cuid 둘 다로 조회된다', async () => {
+    const created = await service.create({
+      title: '조회 테스트',
+      contentMarkdown: 'x',
+      authorId,
+    });
+    await service.publish(created.id, adminActor);
+    const bySlug = await service.getPublishedDetail(created.slug);
+    expect(bySlug.id).toBe(created.id);
+    const byId = await service.getPublishedDetail(created.id);
+    expect(byId.id).toBe(created.id);
+    expect(byId.slug).toBe(created.slug);
+  });
+
   // 소유권 (ADR-0018)
   it('AUTHOR는 본인 글을 수정/발행/삭제할 수 있다', async () => {
     const created = await service.create({

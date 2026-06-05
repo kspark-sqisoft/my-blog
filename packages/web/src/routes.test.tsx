@@ -42,7 +42,7 @@ describe('앱 라우터 + Query Provider (스모크)', () => {
     expect(paths).toEqual(
       expect.arrayContaining([
         '/',
-        '/posts/:id',
+        '/posts/:slug',
         '/tags/:name',
         '/login',
         '/admin',

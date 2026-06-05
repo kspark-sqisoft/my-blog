@@ -209,6 +209,32 @@ describe('PostController (e2e)', () => {
     expect(detail.authorName).toBe('post-e2e'); // ADR-0017
   });
 
+  // ADR-0022: slug / cuid 둘 다로 발행 상세 조회
+  it('공개 GET /api/posts/:slug 와 :cuid 둘 다 발행글을 반환(응답에 slug 포함)', async () => {
+    const stamp = Date.now();
+    const created = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({ title: `슬러그 글 ${stamp}`, contentMarkdown: '본문' })
+      .expect(201);
+    const body = created.body as { id: string; slug: string };
+    expect(body.slug).toBe(`슬러그-글-${stamp}`);
+    await request(app.getHttpServer())
+      .post(`/api/posts/${body.id}/publish`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    const bySlug = await request(app.getHttpServer())
+      .get(`/api/posts/${encodeURIComponent(body.slug)}`)
+      .expect(200);
+    expect((bySlug.body as { id: string }).id).toBe(body.id);
+
+    const byId = await request(app.getHttpServer())
+      .get(`/api/posts/${body.id}`)
+      .expect(200);
+    expect((byId.body as { slug: string }).slug).toBe(body.slug);
+  });
+
   it('운영자 DELETE → 204', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/posts')

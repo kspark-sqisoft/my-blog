@@ -34,6 +34,7 @@ describe('CommentService (통합)', () => {
     authorId = user.id;
     const published = await prisma.post.create({
       data: {
+        slug: `pub-${Date.now()}`,
         title: 'pub',
         contentMarkdown: 'x',
         authorId,
@@ -43,7 +44,12 @@ describe('CommentService (통합)', () => {
     });
     publishedId = published.id;
     const draft = await prisma.post.create({
-      data: { title: 'draft', contentMarkdown: 'x', authorId },
+      data: {
+        slug: `draft-${Date.now()}`,
+        title: 'draft',
+        contentMarkdown: 'x',
+        authorId,
+      },
     });
     draftId = draft.id;
   });

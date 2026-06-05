@@ -1327,6 +1327,45 @@
         "회귀 없음: api(post.service 29, post e2e 20) + web(unit 97, e2e 7) 통과"
       ],
       "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-PUB-108",
+      "title": "Post 슬러그(생성·유일화·idOrSlug 조회·백필)",
+      "epic": "E13",
+      "context": "PUB",
+      "priority": 70,
+      "deps": [
+        "T-PUB-005"
+      ],
+      "status": "done",
+      "feature": "seo",
+      "tdd_first": true,
+      "acceptance": [
+        "Post.slug @unique 컬럼 + 안전 마이그레이션(기존행 임시 slug=id)",
+        "생성 시 slugify(title)로 슬러그 부여, 충돌 시 -2/-3 유일화(한글 보존)",
+        "GET /api/posts/:idOrSlug 가 slug·cuid 둘 다로 발행글 조회, 응답에 slug 포함",
+        "기존 글 백필 스크립트(backfill:slugs) 멱등, 회귀 없음(api 단위 127·e2e 66)"
+      ],
+      "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-WEB-309",
+      "title": "슬러그 URL 라우팅·링크 + cuid 리다이렉트",
+      "epic": "E13",
+      "context": "WEB",
+      "priority": 71,
+      "deps": [
+        "T-PUB-108"
+      ],
+      "status": "done",
+      "feature": "seo",
+      "tdd_first": true,
+      "acceptance": [
+        "목록/카드 링크가 /posts/{slug}, 라우트 /posts/:slug",
+        "PostDetail 이 slug·cuid 둘 다 조회(한글 슬러그 인코딩), cuid 진입 시 슬러그 URL 로 replace(canonical)",
+        "회귀 없음: web unit 98 통과(redirect 테스트 포함)"
+      ],
+      "completed_at": "2026-06-05"
     }
   ]
 }

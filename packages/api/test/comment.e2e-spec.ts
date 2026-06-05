@@ -37,6 +37,7 @@ describe('CommentController (e2e)', () => {
     authorId = user.id;
     const post = await prisma.post.create({
       data: {
+        slug: `pub-${Date.now()}`,
         title: 'pub',
         contentMarkdown: 'x',
         authorId,

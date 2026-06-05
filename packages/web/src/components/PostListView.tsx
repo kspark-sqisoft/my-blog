@@ -36,7 +36,7 @@ export function PostListView({
     <ul className="ab-grid">
       {items.map((post) => (
         <li key={post.id} className="ab-card">
-          <Link to={`/posts/${post.id}`} className="ab-card-cover-link">
+          <Link to={`/posts/${post.slug}`} className="ab-card-cover-link">
             {post.coverImageUrl ? (
               VIDEO_COVER_EXT.test(post.coverImageUrl) ? (
                 // 비디오 커버: 첫 프레임만 표시. controls 없음 → 카드 클릭은 상세 이동만.
@@ -60,7 +60,7 @@ export function PostListView({
             )}
           </Link>
           <div className="ab-card-body">
-            <Link to={`/posts/${post.id}`}>
+            <Link to={`/posts/${post.slug}`}>
               <h2 className="ab-card-title">{post.title}</h2>
             </Link>
             {post.summary && <p className="ab-card-sum">{post.summary}</p>}

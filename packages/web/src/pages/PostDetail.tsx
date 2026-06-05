@@ -1,4 +1,5 @@
-import { Link, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CommentSection } from '../components/CommentSection';
 import { Icon } from '../components/Icon';
 import { RichContent } from '../components/RichContent';
@@ -6,8 +7,17 @@ import { fmtDate } from '../lib/format';
 import { usePost } from '../posts/usePost';
 
 export function PostDetail() {
-  const { id = '' } = useParams();
-  const query = usePost(id);
+  const { slug = '' } = useParams();
+  const navigate = useNavigate();
+  const query = usePost(slug);
+
+  // ADR-0022: cuid 등 canonical 슬러그가 아닌 경로로 들어오면 슬러그 URL 로 정리(replace).
+  useEffect(() => {
+    const canonical = query.data?.slug;
+    if (canonical && canonical !== slug) {
+      navigate(`/posts/${canonical}`, { replace: true });
+    }
+  }, [query.data, slug, navigate]);
 
   if (query.isPending) {
     return (
