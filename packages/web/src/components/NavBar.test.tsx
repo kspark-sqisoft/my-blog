@@ -33,6 +33,7 @@ describe('NavBar', () => {
         name: '운영자',
         role: 'ADMIN',
         avatarUrl: null,
+        bio: null,
       },
     });
     renderNav();
@@ -49,6 +50,7 @@ describe('NavBar', () => {
         name: '나',
         role: 'MEMBER',
         avatarUrl: null,
+        bio: null,
       },
     });
     renderNav();

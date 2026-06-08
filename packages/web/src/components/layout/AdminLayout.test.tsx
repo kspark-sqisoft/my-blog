@@ -11,7 +11,7 @@ import { AdminLayout } from './AdminLayout';
 function setRole(role: UserRole) {
   useAuth.setState({
     status: 'authenticated',
-    user: { id: 'u1', email: 'a@b.c', name: '운영자', role, avatarUrl: null },
+    user: { id: 'u1', email: 'a@b.c', name: '운영자', role, avatarUrl: null, bio: null },
     error: null,
   });
 }

@@ -8,6 +8,7 @@ export interface PostSummaryDto {
   title: string;
   summary: string;
   tags: string[];
+  authorId: string; // 작성자 식별자 (ADR-0028). /users/:authorId 프로필 링크
   authorName: string; // 작성자 표시 이름 (ADR-0017)
   authorAvatarUrl: string | null; // 작성자 아바타 URL (ADR-0025), 없으면 null
   publishedAt: string | null; // ISO 8601

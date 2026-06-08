@@ -25,6 +25,7 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 - Tag는 Post를 통해서만 다뤄진다 (Tag 자체 생명주기를 독립 관리하지 않음).
 - **목록 읽기 모델(PostSummary)** 은 Post 본문에서 두 값을 **파생**한다: 평문 요약과 대표 이미지(본문 첫 이미지). 둘 다 저장 컬럼이 아니라 조회 시 본문에서 계산한다(ADR-0015). 따라서 Aggregate·스키마·Domain Event는 바뀌지 않는다.
 - **발행 외부 노출 읽기 모델(seo-feed, ADR-0026)** 도 같은 파생 원칙을 따른다: 피드(RSS 2.0)·사이트맵(발행글 슬러그 + 태그 페이지 + 홈)·Open Graph/Twitter 공유 메타는 모두 발행된 Post 의 기존 값(슬러그·평문 요약·대표 이미지·작성자·`updatedAt`/`publishedAt`)에서 **파생하는 외부용 읽기 표현**이다. 새 Aggregate·Entity·Domain Event 가 없고 스키마도 바뀌지 않는다. 검색엔진·SNS·피드리더는 외부 소비자(액터)이며 도메인 객체가 아니다. canonical·OG·피드 링크는 모두 슬러그 기반(ADR-0022)이며, SPA(CSR) 환경이라 크롤러용 메타는 서버측에서 제공한다(구현 방식은 ADR-0026/TRD). 초안·미발행 글은 어떤 산출물에도 노출하지 않는다.
+- **작성자별 발행글 목록(author-profile, ADR-0028)** 도 같은 발행 읽기 파생이다: 발행 목록 읽기 모델에 `authorId` 필터를 더해 특정 작성자의 발행글만 페이지네이션(ADR-0010)으로 노출하고(초안 제외), 발행글 수도 같은 필터로 count 한다. 새 Aggregate·Domain Event·스키마 변경이 없다. 작성자 프로필 페이지는 이 목록과 Auth 의 User 표시 속성(이름·아바타·bio·가입일)을 **조합**하는 읽기 표현이다(작성자 식별자는 `Post.authorId` = `User.id`). **조합은 web 프레젠테이션 계층**이 두 읽기(Auth 의 프로필 메타 + Publishing 의 작성자 발행글 목록)를 합쳐 수행한다 — Auth 는 Publishing 을 의존하지 않으므로 "Auth 최하위" 불변식이 유지된다(TRD 가 API 분리로 확정).
 
 > 프론트(WEB)는 이 Context들을 소비하는 **프레젠테이션 계층**이며 별도 Bounded Context가 아니다. 시각 디자인 시스템·테마(라이트/다크)는 도메인 모델에 영향을 주지 않는다(ADR-0016). seo-feed 의 `robots.txt` 와 피드 자동발견 `<link rel="alternate">`(PRD M2·M6)은 정적/web 서빙 계층 책임이며 도메인 모델이 아니다.
 
@@ -62,8 +63,8 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 
 | 항목 | 내용 |
 |---|---|
-| **책임** | User를 인증·식별하고 **역할(Role)로 권한을 부여**한다. 이메일이 유일 식별자. 회원가입·로그인·역할 관리 + **프로필(이름·아바타) 관리**의 주체. 모든 쓰기 권한의 근거. |
-| **Aggregate Root** | `User` (Entity) — `role`(`UserRole`)·표시 속성 `name`·`avatarUrl`(ADR-0025)을 가진다 |
+| **책임** | User를 인증·식별하고 **역할(Role)로 권한을 부여**한다. 이메일이 유일 식별자. 회원가입·로그인·역할 관리 + **프로필(이름·아바타·소개(bio)) 관리**의 주체. 작성자의 **공개 프로필**(이름·아바타·bio·가입일)을 읽기 전용으로 노출한다(author-profile, ADR-0028). 모든 쓰기 권한의 근거. |
+| **Aggregate Root** | `User` (Entity) — `role`(`UserRole`)·표시 속성 `name`·`avatarUrl`(ADR-0025)·`bio`(ADR-0028)를 가진다 |
 | **다른 객체** | `UserRole` (Value Object — enum) |
 | **Domain Events** | `UserRegistered`, `UserRoleChanged` (ADR-0018), `ProfileUpdated` (ADR-0025) |
 | **다른 Context 의존** | 없음 — 다른 Context가 User를 `userId`로 참조한다(역방향 의존 없음, 가장 안정적) |
@@ -71,7 +72,8 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 - 공개 회원가입은 기본 역할 `AUTHOR`로 생성한다(가입 즉시 본인 글 작성 — ADR-0019, ADR-0018의 기본 `MEMBER`를 갱신). 운영자(`ADMIN`)는 글쓰기 권한을 회수하려면 `MEMBER`로 강등할 수 있다.
 - 권한 검사: 정적 역할은 가드(`RolesGuard`), 리소스 소유권(AUTHOR 본인 글)은 서비스 계층에서 판정한다(ADR-0018). 운영자 Post 목록/상세도 actor로 스코프한다(ADMIN 전체 / AUTHOR 본인 — ADR-0019).
 - 최초 `ADMIN`은 시드로 부트스트랩한다(ADR-0002는 ADR-0018로 supersede — 공개 가입 추가).
-- 프로필(ADR-0025): 본인 `name`·`avatarUrl`만 수정(`PATCH /api/auth/me`). 아바타는 전용 업로드(`POST /api/profile/avatar`, 인증·이미지 전용)로 로컬 `/uploads` 에 저장하고 경로만 보관. `avatarUrl`은 Publishing/Conversation 응답에 `authorAvatarUrl`로 파생 노출된다(작성자 표시).
+- 프로필(ADR-0025): 본인 `name`·`avatarUrl`·`bio`(ADR-0028 amend) 수정(`PATCH /api/auth/me`). 아바타는 전용 업로드(`POST /api/profile/avatar`, 인증·이미지 전용)로 로컬 `/uploads` 에 저장하고 경로만 보관. `avatarUrl`은 Publishing/Conversation 응답에 `authorAvatarUrl`로 파생 노출된다(작성자 표시).
+- **공개 작성자 프로필(author-profile, ADR-0028)**: `User.id`(cuid)로 작성자의 공개 프로필(이름·아바타·`bio`·가입일·발행글 수)을 **읽기 전용**으로 노출한다(이메일 비노출, 전 User 대상 — 글 없으면 빈 목록). 발행글 목록은 Publishing 의 발행 읽기 모델(`authorId` 필터)을 조합한다 — Auth 는 User 표시 속성만 책임지고 글 목록은 Publishing 소관. `bio` 편집은 ADR-0025 의 `PATCH /api/auth/me` 계약을 ADR-0028 이 bio 포함으로 amend.
 
 ## Context 간 의존 다이어그램
 

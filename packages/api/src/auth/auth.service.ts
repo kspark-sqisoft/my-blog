@@ -65,6 +65,7 @@ export class AuthService {
     name: string;
     role: AuthUserDto['role'];
     avatarUrl: string | null;
+    bio: string | null;
   }): Promise<LoginResult> {
     const accessToken = await this.jwt.signAsync({
       sub: user.id,
@@ -78,6 +79,7 @@ export class AuthService {
         name: user.name,
         role: user.role,
         avatarUrl: user.avatarUrl,
+        bio: user.bio,
       },
     };
   }
@@ -100,6 +102,7 @@ export class AuthService {
         name: true,
         role: true,
         avatarUrl: true,
+        bio: true,
       },
     });
     return {
@@ -108,6 +111,7 @@ export class AuthService {
       name: user.name,
       role: user.role,
       avatarUrl: user.avatarUrl,
+      bio: user.bio,
     };
   }
 }

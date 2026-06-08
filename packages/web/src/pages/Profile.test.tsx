@@ -38,6 +38,7 @@ describe('Profile 페이지', () => {
         name: '기존이름',
         role: 'MEMBER',
         avatarUrl: null,
+        bio: null,
       },
       error: null,
     });
@@ -59,6 +60,7 @@ describe('Profile 페이지', () => {
           name: '새이름',
           role: 'MEMBER',
           avatarUrl: null,
+          bio: null,
         },
       },
     });

@@ -416,6 +416,7 @@ export class PostService {
       title: post.title,
       summary: toSummaryText(body, SUMMARY_MAX),
       tags: post.postTags.map((pt) => pt.tag.name),
+      authorId: post.authorId,
       authorName: post.author.name,
       authorAvatarUrl: post.author.avatarUrl ?? null,
       publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,

@@ -34,6 +34,7 @@ model User {
   passwordHash String
   name         String // 작성자 표시 이름 (ADR-0017). 공개 응답엔 email 대신 이 값을 노출
   avatarUrl    String? // 아바타 이미지 URL (ADR-0025). 로컬 업로드 경로(/uploads/...) 또는 null
+  bio          String? // 작성자 소개 (ADR-0028). 선택, 최대 200자(api 검증)
   role         UserRole @default(MEMBER) // 권한 (ADR-0018). 가입 기본 MEMBER, 운영자는 ADMIN
   createdAt    DateTime @default(now())
 
@@ -65,6 +66,7 @@ model Post {
   updatedAt       DateTime   @updatedAt
 
   @@index([status, publishedAt])
+  @@index([authorId, status, publishedAt]) // 작성자별 발행글 목록 (author-profile, ADR-0028)
   @@map("posts")
 }
 

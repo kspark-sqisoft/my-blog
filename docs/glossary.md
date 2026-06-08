@@ -54,3 +54,7 @@
 ## 댓글 모더레이션 (Comment Moderation)- 정의: Comment 를 수정·삭제하는 행위와 권한 체계(comment-moderation). 로그인 작성자 **본인**은 자기 댓글을 수정·삭제하고, **운영자(ADMIN)**·**글쓴이(대상 Post 의 Author)**는 삭제로 모더레이션한다. 익명 댓글(displayName)은 작성자 식별 수단이 없어 본인 수정/삭제가 불가하고 운영자·글쓴이만 삭제할 수 있다.- 소속 Context: Conversation- 코드 표현: [TBD TRD] (Actor 소유권 패턴 재사용 — ADR-0018)- UI 표현: 본인 댓글의 "수정"·"삭제", 운영자·글쓴이의 "삭제"- 동의어 금지: 검열(Censor), 관리(범용) — "모더레이션"으로 통일
 
 ## 소프트 삭제 (Soft Delete)- 정의: **답글이 달린 Comment** 를 실제로 지우지 않고 본문·작성자를 가려 "삭제된 댓글입니다"로 표시하되 **트리(답글) 구조를 보존**하는 삭제. **답글이 없는 Comment 는 완전 삭제(하드)** 한다(조건부 — comment-moderation, ADR-0027).- 소속 Context: Conversation- 코드 표현: [TBD TRD]- UI 표현: 삭제된 자리의 "삭제된 댓글입니다" placeholder(답글은 그대로 노출)- 동의어 금지: 논리삭제(단독) — "소프트 삭제"로 통일
+
+## 작성자 프로필 (Author Profile)- 정의: 한 작성자(User)의 **공개 페이지**. 이름·아바타·**소개(bio)**·가입일·발행글 수와 그가 쓴 **발행글 목록**을 보여준다(author-profile). URL 식별자는 `User.id`(cuid)다. 발행글만 노출(초안 비노출), 이메일 비노출. 본인 편집 화면인 "프로필"(ADR-0025)과 구분되는 **읽기 전용 공개** 페이지다.- 소속 Context: Auth(User 표시 속성) + Publishing(발행글 목록) 읽기 모델- 코드 표현: `GET /api/users/:id`(공개, `AuthorProfileDto`), 웹 `/users/:id`(`AuthorProfile`) — ADR-0028- UI 표현: 글 목록 카드·상세 헤더의 작성자 이름 클릭 → 작성자 프로필- 동의어 금지: 마이페이지, 작성자 페이지 — "작성자 프로필"로 통일
+
+## 소개 (Bio)- 정의: 작성자가 자기 프로필에 적는 짧은 자기소개. 선택값(없으면 미표시). 본인이 "프로필"(`/profile`, ADR-0025)에서 편집한다.- 소속 Context: Auth (User.bio)- 코드 표현: `User.bio`(Prisma, nullable·최대 200자), `AuthUserDto.bio`·`UpdateProfileDto.bio`·`AuthorProfileDto.bio`(shared) — ADR-0028- UI 표현: 작성자 프로필의 소개 영역, `/profile` 편집 폼의 소개 입력- 동의어 금지: 자기소개(통칭은 "소개"), About — "소개"로 통일

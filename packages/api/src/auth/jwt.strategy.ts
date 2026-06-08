@@ -39,6 +39,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         name: true,
         role: true,
         avatarUrl: true,
+        bio: true,
       },
     });
     if (!user) {
@@ -50,6 +51,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       name: user.name,
       role: user.role,
       avatarUrl: user.avatarUrl,
+      bio: user.bio,
     };
   }
 }

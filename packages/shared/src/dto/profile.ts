@@ -4,6 +4,7 @@
 export interface UpdateProfileDto {
   name?: string; // 1~50자 (각 패키지가 검증)
   avatarUrl?: string | null; // 로컬 /uploads 경로 또는 null(제거). 외부 URL 거부
+  bio?: string | null; // 소개 0~200자 또는 null(제거) — ADR-0028 (ADR-0025 amend)
 }
 
 // 아바타 업로드 응답 (ADR-0025).

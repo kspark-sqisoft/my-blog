@@ -56,6 +56,7 @@ describe('OptionalJwtAuthGuard.handleRequest', () => {
       name: 'A',
       role: 'AUTHOR',
       avatarUrl: null,
+      bio: null,
     };
     expect(guard.handleRequest<AuthUserDto>(null, user, undefined)).toEqual(
       user,

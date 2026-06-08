@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-08 (comment-moderation E18 완료 — T-CONV-005~008·T-WEB-401 done)",
+  "updated_at": "2026-06-08 (author-profile E19 기획 — T-AUTH-012~014·T-PUB-107·T-WEB-402~403 todo)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -1833,6 +1833,108 @@
         "canEdit=본인, canDelete=본인||ADMIN||글쓴이(postAuthorId prop) 버튼 노출",
         "수정 인라인 폼→PATCH, '수정됨'(isEdited) 표시; 삭제 확인→DELETE, soft 노드 '삭제된 댓글입니다'(isDeleted)+답글 유지",
         "회귀 없음: web unit(권한·수정·삭제·소프트삭제·트리보존 9케이스). e2e GWT(브라우저 작성→수정→삭제)는 격리 prod 스택 후속 검증"
+      ]
+    },
+    {
+      "id": "T-AUTH-012",
+      "title": "User.bio + posts 인덱스 마이그레이션 + shared 타입",
+      "epic": "E19",
+      "context": "AUTH",
+      "priority": 98,
+      "deps": [],
+      "status": "done",
+      "completed_at": "2026-06-08",
+      "feature": "author-profile",
+      "tdd_first": true,
+      "acceptance": [
+        "User.bio String? + posts @@index([authorId,status,publishedAt]) 추가, 추가 전용 마이그레이션(check_migration_destructive 비파괴·check_index 인덱스 확인), blog+blog_test 적용",
+        "shared 신규 AuthorProfileDto{id,name,avatarUrl,bio,createdAt,postCount}(이메일 없음) + index export",
+        "PostSummaryDto.authorId·AuthUserDto.bio·UpdateProfileDto.bio 추가(순수 타입, zod 값 없음)",
+        "shared 빌드 + 기존 사용처(api/web) 타입 통과(회귀 0)"
+      ]
+    },
+    {
+      "id": "T-PUB-107",
+      "title": "listPublished author 필터 + PostSummaryDto authorId 매핑",
+      "epic": "E19",
+      "context": "PUB",
+      "priority": 99,
+      "deps": ["T-AUTH-012"],
+      "status": "todo",
+      "feature": "author-profile",
+      "tdd_first": true,
+      "acceptance": [
+        "listPublished({authorId}): 작성자 발행글만·publishedAt 최신순·페이지네이션, 초안 제외, 단일 쿼리(N+1 없음)",
+        "ListPostsQueryDto author? 추가+컨트롤러 전달, 없는 author → 빈 목록 200",
+        "toSummary authorId 매핑, 기존 PostSummaryDto 필드 무변경(회귀)",
+        "GET /api/posts?author=:id e2e: 그 작성자 발행글만, 타 작성자·초안 제외(왕복)"
+      ]
+    },
+    {
+      "id": "T-AUTH-013",
+      "title": "UserController GET /api/users/:id (공개 프로필)",
+      "epic": "E19",
+      "context": "AUTH",
+      "priority": 100,
+      "deps": ["T-AUTH-012"],
+      "status": "todo",
+      "feature": "author-profile",
+      "tdd_first": true,
+      "acceptance": [
+        "getPublicProfile(id): User select(email 제외) → AuthorProfileDto, 이메일 절대 미포함(단위)",
+        "postCount = status PUBLISHED count(1회, N+1 없음)",
+        "없는 id → 404, 전 User 대상(MEMBER postCount 0 가능)",
+        "GET /api/users/:id e2e: 발행 N개 작성자 postCount=N, email 0, avatarUrl 200 서빙(ADR-0025 재사용). 신규 e2e DATABASE_URL 미설정(#8)"
+      ]
+    },
+    {
+      "id": "T-AUTH-014",
+      "title": "PATCH /api/auth/me bio amend (ADR-0025 amend)",
+      "epic": "E19",
+      "context": "AUTH",
+      "priority": 101,
+      "deps": ["T-AUTH-012"],
+      "status": "todo",
+      "feature": "author-profile",
+      "tdd_first": true,
+      "acceptance": [
+        "PATCH /api/auth/me 가 bio 수용 → User.bio 갱신, AuthUserDto.bio 반영(본인만)",
+        "bio 201자 → 400(@MaxLength 200)",
+        "bio null/빈 문자열 허용(소개 제거)",
+        "e2e 왕복: bio 편집 → GET me bio 반영, 기존 name·avatar 무회귀"
+      ]
+    },
+    {
+      "id": "T-WEB-402",
+      "title": "작성자 프로필 페이지 /users/:id + 작성자 링크",
+      "epic": "E19",
+      "context": "WEB",
+      "priority": 102,
+      "deps": ["T-PUB-107", "T-AUTH-013"],
+      "status": "todo",
+      "feature": "author-profile",
+      "tdd_first": true,
+      "acceptance": [
+        "/users/:id AuthorProfile: 헤더(Avatar·이름·bio·가입일·발행글수) + 작성자 발행글 목록, 빈 목록 '아직 발행한 글이 없습니다'",
+        "글 목록 카드·상세 헤더 작성자 이름 → /users/:authorId 링크(접근가능 이름)",
+        "useAuthorProfile(id) + usePosts({author}) 훅(직접 fetch 금지)",
+        "web unit + 회귀 0(기존 목록·상세 셀렉터 유지)"
+      ]
+    },
+    {
+      "id": "T-WEB-403",
+      "title": "/profile 소개(bio) 편집",
+      "epic": "E19",
+      "context": "WEB",
+      "priority": 103,
+      "deps": ["T-AUTH-014"],
+      "status": "todo",
+      "feature": "author-profile",
+      "tdd_first": true,
+      "acceptance": [
+        "/profile 에 소개(bio) textarea(현재 bio 로드), 저장 시 PATCH /api/auth/me bio 전송 → 반영",
+        "bio 200자 제한 클라 표시(서버 검증 정합), 폼 zod web 인라인",
+        "web unit + 회귀 0(기존 name·avatar 편집 유지)"
       ]
     }
   ]

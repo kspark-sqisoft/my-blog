@@ -11,7 +11,7 @@ import { RoleRoute } from './RoleRoute';
 function setUser(role: UserRole) {
   useAuth.setState({
     status: 'authenticated',
-    user: { id: 'u1', email: 'a@b.c', name: '사용자', role, avatarUrl: null },
+    user: { id: 'u1', email: 'a@b.c', name: '사용자', role, avatarUrl: null, bio: null },
     error: null,
   });
 }
