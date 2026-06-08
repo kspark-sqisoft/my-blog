@@ -23,7 +23,9 @@ export default defineConfig({
       '/feed.xml': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
       '/sitemap.xml': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
       '/robots.txt': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
-      '/og': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
+      // 끝 슬래시 필수: '/og' 는 prefix 매칭이라 /og-default.png(정적 자산)까지 프록시해 404 가 된다.
+      // nginx 의 `location /og/` 와 정합 — /og/posts/:slug(봇 OG)만 api 로 보낸다.
+      '/og/': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
     },
   },
   test: {
