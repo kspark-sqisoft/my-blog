@@ -61,6 +61,7 @@
 | UserPromptSubmit | `tdd-reminder` | 구현 의도면 RED→GREEN→REFACTOR 리마인드 |
 | UserPromptSubmit | `session-ready` | "준비"/`/ready` 면 시작 루틴 주입 |
 | Stop | `verify-done-tasks` | 미커밋 `status=done`(MD+JSON) 감지 시 검증·커밋 유도 |
+| Stop | `review-gate` | 세션 내 기능 소스 수정+커밋했는데 `code-reviewer` 미경유 시 1회 차단(self-approve 금지 강제) |
 | Stop | `docker-rebuild-stop` | `AUTO_DOCKER_REBUILD=1` 일 때만 펜딩 재빌드 자동 수행 유도(옵트인) |
 
 ---
@@ -300,7 +301,7 @@ step 결론·로그(또는 격리 prod 스택 로컬 재현)로 근본원인을 
 - `feature_list.json` — 진행 상태 정규 소스
 - `CLAUDE.md` — 시작 루틴·완료 규칙·절대 규칙
 - `.claude/commands/` — `ready` · `implement` · `finish` · 설계 명령들
-- `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks` · `docker-rebuild-sensor` · `docker-rebuild-stop` · `worktree-guard` · `shared-build`
+- `.claude/hooks/` — `protect-paths` · `tdd-reminder` · `session-ready` · `verify-done-tasks` · `review-gate` · `docker-rebuild-sensor` · `docker-rebuild-stop` · `worktree-guard` · `shared-build`
 - `docs/handoff/` — 세션 간 인계 노트
 - `docs/harness-gap-analysis.md` — 가이드(claude-code-guide) 대비 하네스 갭/보강 권고
 - `docs/harness-changelog.md` — 하네스 자체 변경 이력(가이드 12.5)

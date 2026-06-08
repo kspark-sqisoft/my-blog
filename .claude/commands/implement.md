@@ -22,5 +22,11 @@ argument-hint: [태스크ID]--
      · 새 모델/필드로 조회(where/orderBy/FK)를 추가했으면 → **check_index** 로 인덱스 누락(성능) 점검
      · 로깅/응답에 사용자 데이터가 섞였으면 → **scan_pii_logging** 으로 PII 로깅 점검
      (도구가 경고를 내면 멈추고 보고. 단순 capability 가 아니라 검증 루프의 일부다.)
-8. 완료 처리 - docs/tasks/ 의 $ARGUMENTS status를 "done"으로 - docs/handoff/{날짜}-{태스크ID}.md 작성 - 메시지 `feat({domain}):	{요약}	(refs	$ARGUMENTS)` 로 commit
-   절대 금지:- 검증 통과 전 status="done"- acceptance 일부 누락 후 "거의 다 됐다" 보고- 의존하지 않는 다른 태스크의 파일 건드리기- 테스트 없이 구현 코드 작성
+8. 독립 코드 리뷰 (`code-reviewer` 서브에이전트 — commit 전 게이트)
+   변경 diff 를 `code-reviewer` 서브에이전트에 위임해 절대규칙·ADR·보안 기준으로 검토한다
+   (저자 편향 차단 — 자체 검증만으로 끝내지 말 것).
+   **Critical 이 하나라도 있으면 commit 하지 말고 멈춰** 고친 뒤 6번 검증부터 다시 돈다.
+   Warning/Suggestion 은 요약 보고하되 진행은 막지 않는다.
+9. 완료 처리 - docs/tasks/ 의 $ARGUMENTS status를 "done"으로 - docs/handoff/{날짜}-{태스크ID}.md 작성 - 메시지 `feat({domain}):	{요약}	(refs	$ARGUMENTS)` 로 commit
+   (이 단계는 `/finish $ARGUMENTS` 로 대체 가능 — /finish 는 verifier·code-reviewer·feature_list 동기화까지 강제한다.)
+   절대 금지:- 검증 통과 전 status="done"- code-reviewer Critical 미해결 commit- acceptance 일부 누락 후 "거의 다 됐다" 보고- 의존하지 않는 다른 태스크의 파일 건드리기- 테스트 없이 구현 코드 작성

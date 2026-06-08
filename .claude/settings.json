@@ -76,6 +76,13 @@
           {
             "type": "command",
             "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/review-gate.mjs\"",
+            "timeout": 15,
+            "statusMessage": "code-reviewer 미경유 코드 커밋 차단(세션당 1회)"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/docker-rebuild-stop.mjs\"",
             "timeout": 15,
             "statusMessage": "도커 재빌드 펜딩 점검(AUTO_DOCKER_REBUILD)"

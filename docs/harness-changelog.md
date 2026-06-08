@@ -4,6 +4,17 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.7 (2026-06-08)
+
+서브에이전트 배선 — "만들어 놓고 안 쓰는" 메타 드리프트 제거(v0.6 거버넌스 정합성의 연장).
+`code-reviewer`·`debugger` 가 정의만 있고 자동 호출 루프에 없던 문제를 해소하고, 독립 검증 패스를 추가.
+
+- **추가(`verifier` 서브에이전트)** — `.claude/agents/verifier.md`(읽기 전용): acceptance 를 증거(테스트 출력·curl·실행 결과)로 PASS/FAIL/**UNVERIFIED** 판정. 증거 없는 통과(UNVERIFIED)를 FAIL 동급으로 차단. 저자 편향 없는 완료 판정.
+- **배선(code-reviewer 자동 호출)** — `/finish`(신규 step3)·`/implement`(신규 step8)가 **commit 직전** `code-reviewer` 서브에이전트를 자동 dispatch. **Critical 이면 commit 차단**. 글로벌 원칙("같은 컨텍스트에서 self-approve 금지")과 정합. 기존엔 CLAUDE.md 수동 안내뿐이라 사실상 미사용이었음.
+- **배선(verifier 자동 호출)** — `/finish` step2(acceptance 점검)를 메인 컨텍스트 자체 점검에서 `verifier` 위임으로 전환. FAIL/UNVERIFIED 면 status=todo 유지하고 멈춤.
+- **강제(Stop 훅 `review-gate`)** — `.claude/hooks/review-gate.mjs`: 슬래시 명령을 우회해도 막도록 결정론적 백스톱 추가. transcript 의 tool_use 기록으로 "이번 세션에 기능 소스(packages/*/src·prisma/schema.prisma) 수정 + git commit 했는데 `code-reviewer`(subagent_type) 미경유"를 판정해 **세션당 1회 block**. 문서만 커밋·작업중(미커밋)·리뷰 경유·재진입(stop_hook_active)은 통과. 6개 시나리오(Windows/POSIX 경로 포함) 단위 검증 통과. settings.json Stop 배열에 등록.
+- **문서(정합)** — `CLAUDE.md` 서브에이전트 안내를 "별도 패스로 호출"(수동)에서 자동 배선 사실(code-reviewer/verifier 자동, debugger 수동)로 갱신. `docs/harness.md` 훅 표·파일 목록에 `review-gate` 추가.
+
 ## v0.6 (2026-06-05)
 
 거버넌스 정합성 보강 — "막는다고 적어놓고 안 막는 / 만들어 놓고 안 쓰는" 메타 드리프트 제거.
