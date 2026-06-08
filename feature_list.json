@@ -1941,6 +1941,153 @@
         "bio 200자 제한 클라 표시(서버 검증 정합), 폼 zod web 인라인",
         "web unit + 회귀 0(기존 name·avatar 편집 유지)"
       ]
+    },
+    {
+      "id": "T-SER-001",
+      "title": "Series 스키마 + Post 소속/순서 + shared 타입",
+      "epic": "E20",
+      "context": "PUB",
+      "priority": 200,
+      "deps": [],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "Series 모델(slug unique·authorId 인덱스) + Post.seriesId(SetNull)·seriesOrder + @@index([seriesId,seriesOrder]). 마이그레이션 비파괴(check_migration_destructive)·인덱스 점검(check_index)",
+        "shared 순수 타입: SeriesSummaryDto·SeriesDetailDto·SeriesNavDto·SeriesNavPostDto·CreateSeriesDto·UpdateSeriesDto·SetSeriesPostsDto + PostDetailDto.series, index export, zod 미추가(함정 #9)",
+        "@blog/shared build 통과 + api 타입 컴파일 회귀 0, blog·blog_test 마이그레이션 적용"
+      ]
+    },
+    {
+      "id": "T-SER-002",
+      "title": "SeriesService/Controller 생성·수정·삭제 + 권한",
+      "epic": "E20",
+      "context": "PUB",
+      "priority": 201,
+      "deps": ["T-SER-001"],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "POST /api/series(AUTHOR/ADMIN) title+description? → 201, authorId=actor, slug 파생·중복 suffix, title 1~120·desc 0~500 검증(400)",
+        "PATCH /api/series/:id(소유자/ADMIN) 수정 200(slug 불변), 타인 403·없음 404",
+        "DELETE /api/series/:id(소유자/ADMIN) 204, 소속 글 seriesId=null 보존(글 미삭제), 타인 403·없음 404",
+        "미인증 쓰기 401. 단위(권한)+e2e(왕복) GREEN"
+      ]
+    },
+    {
+      "id": "T-SER-003",
+      "title": "PUT /series/:id/posts 멤버십·순서 원자 재지정",
+      "epic": "E20",
+      "context": "PUB",
+      "priority": 202,
+      "deps": ["T-SER-001", "T-SER-002"],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "PUT /api/series/:id/posts(소유자/ADMIN) {postIds} 단일 트랜잭션: 목록 글 seriesId=this·seriesOrder=index, 빠진 글 seriesId=null, 멱등 200",
+        "권한 분기: AUTHOR 는 본인 소유 글만 편입(타인 글 403), ADMIN 은 임의 글 편입, 없는 글 400·중복 postId 400, 부분적용 없음(롤백)",
+        "postIds 배열 최대 100(@ArrayMaxSize) 초과 400",
+        "한 글 다른 시리즈에 있었으면 이동(이전 시리즈에서 빠짐), 한 글 최대 1 시리즈 유지",
+        "단위(트랜잭션·권한 분기·검증)+e2e(재정렬·ADMIN 교차소유 왕복) GREEN"
+      ]
+    },
+    {
+      "id": "T-SER-004",
+      "title": "공개 시리즈 목록·상세(발행글만)",
+      "epic": "E20",
+      "context": "PUB",
+      "priority": 203,
+      "deps": ["T-SER-001", "T-SER-002"],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "GET /api/series(공개) Paginated<SeriesSummaryDto>, postCount=발행글 수(초안 제외·N+1 없음), 페이지네이션, 빈 목록 200",
+        "GET /api/series/:idOrSlug(공개) SeriesDetailDto posts=발행글만 seriesOrder 오름차순, slug·cuid 둘 다, 없음 404, 발행글 0→200 빈 posts",
+        "초안/미발행 글이 posts·postCount 에 절대 미포함(발행 격리). 단위+e2e GREEN"
+      ]
+    },
+    {
+      "id": "T-SER-005",
+      "title": "글 상세 시리즈 네비 파생",
+      "epic": "E20",
+      "context": "PUB",
+      "priority": 204,
+      "deps": ["T-SER-001"],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "getPublishedDetail 가 시리즈 소속이면 PostDetailDto.series(id·slug·title·position·total·prev·next) 채움, 미소속 series:null",
+        "position/total/prev/next 는 같은 시리즈 발행글만 seriesOrder 정렬, 첫 글 prev=null·끝 글 next=null, 추가 쿼리 1회(N+1 없음)",
+        "단위(파생·경계)+e2e(이전/다음) GREEN, 기존 PostDetail 회귀 0"
+      ]
+    },
+    {
+      "id": "T-WEB-501",
+      "title": "시리즈 상세 페이지 /series/:slug",
+      "epic": "E20",
+      "context": "WEB",
+      "priority": 205,
+      "deps": ["T-SER-004"],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "/series/:slug 헤더(제목·설명·작성자 링크) + 순서대로 발행글 목록(PostListView 재사용), 빈 발행글 '아직 발행된 글이 없습니다'",
+        "useSeries(idOrSlug) 훅 경유(직접 fetch 금지), 404 에러 상태",
+        "web unit + 회귀 0"
+      ]
+    },
+    {
+      "id": "T-WEB-502",
+      "title": "글 상세 시리즈 네비 UI",
+      "epic": "E20",
+      "context": "WEB",
+      "priority": 206,
+      "deps": ["T-SER-005"],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "시리즈 소속 발행글 상세에 'X 시리즈 · N/M편'(상세 링크) + 이전/다음 글 링크(/posts/:slug, 접근가능 이름), 미소속 미표시",
+        "첫/끝 글에서 이전/다음 적절히 비활성·숨김",
+        "web unit + 회귀 0(기존 상세 셀렉터 유지)"
+      ]
+    },
+    {
+      "id": "T-WEB-503",
+      "title": "시리즈 목록/인덱스 /series",
+      "epic": "E20",
+      "context": "WEB",
+      "priority": 207,
+      "deps": ["T-SER-004"],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "/series 시리즈 카드 목록(제목·설명·글 수·작성자) + 페이지네이션, 카드→/series/:slug",
+        "빈 목록 안내, useSeriesList 훅 경유",
+        "web unit + 회귀 0"
+      ]
+    },
+    {
+      "id": "T-WEB-504",
+      "title": "작성자 시리즈 관리 UI",
+      "epic": "E20",
+      "context": "WEB",
+      "priority": 208,
+      "deps": ["T-SER-002", "T-SER-003"],
+      "status": "todo",
+      "feature": "series",
+      "tdd_first": true,
+      "acceptance": [
+        "/admin/series 내 시리즈 목록(ADMIN 전체)+생성, /admin/series/:id/edit 제목·설명 수정 + 내 발행글 선택·순서 지정→PUT /series/:id/posts, 삭제",
+        "폼 검증 web 인라인 zod(title 1~120·desc 0~500) 서버 정합, 직접 fetch 금지(훅 경유)",
+        "권한: AUTHOR 본인 시리즈만·ADMIN 전체. web unit + 회귀 0"
+      ]
     }
   ]
 }

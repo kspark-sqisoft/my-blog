@@ -16,16 +16,20 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 | 항목 | 내용 |
 |---|---|
 | **책임** | 운영자/작성자가 Post를 작성·수정·삭제·발행하고 Tag로 분류한다. 본문은 sanitize 된 HTML(`contentHtml`, ADR-0021 — ADR-0003 supersede)이며 WYSIWYG 에디터(TipTap)로 작성된다. 본문용 미디어(이미지/비디오)는 같은 엔드포인트로 업로드한다(ADR-0012, ADR-0020). 발행된 Post를 독자에게 노출한다. 나아가 발행된 Post 를 검색엔진·SNS·피드리더가 읽도록 외부 표준 포맷(사이트맵·Open Graph 메타·RSS 피드)으로도 노출한다(seo-feed, ADR-0026). |
-| **Aggregate Root** | `Post` (Entity) |
-| **다른 객체** | `Tag` (Value Object — Post당 0~5개, 독립 Aggregate 아님). 이미지는 별도 엔티티 없이 마크다운 URL로 임베드(ADR-0012) |
-| **Domain Events** | `PostPublished`, `PostUnpublished`, `PostDeleted` |
-| **다른 Context 의존** | Auth를 안다 — Post는 Author(User)를 `authorId`로 참조 |
+| **Aggregate Root** | `Post` (Entity), `Series` (Entity — 순서 있는 Post 묶음, series·ADR-0029) |
+| **다른 객체** | `Tag` (Value Object — Post당 0~5개, 독립 Aggregate 아님). 이미지는 별도 엔티티 없이 마크다운 URL로 임베드(ADR-0012). 시리즈 소속·순서는 **Post 측**이 `seriesId`(nullable FK)+`seriesOrder` 로 보유(Series 는 Post 객체를 직접 보유하지 않음) |
+| **Domain Events** | `PostPublished`, `PostUnpublished`, `PostDeleted`, `SeriesCreated`, `SeriesUpdated`, `SeriesDeleted` (ADR-0029) |
+| **다른 Context 의존** | Auth를 안다 — Post는 Author(User)를 `authorId`로 참조. Series 도 소유 작성자를 `authorId`로 참조 |
 
 - 발행 상태(초안/발행)는 Post Aggregate 내부 상태로 관리한다.
 - Tag는 Post를 통해서만 다뤄진다 (Tag 자체 생명주기를 독립 관리하지 않음).
 - **목록 읽기 모델(PostSummary)** 은 Post 본문에서 두 값을 **파생**한다: 평문 요약과 대표 이미지(본문 첫 이미지). 둘 다 저장 컬럼이 아니라 조회 시 본문에서 계산한다(ADR-0015). 따라서 Aggregate·스키마·Domain Event는 바뀌지 않는다.
 - **발행 외부 노출 읽기 모델(seo-feed, ADR-0026)** 도 같은 파생 원칙을 따른다: 피드(RSS 2.0)·사이트맵(발행글 슬러그 + 태그 페이지 + 홈)·Open Graph/Twitter 공유 메타는 모두 발행된 Post 의 기존 값(슬러그·평문 요약·대표 이미지·작성자·`updatedAt`/`publishedAt`)에서 **파생하는 외부용 읽기 표현**이다. 새 Aggregate·Entity·Domain Event 가 없고 스키마도 바뀌지 않는다. 검색엔진·SNS·피드리더는 외부 소비자(액터)이며 도메인 객체가 아니다. canonical·OG·피드 링크는 모두 슬러그 기반(ADR-0022)이며, SPA(CSR) 환경이라 크롤러용 메타는 서버측에서 제공한다(구현 방식은 ADR-0026/TRD). 초안·미발행 글은 어떤 산출물에도 노출하지 않는다.
 - **작성자별 발행글 목록(author-profile, ADR-0028)** 도 같은 발행 읽기 파생이다: 발행 목록 읽기 모델에 `authorId` 필터를 더해 특정 작성자의 발행글만 페이지네이션(ADR-0010)으로 노출하고(초안 제외), 발행글 수도 같은 필터로 count 한다. 새 Aggregate·Domain Event·스키마 변경이 없다. 작성자 프로필 페이지는 이 목록과 Auth 의 User 표시 속성(이름·아바타·bio·가입일)을 **조합**하는 읽기 표현이다(작성자 식별자는 `Post.authorId` = `User.id`). **조합은 web 프레젠테이션 계층**이 두 읽기(Auth 의 프로필 메타 + Publishing 의 작성자 발행글 목록)를 합쳐 수행한다 — Auth 는 Publishing 을 의존하지 않으므로 "Auth 최하위" 불변식이 유지된다(TRD 가 API 분리로 확정).
+- **시리즈(series, ADR-0029)** 는 Publishing 의 **신규 Aggregate Root** `Series` 다(이번 기능에서 처음으로 Publishing 에 Post 외 Aggregate 추가). `Series{id, slug, title, description?, authorId}` 는 소유 작성자만 ID 로 참조하고, **Post 객체를 직접 보유하지 않는다**. 소속·순서는 **Post 측**이 `seriesId`(nullable FK, `onDelete: SetNull`)+`seriesOrder` 로 보유한다 — 한 Post 는 최대 한 Series. 시리즈 상세·네비·목록은 **발행글만**(`status=PUBLISHED`) `(seriesId, seriesOrder)` 정렬로 노출하는 읽기 모델이며 초안은 격리한다.
+  - **권한**: Series 생성·수정·삭제와 멤버십/순서 변경은 **소유 작성자 또는 ADMIN**(Actor 소유권 패턴, ADR-0018 재사용). 타인 글을 임의로 남의 시리즈에 넣지 못한다(글·시리즈 소유 일치 또는 ADMIN).
+  - **트랜잭션 경계**: 시리즈에 글 1건 넣기/빼기 = 해당 **Post 한 건** 갱신(`seriesId`/`seriesOrder`). **순서 재정렬은 여러 Post 행을 한 트랜잭션에서 갱신**하므로 "한 트랜잭션 = 한 Aggregate" 원칙과 긴장이 있다 — 같은 타입(Post) 다건 갱신이며 불변식(중복 order 없음)을 한 트랜잭션에서 지키기 위한 **실용적 예외**로 ADR-0029 에 명시한다. Series 자체의 상태(제목·설명)는 Series 트랜잭션에서만 바꾼다.
+  - 시리즈 RSS/사이트맵/OG·구독·다대다 소속은 범위 외(PRD). web 은 이 읽기들을 소비하는 프레젠테이션이다.
 
 > 프론트(WEB)는 이 Context들을 소비하는 **프레젠테이션 계층**이며 별도 Bounded Context가 아니다. 시각 디자인 시스템·테마(라이트/다크)는 도메인 모델에 영향을 주지 않는다(ADR-0016). seo-feed 의 `robots.txt` 와 피드 자동발견 `<link rel="alternate">`(PRD M2·M6)은 정적/web 서빙 계층 책임이며 도메인 모델이 아니다.
 
