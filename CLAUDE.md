@@ -31,6 +31,8 @@
 | GET | `/api/users/:id` | 공개 작성자 프로필(이메일 비노출·postCount) | 공개 |
 | GET | `/api/admin/users` | 사용자 목록 | 운영자(ADMIN) |
 | PATCH | `/api/admin/users/:id/role` | 역할 변경 | 운영자(ADMIN) |
+| GET | `/api/series` | 시리즈 목록(발행글 수·페이지네이션) | 공개 |
+| GET | `/api/series/:idOrSlug` | 시리즈 상세(발행글만 순서대로) | 공개 |
 | POST | `/api/series` | 시리즈 생성 | 작성자 |
 | PATCH | `/api/series/:id` | 시리즈 수정(소유자·운영자) | 작성자 |
 | DELETE | `/api/series/:id` | 시리즈 삭제(소속 글 보존) | 작성자 |

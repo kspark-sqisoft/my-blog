@@ -270,4 +270,105 @@ describe('SeriesService (통합, T-SER-002)', () => {
       service.setPosts('nope', [a], ownerActor),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  // --- list / getDetail (T-SER-004): 공개 목록·상세(발행글만) ---
+  async function makeMember(
+    seriesId: string,
+    title: string,
+    order: number,
+    status: 'PUBLISHED' | 'DRAFT',
+  ): Promise<string> {
+    const p = await prisma.post.create({
+      data: {
+        slug: `m-${title}-${Date.now()}-${order}`,
+        title,
+        contentMarkdown: 'x',
+        authorId: ownerId,
+        status,
+        publishedAt: status === 'PUBLISHED' ? new Date() : null,
+        seriesId,
+        seriesOrder: order,
+      },
+    });
+    return p.id;
+  }
+
+  it('list: 페이지네이션 + postCount=발행글 수(초안 제외)', async () => {
+    const s = await service.create({ title: '목록 연재' }, ownerActor);
+    await makeMember(s.id, 'P1', 0, 'PUBLISHED');
+    await makeMember(s.id, 'P2', 1, 'PUBLISHED');
+    await makeMember(s.id, 'D1', 2, 'DRAFT'); // 초안 → postCount 제외
+
+    const page = await service.list({ page: 1, pageSize: 20 });
+    expect(page.page).toBe(1);
+    expect(page.total).toBeGreaterThanOrEqual(1);
+    const mine = page.items.find((it) => it.id === s.id);
+    expect(mine).toBeDefined();
+    expect(mine?.postCount).toBe(2); // 발행 2건만
+    expect(mine?.authorName).toBe('시리즈주인');
+  });
+
+  it('getDetail: slug·cuid 둘 다, posts 는 발행글만 seriesOrder 오름차순', async () => {
+    const s = await service.create({ title: '상세 연재' }, ownerActor);
+    await makeMember(s.id, 'B', 1, 'PUBLISHED');
+    await makeMember(s.id, 'A', 0, 'PUBLISHED');
+    await makeMember(s.id, 'DRAFT', 2, 'DRAFT');
+
+    const bySlug = await service.getDetail(s.slug);
+    expect(bySlug.posts.map((p) => p.title)).toEqual(['A', 'B']); // 정렬 + 초안 제외
+    expect(bySlug.postCount).toBe(2);
+
+    const byId = await service.getDetail(s.id);
+    expect(byId.id).toBe(s.id);
+  });
+
+  it('getDetail: 없는 시리즈는 404', async () => {
+    await expect(service.getDetail('no-such-series')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('getDetail: 발행글 0 이면 빈 posts(초안만 있어도)', async () => {
+    const s = await service.create({ title: '빈 연재' }, ownerActor);
+    await makeMember(s.id, 'ONLYDRAFT', 0, 'DRAFT');
+    const detail = await service.getDetail(s.slug);
+    expect(detail.posts).toEqual([]);
+    expect(detail.postCount).toBe(0);
+  });
+
+  it('list: createdAt 내림차순 정렬 + skip 으로 페이지 분리', async () => {
+    const s1 = await service.create({ title: '먼저' }, ownerActor);
+    const s2 = await service.create({ title: '나중' }, ownerActor); // 더 최신
+    // createdAt 을 명시적으로 분리해 동률(같은 ms) 비결정성을 제거
+    await prisma.series.update({
+      where: { id: s1.id },
+      data: { createdAt: new Date('2026-01-01T00:00:00Z') },
+    });
+    await prisma.series.update({
+      where: { id: s2.id },
+      data: { createdAt: new Date('2026-01-02T00:00:00Z') },
+    });
+
+    // 정렬: 전체 목록에서 s2(최신)가 s1 보다 앞
+    const all = await service.list({ page: 1, pageSize: 100 });
+    const ids = all.items.map((it) => it.id);
+    expect(ids.indexOf(s2.id)).toBeLessThan(ids.indexOf(s1.id));
+
+    // skip: pageSize=1 의 1·2페이지가 서로 다른 항목(총 2건 이상)
+    expect(all.total).toBeGreaterThanOrEqual(2);
+    const p1 = await service.list({ page: 1, pageSize: 1 });
+    const p2 = await service.list({ page: 2, pageSize: 1 });
+    expect(p1.items).toHaveLength(1);
+    expect(p2.items).toHaveLength(1);
+    expect(p1.items[0].id).not.toBe(p2.items[0].id);
+  });
+
+  it('list: 범위를 벗어난 페이지는 빈 items + 200(메타 유지)', async () => {
+    await service.create({ title: '한 건' }, ownerActor);
+    const page = await service.list({ page: 9999, pageSize: 10 });
+    expect(page.items).toEqual([]);
+    expect(page.page).toBe(9999);
+    expect(page.pageSize).toBe(10);
+    expect(page.total).toBeGreaterThanOrEqual(1);
+  });
 });

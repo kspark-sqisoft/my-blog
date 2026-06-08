@@ -51,8 +51,8 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
 
 ### 스토리 S20.3 — 공개 읽기 (Publishing)
 
-#### T-SER-004 — 공개 시리즈 목록·상세(발행글만)
-- **context**: PUB / **priority**: 203 / **deps**: T-SER-001, T-SER-002 / **tdd_first**: true / **예상**: 2h
+#### T-SER-004 — 공개 시리즈 목록·상세(발행글만) ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 203 / **deps**: T-SER-001, T-SER-002 / **tdd_first**: true / **예상**: 2h / **status**: done
 - **변경 파일**: `series.service.ts`(+`.spec`), `series.controller.ts`, `test/series.e2e-spec.ts`
 - **acceptance**:
   1. `GET /api/series`(공개): `Paginated<SeriesSummaryDto>`, `postCount`=발행글 수(초안 제외, N+1 없음), 페이지네이션(ADR-0010). 빈 목록 200.

@@ -6,8 +6,10 @@ import {
 } from '@nestjs/common';
 import type {
   CreateSeriesDto,
+  Paginated,
   SeriesDetailDto,
   SeriesPostItemDto,
+  SeriesSummaryDto,
   UpdateSeriesDto,
 } from '@blog/shared';
 import { PrismaService } from '../prisma/prisma.service';
@@ -17,6 +19,8 @@ import type { Actor } from './post.service';
 import { slugify } from './slugify';
 
 const SUMMARY_MAX = 200;
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
 
 // 시리즈 상세 조회 시 발행글(순서대로) + 작성자 표시 이름을 함께 적재.
 const detailInclude = {
@@ -99,6 +103,65 @@ export class SeriesService {
   async remove(id: string, actor: Actor): Promise<void> {
     await this.assertCanMutate(id, actor);
     await this.prisma.series.delete({ where: { id } });
+  }
+
+  // 공개 시리즈 목록 (createdAt 최신순, offset 페이지네이션 — ADR-0010).
+  // postCount 는 발행글 수(초안 제외). findMany+count+groupBy 로 N+1 없이 계산.
+  async list(
+    params: { page?: number; pageSize?: number } = {},
+  ): Promise<Paginated<SeriesSummaryDto>> {
+    const page = params.page ?? DEFAULT_PAGE;
+    const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.series.findMany({
+        // id 2차 정렬로 createdAt 동률에도 결정적 순서 → 페이지 경계 중복/누락 방지(ADR-0010)
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: { author: { select: { name: true } } },
+      }),
+      this.prisma.series.count(),
+    ]);
+
+    // 이 페이지 시리즈들의 발행글 수를 한 번의 groupBy 로 집계(N+1 없음).
+    const ids = rows.map((s) => s.id);
+    const counts =
+      ids.length === 0
+        ? []
+        : await this.prisma.post.groupBy({
+            by: ['seriesId'],
+            where: { seriesId: { in: ids }, status: 'PUBLISHED' },
+            _count: { _all: true },
+          });
+    const countMap = new Map(counts.map((c) => [c.seriesId, c._count._all]));
+
+    return {
+      items: rows.map((s) => ({
+        id: s.id,
+        slug: s.slug,
+        title: s.title,
+        description: s.description,
+        authorId: s.authorId,
+        authorName: s.author.name,
+        postCount: countMap.get(s.id) ?? 0,
+      })),
+      page,
+      pageSize,
+      total,
+    };
+  }
+
+  // 공개 시리즈 상세 (slug 우선, 없으면 cuid — ADR-0022). 발행글만 순서대로.
+  async getDetail(idOrSlug: string): Promise<SeriesDetailDto> {
+    const series = await this.prisma.series.findFirst({
+      where: { OR: [{ slug: idOrSlug }, { id: idOrSlug }] },
+      include: detailInclude,
+    });
+    if (!series) {
+      throw new NotFoundException('시리즈를 찾을 수 없습니다.');
+    }
+    return this.toDetail(series);
   }
 
   // 멤버십·순서 원자 재지정 (ADR-0029). postIds 의 순서가 곧 seriesOrder.

@@ -2003,7 +2003,8 @@
       "context": "PUB",
       "priority": 203,
       "deps": ["T-SER-001", "T-SER-002"],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "series",
       "tdd_first": true,
       "acceptance": [

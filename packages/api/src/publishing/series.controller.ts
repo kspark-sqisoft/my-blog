@@ -2,21 +2,29 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   Patch,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import type { AuthUserDto, SeriesDetailDto } from '@blog/shared';
+import type {
+  AuthUserDto,
+  Paginated,
+  SeriesDetailDto,
+  SeriesSummaryDto,
+} from '@blog/shared';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { CreateSeriesDto } from './dto/create-series.dto';
+import { SeriesListQueryDto } from './dto/series-list.query';
 import { SetSeriesPostsDto } from './dto/set-series-posts.dto';
 import { UpdateSeriesDto } from './dto/update-series.dto';
 import type { Actor } from './post.service';
@@ -31,6 +39,20 @@ function actorOf(req: Request): Actor {
 @Controller('series')
 export class SeriesController {
   constructor(private readonly series: SeriesService) {}
+
+  // 공개: 시리즈 목록 (페이지네이션)
+  @Get()
+  list(
+    @Query() query: SeriesListQueryDto,
+  ): Promise<Paginated<SeriesSummaryDto>> {
+    return this.series.list({ page: query.page, pageSize: query.pageSize });
+  }
+
+  // 공개: 시리즈 상세 (slug·cuid, 발행글만). 없으면 404.
+  @Get(':idOrSlug')
+  detail(@Param('idOrSlug') idOrSlug: string): Promise<SeriesDetailDto> {
+    return this.series.getDetail(idOrSlug);
+  }
 
   // 작성자/운영자: 시리즈 생성
   @UseGuards(JwtAuthGuard, RolesGuard)

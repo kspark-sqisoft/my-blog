@@ -288,4 +288,85 @@ describe('SeriesController CRUD (e2e, T-SER-002, ADR-0029)', () => {
       .send({ postIds: Array.from({ length: 101 }, (_, i) => `p${i}`) })
       .expect(400);
   });
+
+  // T-SER-004: 공개 목록·상세
+  it('GET /api/series (공개) → 200 목록, postCount 발행글 수', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/series')
+      .set('Cookie', ownerCookie)
+      .send({ title: '공개 목록 연재' })
+      .expect(201);
+    const { id } = created.body as { id: string };
+    const pub = await publish(ownerId, 'PUB');
+    await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .set('Cookie', ownerCookie)
+      .send({ postIds: [pub] })
+      .expect(200);
+
+    const res = await request(app.getHttpServer())
+      .get('/api/series?page=1&pageSize=50')
+      .expect(200);
+    const body = res.body as {
+      items: { id: string; postCount: number }[];
+      total: number;
+    };
+    const mine = body.items.find((s) => s.id === id);
+    expect(mine?.postCount).toBe(1);
+    expect(body.total).toBeGreaterThanOrEqual(1);
+  });
+
+  it('GET /api/series/:slug (공개) → 발행글만 순서대로, 초안 제외', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/series')
+      .set('Cookie', ownerCookie)
+      .send({ title: '공개 상세 연재' })
+      .expect(201);
+    const { id, slug } = created.body as { id: string; slug: string };
+    const a = await publish(ownerId, 'A');
+    const b = await publish(ownerId, 'B');
+    await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .set('Cookie', ownerCookie)
+      .send({ postIds: [b, a] })
+      .expect(200);
+    // 초안 1건을 멤버로 직접 붙임 — 발행글만 노출돼야 하므로 상세에서 제외돼야 함
+    const draft = await prisma.post.create({
+      data: {
+        slug: `dft-${Date.now()}`,
+        title: 'DRAFT',
+        contentMarkdown: 'x',
+        authorId: ownerId,
+        status: 'DRAFT',
+        seriesId: id,
+        seriesOrder: 5,
+      },
+    });
+    const draftId = draft.id;
+
+    const bySlug = await request(app.getHttpServer())
+      .get(`/api/series/${encodeURIComponent(slug)}`)
+      .expect(200);
+    const body = bySlug.body as { posts: { id: string; title: string }[] };
+    expect(body.posts.map((p) => p.title)).toEqual(['B', 'A']); // seriesOrder 0,1
+    expect(body.posts.map((p) => p.id)).not.toContain(draftId); // 초안 제외
+
+    // cuid 로도 조회 가능
+    await request(app.getHttpServer()).get(`/api/series/${id}`).expect(200);
+  });
+
+  it('GET /api/series/:idOrSlug 없는 시리즈 → 404', async () => {
+    await request(app.getHttpServer())
+      .get('/api/series/no-such-series')
+      .expect(404);
+  });
+
+  it('GET /api/series 범위 밖 페이지 → 200 + 빈 items', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/series?page=9999&pageSize=10')
+      .expect(200);
+    const body = res.body as { items: unknown[]; total: number; page: number };
+    expect(body.items).toEqual([]);
+    expect(body.page).toBe(9999);
+  });
 });
