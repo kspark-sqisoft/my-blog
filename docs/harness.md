@@ -294,6 +294,36 @@ step 결론·로그(또는 격리 prod 스택 로컬 재현)로 근본원인을 
 같은 세션에 CI 실패는 사실 4겹이었다: ①pnpm/action-setup 버전 충돌 ②CI shared 빌드 누락 ③테스트 DB 포트
 (5433↔CI 5432, `TEST_DATABASE_URL` 미지정) ④이 항목(shared 런타임 zod). 앞 3개는 잠복 CI 설정 결함, ④는 신규 버그.
 
+### 10. 노트북 전환·git pull 직후 dev DB 가 stale → `/api/posts` 500 (P2022)
+**증상**: `/api/posts` · `/api/series` · 글 상세가 500.
+api 로그에 `PrismaClientKnownRequestError: column posts.seriesId does not exist`(Prisma `P2022`, Postgres `42703`).
+홈에서 "글 불러오기"가 통째로 실패한다. (2026-06-08 사고 — 시리즈 E20 마이그레이션 3건 미적용.)
+
+**원인**: 새 컬럼/테이블을 더한 마이그레이션이 **dev DB 에만 적용 안 됨**.
+회사↔집 노트북 전환, 다른 worktree 의 컨테이너 재사용, 또는 `git pull` 후 사용자가 `init.sh` 를 건너뛰고
+`docker compose up -d` 만 했을 때 발생. 이전엔 dev api 컨테이너의 기동 스크립트가 `prisma generate` 만 했고,
+`prisma migrate deploy` 는 **`init.sh` 에만** 있었다 — 사용자가 init.sh 를 안 거치면 동기화 누락이 잠복.
+`feature_list.json` · prisma 스키마 · migrations 디렉터리는 git 에 있지만 **DB 상태는 노트북 로컬 디스크
+(`db-data` named volume)** 에 있어 환경마다 다르다.
+
+**해결(적용됨)**: dev api 컨테이너 기동 스크립트에 `prisma migrate deploy` 를 못 박았다.
+이제 `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` 만 해도 새 마이그레이션이
+자동 적용된다(컨테이너 재생성 시점에 한 번). `init.sh` 의 동일 단계는 그대로 유지 — 이중 가드.
+- `docker-compose.dev.yml` api `command` — `pnpm --filter @blog/shared run build && pnpm exec prisma generate && pnpm exec prisma migrate deploy && pnpm run start:dev`
+- `init.sh` (불변) — 호스트 5433 에 동일 `migrate deploy`(테스트 DB `blog_test` 도 동일).
+- prod 는 별도 — `docker-compose.prod.yml` 의 api 는 자동 deploy 하지 않는다(배포 절차에서 명시적으로 실행).
+
+**왜 함정인가**: 코드/스키마는 git 에서 동기화되지만 **DB 데이터·schema state 는 동기화되지 않는다** —
+이 비대칭이 "내 노트북에선 되는데" 류 함정의 본질. 한쪽 환경에서 `prisma migrate dev` 로 새 마이그레이션을
+생성·적용한 뒤 다른 환경으로 옮기면 **컨테이너 재기동만으로는 자동 반영이 안 됐다**(가드 추가 이전).
+
+**검증**: api 컨테이너 재생성 → `docker logs my-blog-api-1 | grep -i migrat` 에서 deploy 로그 확인 →
+`curl -sf http://localhost:3001/api/posts` 200. 미적용 마이그레이션이 0건이면 deploy 는 "no pending"
+로그만 남기고 진행하므로 매 기동 비용은 무시 가능.
+
+**메타 교훈**: "init.sh 가 한다 = 안전" 은 init.sh 가 매번 돌아갈 때만 성립.
+환경 동기화는 **사용자 협조에 의존하지 말고 컨테이너 부팅 자체에 못 박을 것**.
+
 ## 관련 파일
 
 - `init.sh` — 환경 부트스트랩(개발 DB + 테스트 DB + @blog/shared 빌드)
