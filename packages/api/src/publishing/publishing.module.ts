@@ -10,6 +10,7 @@ import { LocalStorageProvider } from './storage/local-storage.provider';
 import { StorageProvider } from './storage/storage.provider';
 import { SeoController } from './seo/seo.controller';
 import { FeedService } from './seo/feed.service';
+import { SitemapService } from './seo/sitemap.service';
 
 @Module({
   // AuthModule import → JwtStrategy 인스턴스화로 JwtAuthGuard 동작
@@ -25,6 +26,7 @@ import { FeedService } from './seo/feed.service';
     PostService,
     TagService,
     FeedService,
+    SitemapService,
     // 저장소 추상화: 로컬 → S3 확장은 useClass 교체로 (ADR-0012)
     { provide: StorageProvider, useClass: LocalStorageProvider },
   ],

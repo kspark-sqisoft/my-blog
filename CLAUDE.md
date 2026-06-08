@@ -38,6 +38,8 @@
 | GET | `/api/tags` | 태그 목록 | 공개 |
 | POST | `/api/uploads` | 이미지 업로드 | 운영자 |
 | GET | `/feed.xml` | RSS 2.0 피드(발행글, /api prefix 제외) | 공개 |
+| GET | `/sitemap.xml` | 사이트맵(발행글·태그·홈, /api prefix 제외) | 공개 |
+| GET | `/robots.txt` | robots(사이트맵 위치, /api prefix 제외) | 공개 |
 <!-- AUTO-MANAGED:endpoints:end -->
 
 ## 패키지 매니저

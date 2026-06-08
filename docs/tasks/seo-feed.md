@@ -32,12 +32,12 @@
 
 ### 스토리 S17.3 — 사이트맵·robots
 
-#### T-SEO-003 — SitemapService + `GET /sitemap.xml` + `GET /robots.txt`
-- **context**: PUB / **priority**: 89 / **deps**: T-SEO-001 / **tdd_first**: true / **예상**: 1.5h
+#### T-SEO-003 — SitemapService + `GET /sitemap.xml` + `GET /robots.txt` — ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 89 / **deps**: T-SEO-001 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/api/src/publishing/seo/sitemap.service.ts`(+`.spec`), `packages/api/src/publishing/seo/seo.controller.ts`, `packages/api/src/common/app-setup.ts`, `packages/api/test/seo.e2e-spec.ts`
 - **acceptance**:
   1. SitemapService 가 홈(`/`) + 발행글 슬러그 URL(절대) + 태그 페이지(`/tags/:name`)를 sitemaps.org 0.9 `urlset` 으로 생성, 초안/미발행 제외(단위 spec).
-  2. 글 `<lastmod>` = `Post.updatedAt`(없으면 `publishedAt`), 날짜 형식 유효(W3C). 태그·홈 lastmod 는 선택.
+  2. 글 `<lastmod>` = `Post.updatedAt`(`@updatedAt` NOT NULL), YYYY-MM-DD(W3C). 태그·홈 lastmod 는 선택.
   3. `GET /sitemap.xml` → 200 + `Content-Type: application/xml; charset=utf-8`, 발행 슬러그·태그·홈 포함·초안 0건(e2e 왕복).
   4. `GET /robots.txt` → 200 + `Content-Type: text/plain`, `Sitemap: {SITE_URL}/sitemap.xml` 절대 URL 포함.
   5. 태그·슬러그 수집을 N+1 없이 배치 로드.

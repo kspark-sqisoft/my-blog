@@ -90,4 +90,55 @@ describe('SEO feed (e2e)', () => {
     expect(res.text).toContain('발행글 피드 항목');
     expect(res.text).not.toContain('초안 피드 항목');
   });
+
+  it('GET /sitemap.xml → 200 + application/xml, 발행 슬러그·태그·홈 포함·초안 제외', async () => {
+    const server = app.getHttpServer();
+
+    const pub = await request(server)
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({
+        title: '사이트맵 발행글',
+        contentHtml: '<p>본문</p>',
+        tags: ['sitemaptag'],
+      })
+      .expect(201);
+    const pubBody = pub.body as { id: string; slug: string };
+    await request(server)
+      .post(`/api/posts/${pubBody.id}/publish`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    const draft = await request(server)
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({
+        title: '사이트맵 초안',
+        contentHtml: '<p>x</p>',
+        tags: ['drafttag'],
+      })
+      .expect(201);
+    const draftBody = draft.body as { slug: string };
+
+    const res = await request(server).get('/sitemap.xml').expect(200);
+    expect(res.headers['content-type']).toContain('application/xml');
+    expect(res.text).toContain('<urlset');
+    expect(res.text).toContain('/posts/' + encodeURIComponent(pubBody.slug));
+    expect(res.text).toContain('/tags/sitemaptag');
+    expect(res.text).not.toContain(
+      '/posts/' + encodeURIComponent(draftBody.slug),
+    );
+    // 초안에만 달린 태그는 사이트맵에 노출되지 않는다(발행 격리).
+    expect(res.text).not.toContain('/tags/drafttag');
+  });
+
+  it('GET /robots.txt → 200 + text/plain, Sitemap 절대 URL 포함', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/robots.txt')
+      .expect(200);
+    expect(res.headers['content-type']).toContain('text/plain');
+    expect(res.text).toContain('User-agent: *');
+    expect(res.text).toContain('Sitemap:');
+    expect(res.text).toContain('/sitemap.xml');
+  });
 });

@@ -12,7 +12,11 @@ export function configureApp(app: INestApplication): INestApplication {
   // 모든 라우트는 /api 하위 (TRD §3).
   // 단, seo-feed 산출물은 크롤러·피드리더 표준 경로라 /api prefix 에서 제외한다(ADR-0026).
   app.setGlobalPrefix('api', {
-    exclude: [{ path: 'feed.xml', method: RequestMethod.GET }],
+    exclude: [
+      { path: 'feed.xml', method: RequestMethod.GET },
+      { path: 'sitemap.xml', method: RequestMethod.GET },
+      { path: 'robots.txt', method: RequestMethod.GET },
+    ],
   });
 
   // 업로드 이미지 정적 서빙 (ADR-0012).

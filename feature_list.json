@@ -1677,12 +1677,13 @@
       "context": "PUB",
       "priority": 89,
       "deps": ["T-SEO-001"],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "seo-feed",
       "tdd_first": true,
       "acceptance": [
         "홈 + 발행글 슬러그 절대URL + 태그(/tags/:name) urlset(0.9), 초안 제외(단위)",
-        "글 lastmod=updatedAt(없으면 publishedAt) 유효 날짜, 태그·홈 lastmod 선택",
+        "글 lastmod=updatedAt(@updatedAt NOT NULL) YYYY-MM-DD, 태그·홈 lastmod 선택",
         "GET /sitemap.xml → 200 + application/xml; charset=utf-8, 발행 슬러그·태그·홈 포함·초안 0건(e2e)",
         "GET /robots.txt → 200 + text/plain, Sitemap: {SITE_URL}/sitemap.xml 절대URL",
         "태그·슬러그 N+1 없이 배치 로드"
