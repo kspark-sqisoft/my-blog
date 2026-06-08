@@ -42,8 +42,8 @@
 
 ### 스토리 S19.4 — bio 편집 (Auth, ADR-0025 amend)
 
-#### T-AUTH-014 — PATCH /api/auth/me bio amend
-- **context**: AUTH / **priority**: 101 / **deps**: T-AUTH-012 / **tdd_first**: true / **예상**: 1h
+#### T-AUTH-014 — PATCH /api/auth/me bio amend ✅ done (2026-06-08)
+- **context**: AUTH / **priority**: 101 / **deps**: T-AUTH-012 / **tdd_first**: true / **예상**: 1h / **status**: done
 - **변경 파일**: `packages/api/src/auth/dto/update-profile.dto.ts`(bio @MaxLength 200), `packages/api/src/auth/auth.controller.ts`·`auth.service.ts`(bio 반영), `packages/api/test/profile.e2e-spec.ts`
 - **acceptance**:
   1. `PATCH /api/auth/me` 가 `bio` 수용 → User.bio 갱신, 응답 `AuthUserDto.bio` 반영(본인만).

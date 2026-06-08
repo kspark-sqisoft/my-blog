@@ -7,7 +7,8 @@ import {
   ValidateIf,
 } from 'class-validator';
 
-// 프로필 수정 입력 (ADR-0025): 이름·아바타만. 전역 ValidationPipe(whitelist+forbidNonWhitelisted)가 적용된다.
+// 프로필 수정 입력 (ADR-0025, bio 는 ADR-0028 amend): 이름·아바타·소개.
+// 전역 ValidationPipe(whitelist+forbidNonWhitelisted)가 적용된다.
 export class UpdateProfileDto {
   @IsOptional()
   @IsString()
@@ -23,4 +24,11 @@ export class UpdateProfileDto {
     message: 'avatarUrl은 /uploads 로 시작하는 로컬 경로여야 합니다.',
   })
   avatarUrl?: string | null;
+
+  // null/빈 문자열 = 소개 제거. 문자열이면 최대 200자 (ADR-0028).
+  @IsOptional()
+  @ValidateIf((o: UpdateProfileDto) => o.bio !== null)
+  @IsString()
+  @MaxLength(200)
+  bio?: string | null;
 }

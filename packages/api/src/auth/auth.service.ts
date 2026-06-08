@@ -88,13 +88,14 @@ export class AuthService {
   // (경로 형식 검증은 컨트롤러 DTO(class-validator)가 강제한다.)
   async updateProfile(
     userId: string,
-    input: { name?: string; avatarUrl?: string | null },
+    input: { name?: string; avatarUrl?: string | null; bio?: string | null },
   ): Promise<AuthUserDto> {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
         ...(input.name !== undefined && { name: input.name }),
         ...(input.avatarUrl !== undefined && { avatarUrl: input.avatarUrl }),
+        ...(input.bio !== undefined && { bio: input.bio }),
       },
       select: {
         id: true,

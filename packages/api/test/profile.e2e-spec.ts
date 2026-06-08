@@ -203,6 +203,52 @@ describe('Profile / Avatar (e2e, ADR-0025)', () => {
       .expect(400);
   });
 
+  // ---- 소개(bio) 편집 (T-AUTH-014, ADR-0028 = ADR-0025 amend) ----
+  it('bio 편집 → 200 + user.bio 갱신, GET /me 반영(왕복)', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/api/auth/me')
+      .set('Cookie', cookie)
+      .send({ bio: '안녕하세요, 블로그 운영자입니다.' })
+      .expect(200);
+    expect((res.body as { user: { bio: string | null } }).user.bio).toBe(
+      '안녕하세요, 블로그 운영자입니다.',
+    );
+
+    const me = await request(app.getHttpServer())
+      .get('/api/auth/me')
+      .set('Cookie', cookie)
+      .expect(200);
+    expect((me.body as { user: { bio: string | null } }).user.bio).toBe(
+      '안녕하세요, 블로그 운영자입니다.',
+    );
+  });
+
+  it('bio 201자 → 400 (@MaxLength 200)', () => {
+    return request(app.getHttpServer())
+      .patch('/api/auth/me')
+      .set('Cookie', cookie)
+      .send({ bio: 'a'.repeat(201) })
+      .expect(400);
+  });
+
+  it('bio null → 제거(200, bio null)', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/api/auth/me')
+      .set('Cookie', cookie)
+      .send({ bio: null })
+      .expect(200);
+    expect((res.body as { user: { bio: string | null } }).user.bio).toBeNull();
+  });
+
+  it('bio 빈 문자열 허용(200, 소개 제거)', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/api/auth/me')
+      .set('Cookie', cookie)
+      .send({ bio: '' })
+      .expect(200);
+    expect((res.body as { user: { bio: string | null } }).user.bio).toBe('');
+  });
+
   // ---- 작성자 아바타 노출 (ADR-0025) ----
   it('아바타 설정 후 글 상세·댓글 응답에 authorAvatarUrl 노출', async () => {
     await request(app.getHttpServer())

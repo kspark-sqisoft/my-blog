@@ -81,7 +81,7 @@ export class AuthController {
     return { user: req.user as AuthUserDto };
   }
 
-  // 프로필 수정 (ADR-0025): 본인 이름·아바타만. 인증 필요.
+  // 프로필 수정 (ADR-0025, bio 는 ADR-0028 amend): 본인 이름·아바타·소개. 인증 필요.
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   async updateMe(
@@ -92,6 +92,7 @@ export class AuthController {
     const user = await this.auth.updateProfile(actor.id, {
       name: dto.name,
       avatarUrl: dto.avatarUrl,
+      bio: dto.bio,
     });
     return { user };
   }
