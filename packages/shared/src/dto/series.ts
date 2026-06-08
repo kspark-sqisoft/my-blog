@@ -13,9 +13,12 @@ export interface SeriesSummaryDto {
   postCount: number; // 발행글 수
 }
 
+// 시리즈 상세 목록의 글 항목: 발행글 요약 + 시리즈 내 순서.
+export type SeriesPostItemDto = PostSummaryDto & { seriesOrder: number };
+
 // 시리즈 상세: 요약 + 순서대로 정렬된 발행글 목록.
 export interface SeriesDetailDto extends SeriesSummaryDto {
-  posts: (PostSummaryDto & { seriesOrder: number })[];
+  posts: SeriesPostItemDto[];
 }
 
 // 글 상세의 시리즈 네비게이션용 이전/다음 글 최소 정보.

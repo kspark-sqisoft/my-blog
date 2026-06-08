@@ -25,6 +25,7 @@ export type { UpdateProfileDto, AvatarUploadResultDto } from './dto/profile';
 export type {
   SeriesSummaryDto,
   SeriesDetailDto,
+  SeriesPostItemDto,
   SeriesNavDto,
   SeriesNavPostDto,
   CreateSeriesDto,

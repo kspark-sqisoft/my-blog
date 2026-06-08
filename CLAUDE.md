@@ -31,6 +31,9 @@
 | GET | `/api/users/:id` | 공개 작성자 프로필(이메일 비노출·postCount) | 공개 |
 | GET | `/api/admin/users` | 사용자 목록 | 운영자(ADMIN) |
 | PATCH | `/api/admin/users/:id/role` | 역할 변경 | 운영자(ADMIN) |
+| POST | `/api/series` | 시리즈 생성 | 작성자 |
+| PATCH | `/api/series/:id` | 시리즈 수정(소유자·운영자) | 작성자 |
+| DELETE | `/api/series/:id` | 시리즈 삭제(소속 글 보존) | 작성자 |
 | GET | `/api/posts/:postId/comments` | 댓글 목록 | 공개 |
 | POST | `/api/posts/:postId/comments` | 댓글/답글 작성 | 공개 |
 | PATCH | `/api/posts/:postId/comments/:id` | 댓글 수정(본인) | 로그인 |

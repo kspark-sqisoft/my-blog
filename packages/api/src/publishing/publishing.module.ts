@@ -3,6 +3,8 @@ import { AuthModule } from '../auth/auth.module';
 import { AdminPostController } from './admin-post.controller';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
+import { SeriesController } from './series.controller';
+import { SeriesService } from './series.service';
 import { TagController } from './tag.controller';
 import { TagService } from './tag.service';
 import { UploadController } from './upload.controller';
@@ -20,6 +22,7 @@ import { OgMetaService } from './seo/og-meta.service';
   controllers: [
     PostController,
     AdminPostController,
+    SeriesController,
     TagController,
     UploadController,
     SeoController,
@@ -27,6 +30,7 @@ import { OgMetaService } from './seo/og-meta.service';
   ],
   providers: [
     PostService,
+    SeriesService,
     TagService,
     FeedService,
     SitemapService,
@@ -34,6 +38,6 @@ import { OgMetaService } from './seo/og-meta.service';
     // 저장소 추상화: 로컬 → S3 확장은 useClass 교체로 (ADR-0012)
     { provide: StorageProvider, useClass: LocalStorageProvider },
   ],
-  exports: [PostService, TagService],
+  exports: [PostService, TagService, SeriesService],
 })
 export class PublishingModule {}

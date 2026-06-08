@@ -30,8 +30,8 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
 
 ### 스토리 S20.2 — 시리즈 CRUD·멤버십 (Publishing)
 
-#### T-SER-002 — SeriesService/Controller 생성·수정·삭제 + 권한
-- **context**: PUB / **priority**: 201 / **deps**: T-SER-001 / **tdd_first**: true / **예상**: 2h
+#### T-SER-002 — SeriesService/Controller 생성·수정·삭제 + 권한 ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 201 / **deps**: T-SER-001 / **tdd_first**: true / **예상**: 2h / **status**: done
 - **변경 파일**: `packages/api/src/publishing/series.service.ts`(+`.spec`), `packages/api/src/publishing/series.controller.ts`, 모듈 등록
 - **acceptance**:
   1. `POST /api/series`(AUTHOR/ADMIN): `{title,description?}` → 201 `SeriesDetailDto`(posts []), `authorId=actor.id`, slug title 파생·중복 suffix(ADR-0022). title 1~120·description 0~500 검증(400).
