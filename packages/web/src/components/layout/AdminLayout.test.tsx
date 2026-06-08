@@ -43,4 +43,22 @@ describe('AdminLayout 사이드바', () => {
     renderLayout();
     expect(screen.queryByRole('link', { name: /사용자 관리/ })).toBeNull();
   });
+
+  // 회귀: T-WEB-504 acceptance 갭 — 페이지(/admin/series)는 만들었지만 사이드바 진입 누락.
+  // AUTHOR·ADMIN 모두 본인 시리즈를 관리할 수 있어야 하므로 두 역할 다 노출한다.
+  it('AUTHOR 는 시리즈 관리(/admin/series) 링크를 본다', () => {
+    setRole('AUTHOR');
+    renderLayout();
+    expect(
+      screen.getByRole('link', { name: /시리즈 관리/ }),
+    ).toHaveAttribute('href', '/admin/series');
+  });
+
+  it('ADMIN 도 시리즈 관리(/admin/series) 링크를 본다', () => {
+    setRole('ADMIN');
+    renderLayout();
+    expect(
+      screen.getByRole('link', { name: /시리즈 관리/ }),
+    ).toHaveAttribute('href', '/admin/series');
+  });
 });

@@ -27,6 +27,10 @@ export function AdminLayout() {
           <NavLink to="/admin/posts/new">
             <Icon name="plus" size={17} /> 새 글 작성
           </NavLink>
+          {/* 시리즈 관리(series, ADR-0029) — AUTHOR/ADMIN 본인 시리즈 진입. T-WEB-504 후속(acceptance 갭). */}
+          <NavLink to="/admin/series">
+            <Icon name="grid" size={17} /> 시리즈 관리
+          </NavLink>
           {user?.role === 'ADMIN' && (
             <NavLink to="/admin/users">
               <Icon name="user" size={17} /> 사용자 관리
