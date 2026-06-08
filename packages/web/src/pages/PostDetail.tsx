@@ -129,7 +129,7 @@ export function PostDetail() {
             <LikeButton post={post} />
           </div>
           <RelatedPosts idOrSlug={post.slug} />
-          <CommentSection postId={post.id} />
+          <CommentSection postId={post.id} postAuthorId={post.authorId} />
         </div>
       </div>
     </div>

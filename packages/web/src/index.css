@@ -1052,6 +1052,40 @@ a {
 .ab-comment-reply:hover {
   color: var(--accent-text);
 }
+/* 댓글 액션 바(답글·수정·삭제) — comment-moderation (ADR-0027) */
+.ab-comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+.ab-comment-actions .ab-comment-reply {
+  margin-top: 0;
+}
+.ab-comment-action {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  transition: 0.18s;
+}
+.ab-comment-action:hover {
+  color: var(--accent-text);
+}
+.ab-comment-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ab-comment-edited {
+  color: var(--text-2);
+  font-size: 12px;
+}
+.ab-comment-deleted {
+  color: var(--text-2);
+  font-style: italic;
+}
+.ab-comment-edit {
+  margin-top: 8px;
+}
 .ab-comment-children {
   list-style: none;
   margin: 6px 0 0 18px;

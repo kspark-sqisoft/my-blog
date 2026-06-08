@@ -9,7 +9,13 @@ function countAll(list: CommentDto[]): number {
 }
 
 // Post 상세 하단의 댓글 영역: 작성 폼 + 깊이 2 중첩 목록.
-export function CommentSection({ postId }: { postId: string }) {
+export function CommentSection({
+  postId,
+  postAuthorId,
+}: {
+  postId: string;
+  postAuthorId?: string;
+}) {
   const query = useComments(postId);
   const count = query.data ? countAll(query.data) : 0;
 
@@ -29,7 +35,11 @@ export function CommentSection({ postId }: { postId: string }) {
             댓글을 불러오지 못했습니다.
           </p>
         ) : (
-          <CommentTree comments={query.data} postId={postId} />
+          <CommentTree
+            comments={query.data}
+            postId={postId}
+            postAuthorId={postAuthorId}
+          />
         )}
       </div>
     </section>

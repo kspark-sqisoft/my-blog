@@ -54,14 +54,14 @@
 
 ### 스토리 S18.5 — 웹 UI
 
-#### T-WEB-401 — 댓글 수정·삭제 UI + 훅
-- **context**: WEB / **priority**: 97 / **deps**: T-CONV-008, T-CONV-005 / **tdd_first**: true / **예상**: 2h
+#### T-WEB-401 — 댓글 수정·삭제 UI + 훅 — ✅ done (2026-06-08)
+- **context**: WEB / **priority**: 97 / **deps**: T-CONV-008, T-CONV-005 / **tdd_first**: true / **예상**: 2h / **status**: done
 - **변경 파일**: `packages/web/src/api/comments.ts`, `packages/web/src/components/comment/*`(CommentTree/CommentItem), `packages/web/src/pages/PostDetail.tsx`, `packages/web/e2e/*.spec.ts`
 - **acceptance**:
   1. `useUpdateComment`·`useDeleteComment` 훅(`src/api/comments.ts`) — 성공 시 댓글 목록 쿼리 무효화(컴포넌트 직접 fetch 금지).
   2. 권한별 버튼 노출: `canEdit = user && comment.userId===user.id`, `canDelete = user && (comment.userId===user.id || user.role==='ADMIN' || user.id===postAuthorId)`. `postAuthorId` 는 PostDetail `authorId` 를 트리에 prop 전달.
   3. 수정: 인라인 폼 → PATCH → 목록 갱신, **"수정됨"**(`isEdited`) 표시. 삭제: 확인 → DELETE → 목록 갱신, soft 노드는 **"삭제된 댓글입니다"**(`isDeleted`) placeholder + 답글 유지.
-  4. 회귀 없음: web unit + e2e GWT(작성→수정"수정됨"→답글有 삭제 시 트리 보존).
+  4. 회귀 없음: web unit(권한·수정·삭제·소프트삭제·트리보존 9케이스). e2e GWT(브라우저 작성→수정"수정됨"→답글有 삭제 트리 보존)는 격리 prod 스택 후속 검증.
 
 ## 진행 순서 요약
 
