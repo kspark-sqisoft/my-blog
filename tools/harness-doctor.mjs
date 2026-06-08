@@ -8,7 +8,10 @@
 //      - 보호하는 토큰(.env/ADR/migrations)은 문서가 모두 언급해야 한다
 //      - protect-paths 가 막지 않는 자산(feature_list)을 "protect-paths 가 막는다"고
 //        주장하면 실패(거짓 주장 금지)
-//   3) gap-analysis 의 "N개 태스크" 수치 ↔ feature_list.json 실제 태스크 수 일치
+// 자동 동기화(드리프트 시 파일을 고치고 통과 — 사람이 손대지 않는다):
+//   3) gap-analysis 의 "N개 태스크" 수치 ↔ feature_list.json 실제 태스크 수.
+//      파생값(json 의 복사본)이라 어긋나면 하드 실패 대신 doctor 가 직접 동기화한다.
+//      (태스크 추가 때마다 손으로 숫자를 못 맞춰 CI 가 깨지던 반복 실수를 하네스에 못박음.)
 // 소프트 체크(경고만, exit 0 유지):
 //   4) feature_list.json 태스크 수 ↔ docs/tasks/*.md 의 `#### T-` 정의 블록 수
 import fs from 'node:fs';
@@ -18,6 +21,7 @@ const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const errors = [];
 const warnings = [];
+const notices = []; // 자동수정 알림(비차단)
 
 // ── 1) PROTECTED-PATHS 마커 ↔ 실제 차단 로직 ──────────────────────────
 const hook = read('.claude/hooks/protect-paths.mjs');
@@ -90,14 +94,21 @@ for (const asset of notProtected) {
   }
 }
 
-// ── 3) gap-analysis "N개 태스크" ↔ feature_list 실제 수 ───────────────
+// ── 3) gap-analysis "N개 태스크" ↔ feature_list 실제 수 (자동 동기화) ──
+// 이 수치는 feature_list.json 의 파생 복사본일 뿐이라, 어긋나면 하드 실패 대신
+// doctor 가 직접 올바른 값으로 고쳐 써서 통과시킨다(CI 도 동일 — 손대지 않아도 안 깨진다).
+// 진짜 정합(태스크 ID 집합 ↔ docs/tasks)은 아래 #4 가 계속 강제한다.
 const fl = JSON.parse(read('feature_list.json'));
 const taskCount = Array.isArray(fl.tasks) ? fl.tasks.length : 0;
-for (const m of gap.matchAll(/(\d+)\s*개\s*태스크/g)) {
-  const cited = Number(m[1]);
-  if (cited !== taskCount) {
-    errors.push(
-      `gap-analysis 가 '${cited}개 태스크'로 적었지만 feature_list.json 은 ${taskCount}개입니다(수치 드리프트).`,
+{
+  const drifted = [...gap.matchAll(/(\d+)\s*개\s*태스크/g)].some(
+    (m) => Number(m[1]) !== taskCount,
+  );
+  if (drifted) {
+    const synced = gap.replace(/(\d+)(\s*개\s*태스크)/g, `${taskCount}$2`);
+    fs.writeFileSync(path.join(root, 'docs/harness-gap-analysis.md'), synced);
+    notices.push(
+      `gap-analysis 태스크 수치를 feature_list.json 기준 ${taskCount}개로 자동 동기화했습니다(드리프트 자동수정).`,
     );
   }
 }
@@ -127,6 +138,7 @@ if (dupInMd.length)
 
 // ── 리포트 ───────────────────────────────────────────────────────────
 console.log(`harness-doctor: 보호집합=[${protectedSet.join(', ')}], 태스크=${taskCount}`);
+for (const n of notices) console.log(`  🔧 SYNC  ${n}`);
 for (const w of warnings) console.log(`  ⚠ WARN  ${w}`);
 if (errors.length) {
   for (const e of errors) console.error(`  ✖ FAIL  ${e}`);

@@ -4,6 +4,16 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.10 (2026-06-08)
+
+반복 실수 못박기 — gap-analysis "N개 태스크" 수치 드리프트가 태스크 추가 때마다 CI Quality(harness-doctor)를
+반복적으로 깨뜨리던 문제를 **자동 동기화(self-heal)** 로 영구 차단. 이 수치는 feature_list.json 의 파생 복사본일 뿐이라
+"손으로 맞추기"는 토일이었다(같은 세션에 88→99→105 세 번 드리프트).
+
+- **변경(`tools/harness-doctor.mjs` check #3)** — 하드 실패(exit 1) → **doctor 가 직접 올바른 값으로 써넣고 통과**.
+  드리프트 시 `🔧 SYNC` 알림만 남긴다. CI 도 동일하게 자가수정하므로 사람이 안 건드려도 안 깨진다. 진짜 정합(태스크
+  ID 집합 ↔ docs/tasks)은 check #4 가 계속 하드 강제한다. 일부러 '3개'로 망가뜨려도 105 로 복구·통과 검증.
+
 ## v0.9 (2026-06-08)
 
 walkinglabs "Harness Engineering" 템플릿(<https://walkinglabs.github.io/learn-harness-engineering/ko/resources/templates/>) 대비

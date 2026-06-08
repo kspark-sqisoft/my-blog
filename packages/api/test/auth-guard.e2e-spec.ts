@@ -75,7 +75,7 @@ describe('JwtAuthGuard + JwtStrategy (e2e)', () => {
     await app.close();
   });
 
-  it('유효한 access_token 쿠키 → 200 + req.user{ id, email, name, role, avatarUrl }', () => {
+  it('유효한 access_token 쿠키 → 200 + req.user{ id, email, name, role, avatarUrl, bio }', () => {
     const token = jwt.sign({ sub: userId, email });
     return request(app.getHttpServer())
       .get('/api/me-probe')
@@ -87,6 +87,7 @@ describe('JwtAuthGuard + JwtStrategy (e2e)', () => {
         name: '프로브',
         role: 'ADMIN',
         avatarUrl: null,
+        bio: null, // AuthUserDto.bio (ADR-0028, author-profile)
       });
   });
 
