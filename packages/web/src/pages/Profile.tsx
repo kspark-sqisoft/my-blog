@@ -1,12 +1,26 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateProfileSchema, type UpdateProfileDto } from '@blog/shared';
 import { type ChangeEvent, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import { z } from 'zod';
 import { useAuth } from '../auth/useAuth';
 import { Avatar } from '../components/Avatar';
 import { Icon } from '../components/Icon';
 import { useUpdateProfile, useUploadAvatar } from '../profile/useProfile';
+
+// 프로필 폼 검증(ADR-0025·ADR-0004: 웹 폼은 zod). avatarUrl 은 업로드가 채운 로컬 /uploads 경로 또는 null.
+const profileSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, '이름을 입력하세요')
+    .max(50, '이름은 50자 이하여야 합니다'),
+  avatarUrl: z
+    .string()
+    .regex(/^\/uploads\//, '아바타 경로가 올바르지 않습니다')
+    .nullable(),
+});
+type ProfileForm = z.infer<typeof profileSchema>;
 
 export function Profile() {
   const user = useAuth((s) => s.user);
@@ -21,8 +35,8 @@ export function Profile() {
     handleSubmit,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<UpdateProfileDto>({
-    resolver: zodResolver(updateProfileSchema),
+  } = useForm<ProfileForm>({
+    resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name ?? '',
       avatarUrl: user?.avatarUrl ?? null,
