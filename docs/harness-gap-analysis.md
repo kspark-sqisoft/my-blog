@@ -9,7 +9,7 @@
 | # | 가이드 메커니즘 | 근거(장) | 우리 상태 | 비고 |
 |---|---|---|---|---|
 | 1 | `init.sh` 1커맨드 부트스트랩 + 헬스체크 | 12 STEP1 | ✅ 보유 | `init.sh` |
-| 2 | `feature_list.json` 진행 상태 정규 소스 | 12 STEP3 | ✅ 보유 | 99개 태스크 (harness-doctor 가 이 수치 ↔ JSON 정합 검사) |
+| 2 | `feature_list.json` 진행 상태 정규 소스 | 12 STEP3 | ✅ 보유 | 105개 태스크 (harness-doctor 가 이 수치 ↔ JSON 정합 검사) |
 | 3 | Phase별 슬래시 명령(/prd~/finish) | 11 | ✅ 보유 | `.claude/commands/` 9종 |
 | 4 | `tdd-feature` 스킬(Red-Green-Refactor 강제) | 12 STEP6 | ✅ 보유 | description 자동 트리거 |
 | 5 | 세션 시작 루틴 훅 | 12 STEP2 | ✅ 보유 | `session-start.mjs`(SessionStart 자동) + `session-ready.mjs`(`/ready` 수동 전체 루틴) |
