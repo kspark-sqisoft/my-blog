@@ -240,4 +240,97 @@ describe('CommentService (통합)', () => {
       expect(node?.displayName).toBeNull();
     });
   });
+
+  // T-CONV-007: 삭제 (조건부 soft/hard) + 권한
+  describe('remove (삭제 — 조건부 soft/hard)', () => {
+    it('직계 답글이 없으면 hard delete(노드 소멸)', async () => {
+      const c = await service.create({
+        postId: publishedId,
+        body: '잎 댓글',
+        userId: authorId,
+      });
+      await service.remove(c.id, { id: authorId, role: 'ADMIN' });
+      const tree = await service.listByPost(publishedId);
+      expect(tree.find((n) => n.id === c.id)).toBeUndefined();
+    });
+
+    it('직계 답글이 있으면 soft(deletedAt, 노드·답글 보존)', async () => {
+      const top = await service.create({
+        postId: publishedId,
+        body: 'top',
+        userId: authorId,
+      });
+      await service.create({
+        postId: publishedId,
+        body: 'reply',
+        parentId: top.id,
+        userId: authorId,
+      });
+      await service.remove(top.id, { id: authorId, role: 'ADMIN' });
+      const tree = await service.listByPost(publishedId);
+      const node = tree.find((n) => n.id === top.id);
+      expect(node?.isDeleted).toBe(true);
+      expect(node?.body).toBe('');
+      expect(node?.replies).toHaveLength(1);
+    });
+
+    it('본인·ADMIN·글쓴이가 아니면 ForbiddenException(403)', async () => {
+      const c = await service.create({
+        postId: publishedId,
+        body: 'x',
+        userId: authorId,
+      });
+      await expect(
+        service.remove(c.id, { id: 'other-user', role: 'MEMBER' }),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('글쓴이는 타인(익명 포함) 댓글도 삭제 가능 (post.authorId 조회 1회 — N+1 없음)', async () => {
+      const c = await service.create({
+        postId: publishedId,
+        body: '익명 댓글',
+        displayName: '익',
+      });
+      // authorId = 대상 Post 의 글쓴이 → 익명 댓글 삭제(잎이라 hard).
+      // 글쓴이 권한 판정은 post.findUnique(select authorId) 를 정확히 1회만 호출한다(read-only).
+      const spy = jest.spyOn(prisma.post, 'findUnique');
+      await service.remove(c.id, { id: authorId, role: 'AUTHOR' });
+      expect(spy).toHaveBeenCalledTimes(1);
+      spy.mockRestore();
+      const tree = await service.listByPost(publishedId);
+      expect(tree.find((n) => n.id === c.id)).toBeUndefined();
+    });
+
+    it('없는 댓글은 NotFoundException(404)', async () => {
+      await expect(
+        service.remove('no-such', { id: authorId, role: 'ADMIN' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  // T-CONV-007: 소프트 삭제된 부모에는 답글을 달 수 없다(S2)
+  describe('create — 소프트 삭제 부모 답글 차단', () => {
+    it('soft 삭제된 부모에 답글 작성 → BadRequestException(400)', async () => {
+      const top = await service.create({
+        postId: publishedId,
+        body: 'top',
+        userId: authorId,
+      });
+      await service.create({
+        postId: publishedId,
+        body: 'r',
+        parentId: top.id,
+        userId: authorId,
+      });
+      await service.remove(top.id, { id: authorId, role: 'ADMIN' }); // 답글有 → soft
+      await expect(
+        service.create({
+          postId: publishedId,
+          body: '새 답글',
+          parentId: top.id,
+          userId: authorId,
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+  });
 });

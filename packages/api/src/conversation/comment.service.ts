@@ -66,11 +66,16 @@ export class CommentService {
           id: true,
           postId: true,
           parentId: true,
+          deletedAt: true,
           parent: { select: { parentId: true } },
         },
       });
       if (!parent || parent.postId !== input.postId) {
         throw new NotFoundException('상위 댓글을 찾을 수 없습니다.');
+      }
+      // 소프트 삭제된 댓글에는 답글을 달 수 없다 (S2, ADR-0027)
+      if (parent.deletedAt !== null) {
+        throw new BadRequestException('삭제된 댓글에는 답글을 달 수 없습니다.');
       }
       // 부모의 깊이: 최상위(parentId=null)=0, 1단 답글(조부모=null)=1, 그 외=2 이상
       const parentDepth =
@@ -145,6 +150,42 @@ export class CommentService {
     });
     const depth = await this.resolveDepth(updated.parentId);
     return this.toDto(updated, depth);
+  }
+
+  // 삭제 (T-CONV-007): 본인·운영자(ADMIN)·글쓴이. 직계 답글이 있으면 soft(트리 보존),
+  // 없으면 hard. 401→404→403 중 404·403 은 여기(401 은 컨트롤러 가드 — T-CONV-008).
+  async remove(id: string, actor: Actor): Promise<void> {
+    const comment = await this.requireComment(id);
+    await this.assertCanDelete(comment, actor);
+    const childCount = await this.prisma.comment.count({
+      where: { parentId: id },
+    });
+    if (childCount > 0) {
+      // 직계 답글 있음 → 소프트 삭제(deletedAt set, 노드·답글 보존)
+      await this.prisma.comment.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+    } else {
+      // 잎 댓글 → 완전 삭제
+      await this.prisma.comment.delete({ where: { id } });
+    }
+  }
+
+  // 삭제 권한: 본인(userId) ‖ ADMIN ‖ 글쓴이(대상 Post.authorId — read-only ID 참조).
+  // 익명 댓글(userId null)은 본인이 성립하지 않아 ADMIN·글쓴이만 통과.
+  private async assertCanDelete(
+    comment: CommentRow,
+    actor: Actor,
+  ): Promise<void> {
+    if (comment.userId === actor.id) return;
+    if (actor.role === 'ADMIN') return;
+    const post = await this.prisma.post.findUnique({
+      where: { id: comment.postId },
+      select: { authorId: true },
+    });
+    if (post && post.authorId === actor.id) return;
+    throw new ForbiddenException('댓글을 삭제할 권한이 없습니다.');
   }
 
   // 관계 포함 조회 + 존재 보장(없으면 404)

@@ -31,8 +31,8 @@
 
 ### 스토리 S18.3 — 삭제(조건부 soft/hard) + 답글 차단
 
-#### T-CONV-007 — CommentService.remove(조건부) + soft 부모 답글 차단
-- **context**: CONV / **priority**: 95 / **deps**: T-CONV-006 / **tdd_first**: true / **예상**: 2h
+#### T-CONV-007 — CommentService.remove(조건부) + soft 부모 답글 차단 — ✅ done (2026-06-08)
+- **context**: CONV / **priority**: 95 / **deps**: T-CONV-006 / **tdd_first**: true / **예상**: 2h / **status**: done
 - **변경 파일**: `packages/api/src/conversation/comment.service.ts`(+`.spec`)
 - **acceptance**:
   1. `remove(id, actor)`: 본인(`userId===actor.id`) ‖ `actor.role==='ADMIN'` ‖ 글쓴이(`actor.id===post.authorId`) 아니면 403, 없으면 404(401→404→403 순서는 컨트롤러 가드).

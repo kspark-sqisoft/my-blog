@@ -65,6 +65,7 @@ describe('CommentService.create — depth 계산 (H2: N+1 제거)', () => {
       id: 'top',
       postId: 'p1',
       parentId: null,
+      deletedAt: null,
       parent: null,
     };
     const { prisma, prismaMock } = makePrismaMock(parentRow);
@@ -85,6 +86,7 @@ describe('CommentService.create — depth 계산 (H2: N+1 제거)', () => {
       id: 'r1',
       postId: 'p1',
       parentId: 'top',
+      deletedAt: null,
       parent: { parentId: null },
     };
     const { prisma, prismaMock } = makePrismaMock(parentRow);
@@ -105,6 +107,7 @@ describe('CommentService.create — depth 계산 (H2: N+1 제거)', () => {
       id: 'r2',
       postId: 'p1',
       parentId: 'r1',
+      deletedAt: null,
       parent: { parentId: 'top' },
     };
     const { prisma, prismaMock } = makePrismaMock(parentRow);
@@ -146,6 +149,7 @@ describe('CommentService.create — depth 계산 (H2: N+1 제거)', () => {
       id: 'top',
       postId: 'p1',
       parentId: null,
+      deletedAt: null,
       parent: null,
     };
     const { prisma, prismaMock } = makePrismaMock(parentRow);
