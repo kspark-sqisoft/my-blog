@@ -84,8 +84,8 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
   1. 시리즈 소속 발행글 상세에 "X 시리즈 · N/M편"(시리즈 상세 링크) + 이전/다음 글 링크(`/posts/:slug`, 접근가능 이름). 미소속이면 미표시.
   2. 첫/끝 글에서 이전/다음 적절히 비활성/숨김. web unit + 회귀 0(기존 상세 셀렉터 유지).
 
-#### T-WEB-503 — 시리즈 목록/인덱스 /series
-- **context**: WEB / **priority**: 207 / **deps**: T-SER-004 / **tdd_first**: true / **예상**: 1.5h
+#### T-WEB-503 — 시리즈 목록/인덱스 /series ✅ done (2026-06-08)
+- **context**: WEB / **priority**: 207 / **deps**: T-SER-004 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/web/src/pages/SeriesList.tsx`(신규), `src/series/useSeriesList.ts`(신규 훅), `src/routes.tsx`, 네비 링크, 단위 테스트
 - **acceptance**:
   1. `/series` 시리즈 카드 목록(제목·설명·글 수·작성자) + 페이지네이션. 각 카드 → `/series/:slug`.

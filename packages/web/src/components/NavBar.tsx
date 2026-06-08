@@ -32,6 +32,7 @@ export function NavBar() {
           <NavLink to="/" end>
             글
           </NavLink>
+          <NavLink to="/series">시리즈</NavLink>
         </nav>
         <div className="ab-nav-right">
           <button

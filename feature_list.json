@@ -2071,7 +2071,8 @@
       "context": "WEB",
       "priority": 207,
       "deps": ["T-SER-004"],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "series",
       "tdd_first": true,
       "acceptance": [

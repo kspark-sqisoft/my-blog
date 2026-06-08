@@ -7,6 +7,7 @@ import { Dashboard } from './pages/admin/Dashboard';
 import { PostEditor } from './pages/admin/PostEditor';
 import { AuthorProfile } from './pages/AuthorProfile';
 import { SeriesDetail } from './pages/SeriesDetail';
+import { SeriesList } from './pages/SeriesList';
 import { Login } from './pages/Login';
 import { Profile } from './pages/Profile';
 import { Register } from './pages/Register';
@@ -26,7 +27,8 @@ export const routes: RouteObject[] = [
       { path: '/tags/:name', element: <TagPosts /> },
       // 공개 작성자 프로필 (author-profile, ADR-0028)
       { path: '/users/:id', element: <AuthorProfile /> },
-      // 공개 시리즈 상세 (series, ADR-0029)
+      // 공개 시리즈 목록·상세 (series, ADR-0029)
+      { path: '/series', element: <SeriesList /> },
       { path: '/series/:slug', element: <SeriesDetail /> },
       // 프로필: 로그인 필요(역할 무관) — ADR-0025
       {
