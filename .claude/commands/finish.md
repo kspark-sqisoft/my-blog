@@ -15,6 +15,13 @@ argument-hint: [태스크ID]--
    변경 diff 를 `code-reviewer` 서브에이전트에 위임해 절대규칙·ADR·보안 기준으로 검토한다.
    **Critical 이 하나라도 있으면 commit 하지 말고 멈춘다**(저자가 고친 뒤 /finish 재실행).
    Warning/Suggestion 은 사용자에게 요약 보고하되 진행은 막지 않는다.
+3.5. 산출물 채점 (`docs/evaluator-rubric.md` 6차원)
+   2단계 verifier 가 모은 증거 + 3단계 리뷰 지적으로 6차원(정확성·검증·범위·신뢰성·유지보수성·핸드오프)을
+   각 0/1/2점 채점한다(저자 자가채점 금지 — 증거 기반). 결론을 매긴다:
+   - **Block**(≤5, 또는 정확성/검증 차원이 0점) → commit 하지 말고 멈춘다(status todo 유지).
+   - **Revise**(6–9) → 사용자에게 무엇을 고치면 2점인지 보고. 경미하면 진행은 가능.
+   - **Accept**(≥10, 0점 없음) → 진행.
+   결과 한 줄을 6단계 handoff 하단에 `평가: {Accept/Revise/Block} (n/12)` 로 남긴다.
 4. feature_list.json 갱신 + docs/tasks 동기화 (절대 규칙 #10)
    - `feature_list.json`: $ARGUMENTS 의 status → "done", completed_at → 오늘 날짜
    - **같은 작업으로** `docs/tasks/{feature}.md` 의 대응 태스크도 갱신한다
@@ -26,6 +33,7 @@ argument-hint: [태스크ID]--
      `docs/harness-changelog.md` 에 한 줄(추가/변경/삭제 + 이유)을 남긴다.
 6. handoff 노트 작성
    docs/handoff/{YYYY-MM-DD}-{$ARGUMENTS}.md 에 다음 6개 섹션:- 한 일- TDD 사이클 확인 (RED 출력, GREEN 출력, REFACTOR 결과)- 결정한 것 (새 ADR이 필요한 결정 표시)- 알려진 이슈- 다음 세션이 알아야 할 것- 명령 출력 증거
+   하단에 3.5단계 채점 결과를 `평가: {Accept/Revise/Block} (n/12)` 한 줄로 남긴다.
 7. commit
    메시지: `feat({domain}):	{요약}	(refs	$ARGUMENTS)`
    파일: 변경된 코드 + feature_list.json + docs/handoff/{...}.md (+ 갱신된 CLAUDE.md/harness-changelog)

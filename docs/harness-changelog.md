@@ -4,6 +4,16 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.9 (2026-06-08)
+
+walkinglabs "Harness Engineering" 템플릿(<https://walkinglabs.github.io/learn-harness-engineering/ko/resources/templates/>) 대비
+1회 비교 + 빠져 있던 품질 추적 산출물 2종 신규 도입. 진행 성숙기(95/99 done)에 "코드베이스 건전성"·"세션 산출물 품질"을 가시화.
+
+- **문서(비교)** — `docs/harness-template-comparison.md`: 템플릿 8종 매핑(핵심 4종 초과 반영, 클린상태 체크리스트는 Stop훅+`/finish`로 대체, 품질 2종 신규). status 명칭 불일치는 한글화 의도로 유지 확정.
+- **추가(품질 문서)** — `docs/quality-document.md`: 도메인 5(Auth/Publishing/Conversation/Engagement/SEO)·레이어 3(api/web/shared) 등급 스냅샷(2026-06-08 초판). 하네스 단순화 비교(구성요소 제거 전후 등급 비교) 절차 포함.
+- **추가(평가자 루브릭)** — `docs/evaluator-rubric.md`: 세션 산출물 6차원(정확성·검증·범위·신뢰성·유지보수성·핸드오프) 0–2점 채점. 정확성/검증 0점은 총점 무관 Block 가중.
+- **배선(`/finish` 3.5단계)** — `.claude/commands/finish.md`: verifier 증거로 6차원 채점 → Block 이면 commit 차단, 결과를 handoff 하단 `평가: {결론} (n/12)` 한 줄로 기록. 코드베이스 건전성은 별도(quality-document)로 분리.
+
 ## v0.8 (2026-06-08)
 
 기획 단계 서브에이전트 확장 + 글로벌 설계·디자인 자산 명문화. "작성↔검토 분리"를 코드(v0.7)에서 기획으로 넓히고,
