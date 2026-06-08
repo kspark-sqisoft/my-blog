@@ -39,6 +39,9 @@ jobs:
           --health-retries 20
     env:
       DATABASE_URL: postgresql://blog:blog@localhost:5432/blog?schema=public
+      # jest setup(test-db.setup·jest-e2e.setup)이 TEST_DATABASE_URL 을 우선 사용한다.
+      # 미설정 시 로컬 기본값 127.0.0.1:5433 로 강제돼 CI(5432)에서 접속 실패 → 반드시 지정.
+      TEST_DATABASE_URL: postgresql://blog:blog@localhost:5432/blog_test?schema=public
     steps:
       - uses: actions/checkout@v4
 
