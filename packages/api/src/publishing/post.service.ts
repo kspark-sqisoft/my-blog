@@ -9,6 +9,7 @@ import type {
   PostDetailDto,
   PostSummaryDto,
   RelatedPostDto,
+  SeriesNavDto,
   UserRole,
 } from '@blog/shared';
 import { BadRequestException } from '@nestjs/common';
@@ -272,7 +273,55 @@ export class PostService {
           select: { postId: true },
         }))
       : false;
-    return this.toDetail(post, likedByMe);
+    const series = await this.buildSeriesNav(post.seriesId, post.id);
+    return this.toDetail(post, likedByMe, series);
+  }
+
+  // 시리즈 네비게이션 파생 (ADR-0029). 같은 시리즈 발행글만 seriesOrder 정렬해
+  // 현재 글의 위치(1-based)·총수·이전/다음을 계산한다. 추가 쿼리 1회(N+1 없음).
+  private async buildSeriesNav(
+    seriesId: string | null,
+    postId: string,
+  ): Promise<SeriesNavDto | null> {
+    if (!seriesId) {
+      return null;
+    }
+    const series = await this.prisma.series.findUnique({
+      where: { id: seriesId },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        posts: {
+          where: { status: 'PUBLISHED' as const },
+          orderBy: { seriesOrder: 'asc' as const },
+          select: { id: true, slug: true, title: true },
+        },
+      },
+    });
+    if (!series) {
+      return null;
+    }
+    const list = series.posts;
+    const idx = list.findIndex((p) => p.id === postId);
+    if (idx === -1) {
+      return null; // 현재 글이 발행 시리즈 목록에 없으면 네비 미표시
+    }
+    return {
+      id: series.id,
+      slug: series.slug,
+      title: series.title,
+      position: idx + 1,
+      total: list.length,
+      prev:
+        idx > 0
+          ? { slug: list[idx - 1].slug, title: list[idx - 1].title }
+          : null,
+      next:
+        idx < list.length - 1
+          ? { slug: list[idx + 1].slug, title: list[idx + 1].title }
+          : null,
+    };
   }
 
   // 관련 글 (T-READ-104, ADR-0023): 공유 태그 수 desc → publishedAt desc, 자기 제외,
@@ -452,7 +501,11 @@ export class PostService {
     };
   }
 
-  private toDetail(post: PostWithTags, likedByMe = false): PostDetailDto {
+  private toDetail(
+    post: PostWithTags,
+    likedByMe = false,
+    series: SeriesNavDto | null = null,
+  ): PostDetailDto {
     return {
       id: post.id,
       slug: post.slug,
@@ -470,7 +523,7 @@ export class PostService {
       viewCount: post.viewCount,
       likeCount: post.likeCount,
       likedByMe,
-      series: null, // 시리즈 네비게이션은 T-SER-005 에서 파생 (ADR-0029)
+      series, // 시리즈 네비게이션 (ADR-0029). 공개 상세에서만 채워지고 그 외엔 null
     };
   }
 }

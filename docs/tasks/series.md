@@ -59,8 +59,8 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
   2. `GET /api/series/:idOrSlug`(공개): `SeriesDetailDto`, `posts`=발행글만 `seriesOrder` 오름차순(초안 제외). slug·cuid 둘 다(ADR-0022). 없음 404, 발행글 0 → 200 빈 posts.
   3. 초안/미발행 글이 posts·postCount 에 절대 미포함(발행 격리 회귀 0). 단위+e2e GREEN.
 
-#### T-SER-005 — 글 상세 시리즈 네비 파생
-- **context**: PUB / **priority**: 204 / **deps**: T-SER-001 / **tdd_first**: true / **예상**: 1.5h
+#### T-SER-005 — 글 상세 시리즈 네비 파생 ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 204 / **deps**: T-SER-001 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/api/src/publishing/post.service.ts`(+`.spec`), `test/post.e2e-spec.ts`
 - **acceptance**:
   1. `getPublishedDetail` 가 현재 글이 시리즈 소속이면 `PostDetailDto.series`(id·slug·title·position·total·prev·next) 채움. 미소속이면 `series:null`.

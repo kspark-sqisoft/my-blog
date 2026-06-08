@@ -684,4 +684,89 @@ describe('PostService (통합)', () => {
       ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
+
+  // T-SER-005: 글 상세 시리즈 네비 파생 (ADR-0029)
+  describe('getPublishedDetail 시리즈 네비', () => {
+    // 발행글(시리즈 멤버) 생성 헬퍼
+    async function member(
+      seriesId: string,
+      title: string,
+      order: number,
+      status: 'PUBLISHED' | 'DRAFT' = 'PUBLISHED',
+    ): Promise<{ id: string; slug: string }> {
+      const p = await prisma.post.create({
+        data: {
+          slug: `nav-${title}-${Date.now()}-${order}`,
+          title,
+          contentMarkdown: 'x',
+          authorId,
+          status,
+          publishedAt: status === 'PUBLISHED' ? new Date() : null,
+          seriesId,
+          seriesOrder: order,
+        },
+      });
+      return { id: p.id, slug: p.slug };
+    }
+
+    it('시리즈 소속 발행글은 series(위치·이전/다음)를 채운다', async () => {
+      const s = await prisma.series.create({
+        data: { slug: `nav-s-${Date.now()}`, title: '연재', authorId },
+      });
+      const p1 = await member(s.id, '1편', 0);
+      const p2 = await member(s.id, '2편', 1);
+      const p3 = await member(s.id, '3편', 2);
+
+      const detail = await service.getPublishedDetail(p2.slug);
+      expect(detail.series).not.toBeNull();
+      expect(detail.series?.id).toBe(s.id);
+      expect(detail.series?.title).toBe('연재');
+      expect(detail.series?.position).toBe(2);
+      expect(detail.series?.total).toBe(3);
+      expect(detail.series?.prev).toEqual({ slug: p1.slug, title: '1편' });
+      expect(detail.series?.next).toEqual({ slug: p3.slug, title: '3편' });
+    });
+
+    it('첫 글은 prev=null, 끝 글은 next=null', async () => {
+      const s = await prisma.series.create({
+        data: { slug: `nav-e-${Date.now()}`, title: '경계', authorId },
+      });
+      const first = await member(s.id, 'A', 0);
+      const last = await member(s.id, 'B', 1);
+
+      const firstDetail = await service.getPublishedDetail(first.slug);
+      expect(firstDetail.series?.prev).toBeNull();
+      expect(firstDetail.series?.next).toEqual({ slug: last.slug, title: 'B' });
+
+      const lastDetail = await service.getPublishedDetail(last.slug);
+      expect(lastDetail.series?.next).toBeNull();
+      expect(lastDetail.series?.prev).toEqual({ slug: first.slug, title: 'A' });
+    });
+
+    it('시리즈 미소속 글은 series=null', async () => {
+      const solo = await service.create({
+        title: '독립글',
+        contentMarkdown: 'x',
+        authorId,
+        tags: [],
+      });
+      await service.publish(solo.id, adminActor);
+      const detail = await service.getPublishedDetail(solo.id);
+      expect(detail.series).toBeNull();
+    });
+
+    it('네비는 발행글만 센다(초안 멤버 제외)', async () => {
+      const s = await prisma.series.create({
+        data: { slug: `nav-d-${Date.now()}`, title: '초안섞임', authorId },
+      });
+      const pub1 = await member(s.id, 'P1', 0);
+      await member(s.id, 'D', 1, 'DRAFT'); // 초안 → total/위치에서 제외
+      const pub2 = await member(s.id, 'P2', 2);
+
+      const d1 = await service.getPublishedDetail(pub1.slug);
+      expect(d1.series?.total).toBe(2); // 발행 2건만
+      expect(d1.series?.position).toBe(1);
+      expect(d1.series?.next).toEqual({ slug: pub2.slug, title: 'P2' }); // 초안 건너뜀
+    });
+  });
 });

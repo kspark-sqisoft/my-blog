@@ -451,4 +451,80 @@ describe('PostController (e2e)', () => {
       .get('/api/posts/no-such-slug/related')
       .expect(404);
   });
+
+  // T-SER-005: 글 상세 시리즈 네비게이션
+  it('공개 GET /api/posts/:slug — 시리즈 소속이면 series(이전/다음·위치) 노출', async () => {
+    // 작성자(authorUserId)가 시리즈 + 발행글 2건 구성
+    const series = await request(app.getHttpServer())
+      .post('/api/series')
+      .set('Cookie', authorCookie)
+      .send({ title: '네비 연재' })
+      .expect(201);
+    const seriesId = (series.body as { id: string }).id;
+
+    const ids: string[] = [];
+    const slugs: string[] = [];
+    for (const title of ['1편', '2편']) {
+      const c = await request(app.getHttpServer())
+        .post('/api/posts')
+        .set('Cookie', authorCookie)
+        .send({ title, contentMarkdown: '본문' })
+        .expect(201);
+      const body = c.body as { id: string; slug: string };
+      ids.push(body.id);
+      slugs.push(body.slug);
+      await request(app.getHttpServer())
+        .post(`/api/posts/${body.id}/publish`)
+        .set('Cookie', authorCookie)
+        .expect(200);
+    }
+    await request(app.getHttpServer())
+      .put(`/api/series/${seriesId}/posts`)
+      .set('Cookie', authorCookie)
+      .send({ postIds: ids })
+      .expect(200);
+
+    // 1편: position 1/2, prev null, next=2편
+    const first = await request(app.getHttpServer())
+      .get(`/api/posts/${encodeURIComponent(slugs[0])}`)
+      .expect(200);
+    const fs = (first.body as { series: SeriesNav | null }).series;
+    expect(fs).not.toBeNull();
+    expect(fs?.position).toBe(1);
+    expect(fs?.total).toBe(2);
+    expect(fs?.prev).toBeNull();
+    expect(fs?.next?.slug).toBe(slugs[1]);
+
+    // 2편: next null, prev=1편
+    const second = await request(app.getHttpServer())
+      .get(`/api/posts/${encodeURIComponent(slugs[1])}`)
+      .expect(200);
+    const ss = (second.body as { series: SeriesNav | null }).series;
+    expect(ss?.next).toBeNull();
+    expect(ss?.prev?.slug).toBe(slugs[0]);
+  });
+
+  it('공개 GET /api/posts/:slug — 시리즈 미소속이면 series=null', async () => {
+    const c = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', authorCookie)
+      .send({ title: '독립 상세', contentMarkdown: '본문' })
+      .expect(201);
+    const { id, slug } = c.body as { id: string; slug: string };
+    await request(app.getHttpServer())
+      .post(`/api/posts/${id}/publish`)
+      .set('Cookie', authorCookie)
+      .expect(200);
+    const res = await request(app.getHttpServer())
+      .get(`/api/posts/${encodeURIComponent(slug)}`)
+      .expect(200);
+    expect((res.body as { series: unknown }).series).toBeNull();
+  });
 });
+
+interface SeriesNav {
+  position: number;
+  total: number;
+  prev: { slug: string } | null;
+  next: { slug: string } | null;
+}
