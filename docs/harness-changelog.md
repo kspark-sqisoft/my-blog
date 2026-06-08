@@ -12,7 +12,7 @@
 - **추가(`verifier` 서브에이전트)** — `.claude/agents/verifier.md`(읽기 전용): acceptance 를 증거(테스트 출력·curl·실행 결과)로 PASS/FAIL/**UNVERIFIED** 판정. 증거 없는 통과(UNVERIFIED)를 FAIL 동급으로 차단. 저자 편향 없는 완료 판정.
 - **배선(code-reviewer 자동 호출)** — `/finish`(신규 step3)·`/implement`(신규 step8)가 **commit 직전** `code-reviewer` 서브에이전트를 자동 dispatch. **Critical 이면 commit 차단**. 글로벌 원칙("같은 컨텍스트에서 self-approve 금지")과 정합. 기존엔 CLAUDE.md 수동 안내뿐이라 사실상 미사용이었음.
 - **배선(verifier 자동 호출)** — `/finish` step2(acceptance 점검)를 메인 컨텍스트 자체 점검에서 `verifier` 위임으로 전환. FAIL/UNVERIFIED 면 status=todo 유지하고 멈춤.
-- **강제(Stop 훅 `review-gate`)** — `.claude/hooks/review-gate.mjs`: 슬래시 명령을 우회해도 막도록 결정론적 백스톱 추가. transcript 의 tool_use 기록으로 "이번 세션에 기능 소스(packages/*/src·prisma/schema.prisma) 수정 + git commit 했는데 `code-reviewer`(subagent_type) 미경유"를 판정해 **세션당 1회 block**. 문서만 커밋·작업중(미커밋)·리뷰 경유·재진입(stop_hook_active)은 통과. 6개 시나리오(Windows/POSIX 경로 포함) 단위 검증 통과. settings.json Stop 배열에 등록.
+- **강제(Stop 훅 `review-gate`)** — `.claude/hooks/review-gate.mjs`: 슬래시 명령을 우회해도 막도록 결정론적 백스톱 추가. transcript 의 tool_use 기록을 **시간순 상태머신**으로 보아 "기능 소스(packages/*/src·prisma/schema.prisma)를 고친 뒤 그 변경을 `code-reviewer`(subagent_type) 로 리뷰하지 않고 git commit"하면 **세션당 1회 block**. 순서를 반영하므로 "리뷰→수정→커밋"(리뷰가 수정보다 앞선 경우)도 정확히 잡는다. 문서만 커밋·작업중(미커밋)·정상 흐름(수정→리뷰→커밋)·재진입(stop_hook_active)은 통과. git 서브커맨드 정규식으로 `git log --grep commit` 류 오탐 배제. 9개 시나리오(순서·Windows/POSIX 경로·오탐 포함) 단위 검증 통과. settings.json Stop 배열에 등록. (self code-review 반영: 순서 미고려 false-negative + 정규식 오탐 보강.)
 - **문서(정합)** — `CLAUDE.md` 서브에이전트 안내를 "별도 패스로 호출"(수동)에서 자동 배선 사실(code-reviewer/verifier 자동, debugger 수동)로 갱신. `docs/harness.md` 훅 표·파일 목록에 `review-gate` 추가.
 
 ## v0.6 (2026-06-05)
