@@ -188,4 +188,104 @@ describe('SeriesController CRUD (e2e, T-SER-002, ADR-0029)', () => {
     expect(after).not.toBeNull();
     expect(after?.seriesId).toBeNull();
   });
+
+  // T-SER-003: PUT /api/series/:id/posts 멤버십·순서 재지정
+  async function publish(authorId: string, title: string): Promise<string> {
+    const p = await prisma.post.create({
+      data: {
+        slug: `pe-${title}-${Date.now()}`,
+        title,
+        contentMarkdown: 'x',
+        authorId,
+        status: 'PUBLISHED',
+        publishedAt: new Date(),
+      },
+    });
+    return p.id;
+  }
+
+  it('PUT posts: 순서대로 재지정하고 상세 posts 순서로 반영(소유자)', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/series')
+      .set('Cookie', ownerCookie)
+      .send({ title: '재지정 연재' })
+      .expect(201);
+    const { id } = created.body as { id: string };
+    const a = await publish(ownerId, 'A');
+    const b = await publish(ownerId, 'B');
+
+    const res = await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .set('Cookie', ownerCookie)
+      .send({ postIds: [b, a] })
+      .expect(200);
+    const body = res.body as { posts: { id: string }[]; postCount: number };
+    expect(body.posts.map((p) => p.id)).toEqual([b, a]);
+    expect(body.postCount).toBe(2);
+  });
+
+  it('PUT posts: AUTHOR 타인 글 포함 403, ADMIN 은 임의 글 가능', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/series')
+      .set('Cookie', ownerCookie)
+      .send({ title: '교차소유 연재' })
+      .expect(201);
+    const { id } = created.body as { id: string };
+    const theirs = await publish(strangerId, 'THEIRS');
+
+    // owner(AUTHOR) 가 타인 글 편입 → 403
+    await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .set('Cookie', ownerCookie)
+      .send({ postIds: [theirs] })
+      .expect(403);
+
+    // 운영자로 승격 후 ADMIN 은 가능 — strangerId 를 ADMIN 으로
+    await prisma.user.update({
+      where: { id: strangerId },
+      data: { role: 'ADMIN' },
+    });
+    const adminCookie = await login(strangerEmail);
+    await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .set('Cookie', adminCookie)
+      .send({ postIds: [theirs] })
+      .expect(200);
+    // 원복
+    await prisma.user.update({
+      where: { id: strangerId },
+      data: { role: 'AUTHOR' },
+    });
+  });
+
+  it('PUT posts: 없는 글 400, 중복 postId 400, 미인증 401', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/series')
+      .set('Cookie', ownerCookie)
+      .send({ title: '검증 연재' })
+      .expect(201);
+    const { id } = created.body as { id: string };
+    const a = await publish(ownerId, 'V');
+
+    await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .send({ postIds: [a] })
+      .expect(401);
+    await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .set('Cookie', ownerCookie)
+      .send({ postIds: ['no-such'] })
+      .expect(400);
+    await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .set('Cookie', ownerCookie)
+      .send({ postIds: [a, a] })
+      .expect(400);
+    // postIds 100건 초과 → 400 (@ArrayMaxSize(100))
+    await request(app.getHttpServer())
+      .put(`/api/series/${id}/posts`)
+      .set('Cookie', ownerCookie)
+      .send({ postIds: Array.from({ length: 101 }, (_, i) => `p${i}`) })
+      .expect(400);
+  });
 });

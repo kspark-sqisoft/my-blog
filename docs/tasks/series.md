@@ -39,8 +39,8 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
   3. `DELETE /api/series/:id`(소유자/ADMIN): 204, 소속 글 `seriesId=null`(SetNull)로 보존(글 안 지워짐). 타인 403, 없음 404.
   4. 미인증 쓰기 401. 단위(권한 분기)+e2e(왕복) GREEN.
 
-#### T-SER-003 — PUT /series/:id/posts 멤버십·순서 원자 재지정
-- **context**: PUB / **priority**: 202 / **deps**: T-SER-001, T-SER-002 / **tdd_first**: true / **예상**: 2h
+#### T-SER-003 — PUT /series/:id/posts 멤버십·순서 원자 재지정 ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 202 / **deps**: T-SER-001, T-SER-002 / **tdd_first**: true / **예상**: 2h / **status**: done
 - **변경 파일**: `series.service.ts`(+`.spec`), `series.controller.ts`, `test/series.e2e-spec.ts`
 - **acceptance**:
   1. `PUT /api/series/:id/posts`(소유자/ADMIN) `{postIds:[]}`: 단일 트랜잭션으로 목록 글 `seriesId=this, seriesOrder=index`, 목록에서 빠진(기존 소속) 글 `seriesId=null`. 멱등. 200 `SeriesDetailDto`.

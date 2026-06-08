@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -98,6 +99,62 @@ export class SeriesService {
   async remove(id: string, actor: Actor): Promise<void> {
     await this.assertCanMutate(id, actor);
     await this.prisma.series.delete({ where: { id } });
+  }
+
+  // 멤버십·순서 원자 재지정 (ADR-0029). postIds 의 순서가 곧 seriesOrder.
+  // 목록 글 → seriesId=this·seriesOrder=index, 목록에서 빠진 기존 소속 글 → seriesId=null.
+  // 중복 postId 는 DTO(@ArrayUnique)가 거른다. 부분 적용 없음(단일 트랜잭션).
+  async setPosts(
+    id: string,
+    postIds: string[],
+    actor: Actor,
+  ): Promise<SeriesDetailDto> {
+    await this.assertCanMutate(id, actor);
+
+    // 검증과 변경을 한 인터랙티브 트랜잭션 안에서 수행해 TOCTOU(검증 후 변경) 경합을
+    // 차단한다 — 검증 통과 후 글 소유/존재가 바뀌어도 같은 트랜잭션이 원자적으로 처리한다.
+    await this.prisma.$transaction(async (tx) => {
+      if (postIds.length > 0) {
+        const found = await tx.post.findMany({
+          where: { id: { in: postIds } },
+          select: { id: true, authorId: true },
+        });
+        // 존재하지 않는 글이 섞이면 400
+        if (found.length !== postIds.length) {
+          throw new BadRequestException(
+            '존재하지 않는 글이 포함되어 있습니다.',
+          );
+        }
+        // AUTHOR 는 본인 글만 편입 가능, ADMIN 은 임의 글 가능 (ADR-0029)
+        if (actor.role !== 'ADMIN') {
+          const hasOthers = found.some((p) => p.authorId !== actor.id);
+          if (hasOthers) {
+            throw new ForbiddenException(
+              '본인 글만 시리즈에 넣을 수 있습니다.',
+            );
+          }
+        }
+      }
+
+      // 목록에서 빠진 기존 소속 글 연결 해제
+      await tx.post.updateMany({
+        where: { seriesId: id, NOT: { id: { in: postIds } } },
+        data: { seriesId: null },
+      });
+      // 목록 글을 순서대로 이 시리즈에 편입(다른 시리즈에 있었다면 이동)
+      for (let index = 0; index < postIds.length; index += 1) {
+        await tx.post.update({
+          where: { id: postIds[index] },
+          data: { seriesId: id, seriesOrder: index },
+        });
+      }
+    });
+
+    const series = await this.prisma.series.findUniqueOrThrow({
+      where: { id },
+      include: detailInclude,
+    });
+    return this.toDetail(series);
   }
 
   private async assertCanMutate(id: string, actor: Actor): Promise<void> {

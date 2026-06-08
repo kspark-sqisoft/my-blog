@@ -34,6 +34,7 @@
 | POST | `/api/series` | 시리즈 생성 | 작성자 |
 | PATCH | `/api/series/:id` | 시리즈 수정(소유자·운영자) | 작성자 |
 | DELETE | `/api/series/:id` | 시리즈 삭제(소속 글 보존) | 작성자 |
+| PUT | `/api/series/:id/posts` | 시리즈 멤버십·순서 재지정 | 작성자 |
 | GET | `/api/posts/:postId/comments` | 댓글 목록 | 공개 |
 | POST | `/api/posts/:postId/comments` | 댓글/답글 작성 | 공개 |
 | PATCH | `/api/posts/:postId/comments/:id` | 댓글 수정(본인) | 로그인 |
