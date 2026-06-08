@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaService } from '../prisma/prisma.service';
@@ -166,5 +170,74 @@ describe('CommentService (통합)', () => {
   it('listByPost는 댓글이 없으면 빈 배열을 반환한다', async () => {
     const tree = await service.listByPost(publishedId);
     expect(tree).toEqual([]);
+  });
+
+  // T-CONV-006: 수정 (로그인 작성자 본인만)
+  describe('update (수정 — 본인만)', () => {
+    it('본인은 body 수정 + isEdited/editedAt 설정', async () => {
+      const c = await service.create({
+        postId: publishedId,
+        body: '원본',
+        userId: authorId,
+      });
+      const updated = await service.update(c.id, '수정됨', {
+        id: authorId,
+        role: 'ADMIN',
+      });
+      expect(updated.body).toBe('수정됨');
+      expect(updated.isEdited).toBe(true);
+      expect(updated.editedAt).not.toBeNull();
+      expect(updated.parentId).toBe(c.parentId); // 깊이·parentId 불변
+    });
+
+    it('타인 수정은 ForbiddenException(403)', async () => {
+      const c = await service.create({
+        postId: publishedId,
+        body: 'x',
+        userId: authorId,
+      });
+      await expect(
+        service.update(c.id, 'y', { id: 'other-user', role: 'MEMBER' }),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('익명 댓글은 본인이 성립하지 않아 Forbidden(403)', async () => {
+      const c = await service.create({
+        postId: publishedId,
+        body: '익명',
+        displayName: '익',
+      });
+      await expect(
+        service.update(c.id, 'y', { id: authorId, role: 'ADMIN' }),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('없는 댓글은 NotFoundException(404)', async () => {
+      await expect(
+        service.update('no-such', 'y', { id: authorId, role: 'ADMIN' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  // T-CONV-006: 소프트 삭제 노드는 toDto 에서 본문·작성자를 가린다(M6)
+  describe('toDto 소프트 삭제 가림', () => {
+    it('deletedAt 있으면 body/authorName/avatar/displayName 가림 + isDeleted', async () => {
+      const c = await service.create({
+        postId: publishedId,
+        body: '삭제될 댓글',
+        userId: authorId,
+      });
+      await prisma.comment.update({
+        where: { id: c.id },
+        data: { deletedAt: new Date() },
+      });
+      const tree = await service.listByPost(publishedId);
+      const node = tree.find((n) => n.id === c.id);
+      expect(node?.isDeleted).toBe(true);
+      expect(node?.body).toBe('');
+      expect(node?.authorName).toBeNull();
+      expect(node?.authorAvatarUrl).toBeNull();
+      expect(node?.displayName).toBeNull();
+    });
   });
 });

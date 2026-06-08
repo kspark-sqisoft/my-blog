@@ -20,8 +20,8 @@
 
 ### 스토리 S18.2 — 수정(본인만)
 
-#### T-CONV-006 — CommentService.update + toDto(수정됨·소프트 가림)
-- **context**: CONV / **priority**: 94 / **deps**: T-CONV-005 / **tdd_first**: true / **예상**: 1.5h
+#### T-CONV-006 — CommentService.update + toDto(수정됨·소프트 가림) — ✅ done (2026-06-08)
+- **context**: CONV / **priority**: 94 / **deps**: T-CONV-005 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/api/src/conversation/comment.service.ts`(+`.spec`)
 - **acceptance**:
   1. `update(id, body, actor)`: `comment.userId === actor.id` 면 body 변경 + `editedAt = now`, `CommentDto`(`isEdited: true`) 반환.
