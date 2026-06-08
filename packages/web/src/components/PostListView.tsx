@@ -52,7 +52,7 @@ export function PostListView({
             {post.series && (
               <Link
                 to={`/series/${post.series.slug}`}
-                className="inline-flex items-center gap-1 self-start rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-700 hover:bg-sky-100 dark:bg-sky-950 dark:text-sky-200 dark:hover:bg-sky-900"
+                className="inline-flex items-center gap-1 self-start rounded-full border border-sky-300 bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-800 hover:bg-sky-200 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-200 dark:hover:bg-sky-900"
                 aria-label={`시리즈 ${post.series.title}, ${post.series.order}편째`}
               >
                 <span>{post.series.title}</span>
