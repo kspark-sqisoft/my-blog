@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-08 (seo-feed E17 기획 완료 — T-SEO-001~006 todo 등록)",
+  "updated_at": "2026-06-08 (seo-feed E17 완료 — T-SEO-001~006 done)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -1733,7 +1733,8 @@
       "context": "WEB",
       "priority": 92,
       "deps": [],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "seo-feed",
       "tdd_first": true,
       "acceptance": [
