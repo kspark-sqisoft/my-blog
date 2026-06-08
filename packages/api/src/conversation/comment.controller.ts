@@ -1,8 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -10,9 +14,17 @@ import {
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { Request } from 'express';
 import type { AuthUserDto, CommentDto } from '@blog/shared';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
-import { CommentService } from './comment.service';
+import { CommentService, type Actor } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
+
+// 수정·삭제 주체 (ADR-0018 actor 패턴). role 은 JwtStrategy 가 DB 재조회로 채운다.
+function actorOf(req: Request): Actor {
+  const user = req.user as AuthUserDto;
+  return { id: user.id, role: user.role };
+}
 
 @Controller('posts/:postId/comments')
 export class CommentController {
@@ -42,5 +54,24 @@ export class CommentController {
       parentId: dto.parentId,
       userId: user?.id,
     });
+  }
+
+  // 수정: 로그인 작성자 본인만(body) — ADR-0027. 미인증 401 → 없음 404 → 본인 아님 403.
+  @UseGuards(JwtAuthGuard, ThrottlerGuard)
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateCommentDto,
+    @Req() req: Request,
+  ): Promise<CommentDto> {
+    return this.comments.update(id, dto.body, actorOf(req));
+  }
+
+  // 삭제: 본인·운영자(ADMIN)·글쓴이 — ADR-0027. 조건부 soft/hard 는 서비스가 판정.
+  @UseGuards(JwtAuthGuard, ThrottlerGuard)
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Param('id') id: string, @Req() req: Request): Promise<void> {
+    return this.comments.remove(id, actorOf(req));
   }
 }

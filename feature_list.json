@@ -1806,7 +1806,8 @@
       "context": "CONV",
       "priority": 96,
       "deps": ["T-CONV-007"],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "comment-moderation",
       "tdd_first": true,
       "acceptance": [

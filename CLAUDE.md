@@ -32,6 +32,8 @@
 | PATCH | `/api/admin/users/:id/role` | 역할 변경 | 운영자(ADMIN) |
 | GET | `/api/posts/:postId/comments` | 댓글 목록 | 공개 |
 | POST | `/api/posts/:postId/comments` | 댓글/답글 작성 | 공개 |
+| PATCH | `/api/posts/:postId/comments/:id` | 댓글 수정(본인) | 로그인 |
+| DELETE | `/api/posts/:postId/comments/:id` | 댓글 삭제(본인·운영자·글쓴이, 조건부 soft) | 로그인 |
 | POST | `/api/posts/:postId/like` | 좋아요(멱등) | 로그인 |
 | DELETE | `/api/posts/:postId/like` | 좋아요 취소(멱등) | 로그인 |
 | POST | `/api/posts/:postId/view` | 조회 기록(30분 dedup) | 공개 |

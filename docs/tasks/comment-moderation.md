@@ -43,9 +43,9 @@
 
 ### 스토리 S18.4 — 엔드포인트·권한 매트릭스
 
-#### T-CONV-008 — CommentController PATCH/DELETE + 가드 + e2e
-- **context**: CONV / **priority**: 96 / **deps**: T-CONV-007 / **tdd_first**: true / **예상**: 2h
-- **변경 파일**: `packages/api/src/conversation/comment.controller.ts`, `packages/api/src/conversation/dto/update-comment.dto.ts`, `packages/api/test/comment.e2e-spec.ts`
+#### T-CONV-008 — CommentController PATCH/DELETE + 가드 + e2e — ✅ done (2026-06-08)
+- **context**: CONV / **priority**: 96 / **deps**: T-CONV-007 / **tdd_first**: true / **예상**: 2h / **status**: done
+- **변경 파일**: `packages/api/src/conversation/comment.controller.ts`, `packages/api/src/conversation/dto/update-comment.dto.ts`, `packages/api/src/conversation/dto/create-comment.dto.ts`(COMMENT_BODY_MAX export), `packages/api/test/comment-moderation.e2e-spec.ts`(throttler 분리 위해 신규 spec)
 - **acceptance**:
   1. `PATCH :id`·`DELETE :id` 에 `JwtAuthGuard`+`ThrottlerGuard`, actor 는 `req.user{id,role}`(JwtStrategy DB 재조회 — ADR-0018 §3). `UpdateCommentDto` class-validator(body 1~maxLen, 기존 CreateCommentDto 와 동일 상수 재사용). 신규/변경 e2e spec 은 `DATABASE_URL` 자체 기본값 미설정(jest-e2e.setup 강제 — 절대규칙 #8).
   2. e2e 수정 매트릭스: 본인 PATCH 200(+`isEdited`), 타인 403, 미인증 401, 없는 댓글 404, 익명 댓글 수정 시도 403.
