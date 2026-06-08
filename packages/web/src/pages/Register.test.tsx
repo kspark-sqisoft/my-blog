@@ -82,7 +82,17 @@ describe('Register 페이지', () => {
     renderRegister();
     fillAndSubmit('short@example.com', '123', '짧음');
 
-    expect(await screen.findByText(/8자 이상/)).toBeInTheDocument();
+    // helper text "(8자 이상)" 와 분리하기 위해 정확한 에러 문구로 매칭한다.
+    expect(
+      await screen.findByText(/비밀번호는 8자 이상이어야/),
+    ).toBeInTheDocument();
     expect(mockedApi.post).not.toHaveBeenCalled();
+  });
+
+  // 회귀(M1): 비밀번호 입력칸 옆에 "(8자 이상)" 사전 안내가 보인다.
+  // 예전엔 검증 통과 후에야 8자 규칙을 알았다 → 입력 전에 보이도록.
+  it('비밀번호 레이블 옆에 "(8자 이상)" 사전 안내가 보인다', () => {
+    renderRegister();
+    expect(screen.getByText('(8자 이상)')).toBeInTheDocument();
   });
 });

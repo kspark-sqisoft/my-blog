@@ -68,7 +68,12 @@ export function Register() {
           </label>
 
           <label className="ab-field">
-            <span>비밀번호</span>
+            <span>
+              비밀번호{' '}
+              <span className="text-xs font-normal text-gray-500">
+                (8자 이상)
+              </span>
+            </span>
             <div className="ab-input-wrap">
               <input
                 aria-label="비밀번호"
