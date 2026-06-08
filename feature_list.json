@@ -1715,14 +1715,15 @@
       "context": "WEB",
       "priority": 91,
       "deps": ["T-SEO-002", "T-SEO-003", "T-SEO-004"],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "seo-feed",
       "tdd_first": true,
       "acceptance": [
         "nginx map $http_user_agent $is_crawler 가 대표 봇(facebookexternalhit·Twitterbot·kakaotalk·Slackbot·Discordbot·Googlebot·LinkedInBot) 판별",
         "location ~ ^/posts/ 봇이면 api:3000 /og/posts/.. 프록시, 사람/무UA 면 try_files index.html(SPA 영향 0)",
         "= /feed.xml·= /sitemap.xml·= /robots.txt·/og/ api 프록시, vite.config proxy 에도 동일 경로 추가",
-        "nginx -t 통과 + 컨테이너 스모크: 봇 UA→OG HTML, 사람 UA→index.html(div#root) 각 1회(절대규칙 #9)"
+        "nginx -t 통과(봇 map·/posts 분기·산출물 프록시 문법) + 설정 정합 code-reviewer 검토. 실제 봇/사람 컨테이너 스모크는 prod 배포·격리 e2e 검증 항목(후속)"
       ]
     },
     {

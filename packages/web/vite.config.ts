@@ -19,6 +19,11 @@ export default defineConfig({
       '/api': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
       // 업로드 이미지(/uploads)도 백엔드 정적 서빙으로 프록시 (그렇지 않으면 SPA fallback HTML 반환)
       '/uploads': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
+      // seo-feed 산출물(ADR-0026): dev 에서도 api 로 프록시 (prod 는 nginx 가 동일 역할)
+      '/feed.xml': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
+      '/sitemap.xml': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
+      '/robots.txt': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
+      '/og': process.env.VITE_API_PROXY ?? 'http://localhost:3000',
     },
   },
   test: {

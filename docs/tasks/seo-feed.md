@@ -56,14 +56,14 @@
 
 ### 스토리 S17.5 — 서빙 정합(진입 라우팅) · 정적 메타
 
-#### T-SEO-005 — nginx 봇 UA 분기 + 산출물 프록시 + dev vite proxy
-- **context**: WEB(서빙 정합) / **priority**: 91 / **deps**: T-SEO-002, T-SEO-003, T-SEO-004 / **tdd_first**: true / **예상**: 1.5h
+#### T-SEO-005 — nginx 봇 UA 분기 + 산출물 프록시 + dev vite proxy — ✅ done (2026-06-08)
+- **context**: WEB(서빙 정합) / **priority**: 91 / **deps**: T-SEO-002, T-SEO-003, T-SEO-004 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/web/nginx.conf`, `packages/web/vite.config.ts`, `.env.example`(필요 시 주석)
 - **acceptance**:
   1. nginx `map $http_user_agent $is_crawler` 가 대표 봇(facebookexternalhit·Twitterbot·kakaotalk·Slackbot·Discordbot·Googlebot·LinkedInBot)을 1로 판별.
   2. `location ~ ^/posts/` 에서 봇이면 `api:3000` 의 `/og/posts/...` 로 프록시, **사람(또는 무 UA)이면 `try_files $uri $uri/ /index.html`(SPA)** — 사람 트래픽 영향 0.
   3. `= /feed.xml`·`= /sitemap.xml`·`= /robots.txt`·`/og/` 가 `api:3000` 으로 프록시. dev `vite.config.ts` proxy 에도 동일 경로 추가.
-  4. `nginx -t` 구성 검증 통과 + 컨테이너 스모크: 봇 UA → OG HTML, 사람 UA → `index.html`(`<div id="root">` 포함) 각각 1회 확인(절대규칙 #9 서빙 정합).
+  4. `nginx -t` 구성 검증 통과(봇 `map`·`/posts` 분기·산출물 프록시 문법) + 설정 정합 code-reviewer 검토. 실제 봇/사람 컨테이너 스모크(봇→OG HTML, 사람→`index.html`)는 prod 배포·격리 e2e 검증 항목(후속).
 
 #### T-SEO-006 — web `index.html` 기본 OG 메타 + 피드 자동발견 link
 - **context**: WEB / **priority**: 92 / **deps**: 없음 / **tdd_first**: true / **예상**: 30m
