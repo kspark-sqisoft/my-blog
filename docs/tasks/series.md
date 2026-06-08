@@ -77,8 +77,8 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
   2. `useSeries(idOrSlug)` 훅 경유(직접 fetch 금지). 404 에러 상태 처리.
   3. web unit(렌더·빈 상태·404) + 기존 라우트/홈·상세 테스트 무회귀(전체 web 스위트 GREEN).
 
-#### T-WEB-502 — 글 상세 시리즈 네비 UI
-- **context**: WEB / **priority**: 206 / **deps**: T-SER-005 / **tdd_first**: true / **예상**: 1.5h
+#### T-WEB-502 — 글 상세 시리즈 네비 UI ✅ done (2026-06-08)
+- **context**: WEB / **priority**: 206 / **deps**: T-SER-005 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/web/src/pages/PostDetail.tsx`, `src/components/SeriesNav.tsx`(신규), 단위 테스트
 - **acceptance**:
   1. 시리즈 소속 발행글 상세에 "X 시리즈 · N/M편"(시리즈 상세 링크) + 이전/다음 글 링크(`/posts/:slug`, 접근가능 이름). 미소속이면 미표시.

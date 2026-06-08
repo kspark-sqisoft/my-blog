@@ -64,6 +64,7 @@ const detail = (over: Record<string, unknown> = {}) => ({
   viewCount: 42,
   likeCount: 3,
   likedByMe: false,
+  series: null, // 시리즈 미소속 기본값 (PostDetailDto.series 계약)
   ...over,
 });
 
@@ -99,6 +100,42 @@ describe('PostDetail 페이지', () => {
     );
     expect(screen.getByText('#nestjs')).toBeInTheDocument();
     expect(mockedApi.get).toHaveBeenCalledWith('/posts/p1');
+  });
+
+  // T-WEB-502: 시리즈 소속이면 네비 노출, 미소속이면 미표시
+  it('시리즈 소속이면 시리즈 네비를 노출한다', async () => {
+    mockApiWith({
+      series: {
+        id: 's1',
+        slug: 'react-입문',
+        title: 'React 입문',
+        position: 1,
+        total: 2,
+        prev: null,
+        next: { slug: 'p2', title: '2편' },
+      },
+    });
+    renderDetail('p1');
+    await screen.findByText('상세 제목');
+    expect(
+      screen.getByRole('navigation', { name: '시리즈 네비게이션' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /React 입문/ }),
+    ).toHaveAttribute('href', '/series/react-입문');
+    expect(screen.getByRole('link', { name: /2편/ })).toHaveAttribute(
+      'href',
+      '/posts/p2',
+    );
+  });
+
+  it('시리즈 미소속이면 시리즈 네비를 표시하지 않는다', async () => {
+    mockApiWith({ series: null });
+    renderDetail('p1');
+    await screen.findByText('상세 제목');
+    expect(
+      screen.queryByRole('navigation', { name: '시리즈 네비게이션' }),
+    ).not.toBeInTheDocument();
   });
 
   it('에러(초안/없음 404) 시 에러 메시지를 보여준다', async () => {

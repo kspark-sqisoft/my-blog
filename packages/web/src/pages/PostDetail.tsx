@@ -7,6 +7,7 @@ import { Icon } from '../components/Icon';
 import { LikeButton } from '../components/LikeButton';
 import { ReadingArticle } from '../components/ReadingArticle';
 import { RelatedPosts } from '../components/RelatedPosts';
+import { SeriesNav } from '../components/SeriesNav';
 import type { TocItem } from '../lib/article-enhance';
 import { fmtDate } from '../lib/format';
 import { estimateReadingTime } from '../lib/reading-time';
@@ -121,6 +122,7 @@ export function PostDetail() {
                 </div>
               )}
             </header>
+            {post.series && <SeriesNav series={post.series} />}
             <div className="ab-article-body">
               {/* ADR-0021/0023: contentHtml 우선(과도기 contentMarkdown 폴백), 읽기용 보강 렌더 */}
               <ReadingArticle
