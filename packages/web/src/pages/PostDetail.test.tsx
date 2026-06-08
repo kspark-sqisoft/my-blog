@@ -92,7 +92,11 @@ describe('PostDetail 페이지', () => {
       screen.getByRole('heading', { name: '본문 헤딩' }),
     ).toBeInTheDocument();
     expect(screen.getByText('2026년 6월 1일')).toBeInTheDocument();
-    expect(screen.getByText('홍길동')).toBeInTheDocument();
+    // 작성자 이름은 공개 프로필 링크다 (T-WEB-402)
+    expect(screen.getByRole('link', { name: '홍길동' })).toHaveAttribute(
+      'href',
+      '/users/u1',
+    );
     expect(screen.getByText('#nestjs')).toBeInTheDocument();
     expect(mockedApi.get).toHaveBeenCalledWith('/posts/p1');
   });

@@ -53,8 +53,8 @@
 
 ### 스토리 S19.5 — 웹 UI
 
-#### T-WEB-402 — 작성자 프로필 페이지 + 작성자 링크
-- **context**: WEB / **priority**: 102 / **deps**: T-PUB-107, T-AUTH-013 / **tdd_first**: true / **예상**: 2h
+#### T-WEB-402 — 작성자 프로필 페이지 + 작성자 링크 ✅ done (2026-06-08)
+- **context**: WEB / **priority**: 102 / **deps**: T-PUB-107, T-AUTH-013 / **tdd_first**: true / **예상**: 2h / **status**: done
 - **변경 파일**: `packages/web/src/pages/AuthorProfile.tsx`(신규), `src/routes/*`(라우트), `src/users/useAuthorProfile.ts`(신규 훅), `src/posts/usePosts.ts`(author 파라미터), `src/components/PostListView`·카드·`pages/PostDetail.tsx`(작성자 링크), 단위 테스트
 - **acceptance**:
   1. `/users/:id` AuthorProfile: 헤더(Avatar·이름·bio·가입일·발행글 수) + 작성자 발행글 목록(`?author=:id`). 빈 목록 시 "아직 발행한 글이 없습니다"(S1).

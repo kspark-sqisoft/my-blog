@@ -88,7 +88,12 @@ export function PostDetail() {
                     name={post.authorName}
                     size="sm"
                   />
-                  {post.authorName}
+                  <Link
+                    to={`/users/${post.authorId}`}
+                    className="ab-text-link"
+                  >
+                    {post.authorName}
+                  </Link>
                 </span>
                 <span className="ab-dot">·</span>
                 <span>{fmtDate(post.publishedAt)}</span>

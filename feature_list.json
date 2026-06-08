@@ -1914,7 +1914,8 @@
       "context": "WEB",
       "priority": 102,
       "deps": ["T-PUB-107", "T-AUTH-013"],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "author-profile",
       "tdd_first": true,
       "acceptance": [

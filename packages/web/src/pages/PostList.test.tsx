@@ -29,6 +29,7 @@ const summary = (over: Record<string, unknown> = {}) => ({
   title: '첫 글',
   summary: '요약',
   tags: ['nestjs'],
+  authorId: 'u1',
   authorName: '홍길동',
   publishedAt: '2026-06-01T00:00:00.000Z',
   ...over,
@@ -43,7 +44,11 @@ describe('PostList 페이지', () => {
     });
     renderList();
     expect(await screen.findByText('첫 글')).toBeInTheDocument();
-    expect(screen.getByText('홍길동')).toBeInTheDocument();
+    // 작성자 이름은 공개 프로필 링크다 (T-WEB-402)
+    expect(screen.getByRole('link', { name: '홍길동' })).toHaveAttribute(
+      'href',
+      '/users/u1',
+    );
     expect(mockedApi.get).toHaveBeenCalledWith('/posts', {
       params: { page: 1, pageSize: 20 },
     });

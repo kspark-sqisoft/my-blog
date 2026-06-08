@@ -6,10 +6,13 @@ import { Avatar } from './Avatar';
 import { PostCardCover } from './PostCardCover';
 
 // 목록 쿼리 결과를 로딩/에러/빈/정상 상태로 렌더한다 (acceptance #3)
+// emptyText: 빈 목록 안내 문구(기본 "아직 글이 없습니다.") — 작성자 프로필 등에서 재정의 (T-WEB-402)
 export function PostListView({
   query,
+  emptyText = '아직 글이 없습니다.',
 }: {
   query: UseQueryResult<Paginated<PostSummaryDto>>;
+  emptyText?: string;
 }) {
   if (query.isPending) {
     return (
@@ -28,7 +31,7 @@ export function PostListView({
 
   const { items } = query.data;
   if (items.length === 0) {
-    return <p className="ab-empty">아직 글이 없습니다.</p>;
+    return <p className="ab-empty">{emptyText}</p>;
   }
 
   return (
@@ -50,7 +53,9 @@ export function PostListView({
                   name={post.authorName}
                   size="xs"
                 />
-                {post.authorName}
+                <Link to={`/users/${post.authorId}`} className="ab-text-link">
+                  {post.authorName}
+                </Link>
               </span>
               <span>{fmtDate(post.publishedAt)}</span>
             </div>
