@@ -64,6 +64,10 @@ jobs:
       - name: Build @blog/shared
         run: pnpm --filter @blog/shared build
 
+      # shared 가 선언되지 않은 외부 런타임 의존(zod 등)을 require 하면 실패 — prod api 부팅 크래시 방지(함정 #9)
+      - name: Check @blog/shared runtime purity
+        run: pnpm check:shared-purity
+
       - name: Prisma generate
         run: pnpm --filter api exec prisma generate
 

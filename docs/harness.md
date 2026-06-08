@@ -270,9 +270,33 @@ api 재기동으로 해소.)
 **watch 가 dist 변경을 못 잡을 때**: Windows 바인드 마운트에서 node_modules 경유 `.d.ts` 변경은 nest watch 가
 놓칠 수 있다(함정 #4). 이미 떠 있는 컨테이너라면 `docker restart my-blog-api-1` 로 클린 재컴파일한다.
 
+### 9. @blog/shared 에 런타임 의존(zod 등)을 넣어 prod api 부팅 크래시
+**증상**: 로컬 dev·CI 단위테스트는 다 통과하는데, **격리 e2e / prod 배포**에서만 api 컨테이너가 기동 직후
+`exited(1)`. 로그: `Error: MODULE_NOT_FOUND ... at packages/shared/dist/dto/*.js ... require('zod')`,
+requireStack 이 `shared/index.js → api/dist/.../app.module.js → main.js`. (2026-06-08 사고 — 프로필 기능에서
+`updateProfileSchema`(zod)를 shared 에 넣고 index 가 값으로 re-export.)
+
+**원인**: `@blog/shared` 는 **순수 타입 + 손수 작성 상수**만 두는 패키지로 `dependencies` 가 비어 있다.
+zod 같은 **라이브러리 값**을 shared 에 두고 `export` 하면, 그 값을 import 하는 모든 소비자(특히 prod api)가
+부팅 시 그 라이브러리를 강제 `require` 한다. shared 가 의존을 선언 안 해 **prod 이미지엔 없으므로 크래시**.
+dev/CI 단위테스트는 **모노레포 호이스팅**으로 zod 가 우연히 보여 통과 → prod/격리 스택에서야 표면화(가장 음흉).
+(web 은 src 를 ESM 으로 직접 봐서 영향 없음 — 또 혼동 포인트.)
+
+**해결(적용됨)**: shared 는 타입만 두고, zod 폼 스키마는 **web**(`pages/Register.tsx` 처럼 로컬), 서버 검증은
+**api class-validator** 로 분리(검증은 각 패키지, ADR-0004). 기계적 가드 추가:
+- `tools/check-shared-purity.mjs` (`pnpm check:shared-purity`): `packages/shared/dist/**/*.js` 가 shared
+  `dependencies` 에 없는 bare(외부) 모듈을 `require` 하면 **실패**. CI **quality 잡**에서 shared 빌드 직후 게이트.
+- 정말 shared 런타임에 의존이 필요하면 `packages/shared/package.json` 의 `dependencies` 에 명시해야 가드를 통과한다.
+
+**메타 교훈(디버깅)**: 위 사고 직전 CI 실패를 로그 없이 추측 패치해 두 번 헛짚었다. **CI/prod 실패는 추측 금지 —
+step 결론·로그(또는 격리 prod 스택 로컬 재현)로 근본원인을 확정한 뒤 하나씩 고친다**(systematic-debugging).
+같은 세션에 CI 실패는 사실 4겹이었다: ①pnpm/action-setup 버전 충돌 ②CI shared 빌드 누락 ③테스트 DB 포트
+(5433↔CI 5432, `TEST_DATABASE_URL` 미지정) ④이 항목(shared 런타임 zod). 앞 3개는 잠복 CI 설정 결함, ④는 신규 버그.
+
 ## 관련 파일
 
 - `init.sh` — 환경 부트스트랩(개발 DB + 테스트 DB + @blog/shared 빌드)
+- `tools/check-shared-purity.mjs` — `@blog/shared` 런타임 순수성 가드(`pnpm check:shared-purity`, CI 게이트, 함정 #9)
 - `feature_list.json` — 진행 상태 정규 소스
 - `CLAUDE.md` — 시작 루틴·완료 규칙·절대 규칙
 - `.claude/commands/` — `ready` · `implement` · `finish` · 설계 명령들

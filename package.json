@@ -9,7 +9,8 @@
     "gc:dup": "jscpd packages/api/src packages/web/src packages/shared/src",
     "mcp:test": "tsx --test tools/mcp/prisma-helper/lib.test.ts",
     "mcp:smoke": "tsx tools/mcp/prisma-helper/smoke.ts",
-    "harness:doctor": "node tools/harness-doctor.mjs"
+    "harness:doctor": "node tools/harness-doctor.mjs",
+    "check:shared-purity": "node tools/check-shared-purity.mjs"
   },
   "keywords": [],
   "author": "",

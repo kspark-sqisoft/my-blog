@@ -95,6 +95,19 @@ api(NestJS·CJS)와 api 의 jest 는 `@blog/shared` 를 **빌드 산출물 `pack
 
 수동이 필요하면: `pnpm --filter @blog/shared run build`. (배경은 `docs/harness.md` 운영 함정 #8)
 
+**@blog/shared 런타임 순수성 (절대 규칙 — 함정 #9):** shared 는 **순수 타입 + 손수 작성 상수**만 둔다.
+`zod` 같은 **라이브러리 값/스키마를 shared 에 두고 export 하지 말 것**. shared 가 그 값을 export 하면
+그것을 import 하는 모든 소비자(특히 **prod api**)가 부팅 시 해당 라이브러리를 강제 `require` 하는데,
+shared 는 그 의존을 선언하지 않아 prod 이미지에 없어서 **부팅 크래시(MODULE_NOT_FOUND)** 한다.
+dev·CI 단위테스트는 모노레포 호이스팅으로 우연히 통과해 **prod/격리 e2e 에서야 터진다**(2026-06-08 사고).
+→ 폼 zod 스키마는 **web 에**(예: `pages/Register.tsx` 처럼 인라인/로컬), 서버 검증은 **api class-validator**.
+검증은 각 패키지(ADR-0004). 가드: `pnpm check:shared-purity`(CI quality 잡 게이트 — shared dist 가
+선언 안 된 외부 의존을 require 하면 실패).
+
+> **CI/prod 실패 디버깅 — 추측 패치 금지:** 로컬(특히 호이스팅 있는 monorepo)에서 통과해도 prod·CI 는
+> 다를 수 있다. CI 실패는 **step 결론·로그(또는 격리 prod 스택 로컬 재현)로 근본원인을 먼저 확정**한 뒤
+> 한 번에 하나씩 고친다. (`superpowers:systematic-debugging` 의 "근본원인 없이 수정 금지"와 동일.)
+
 ## 데이터 입력 주의 (한글 깨짐)
 
 Windows Git Bash 의 `curl -d '{"title":"한글..."}'` 는 비ASCII 를 깨뜨려 ��� 로 저장된다.
