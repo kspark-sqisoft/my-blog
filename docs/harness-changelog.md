@@ -4,6 +4,15 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.11 (2026-06-08)
+
+- **추가(`CLAUDE.md` "버그 수정 워크플로" 섹션)** — 신규 기능(10-Phase/4-Phase)과 구분되는 별도 규칙.
+  버그는 PRD/ADR/`feature_list` 태스크 분해를 생략하되, ① 진단 우선(`systematic-debugging`/`debugger`, 추측 패치 금지)
+  ② 회귀 테스트 먼저(RED→GREEN, `blog_test` 한정, 없는 수정 금지) ③ 검증+`code-reviewer` 후 커밋은 절대 생략 금지.
+  심각도별 문서 환류(회귀테스트=문서 / 반복패턴=함정 한 줄 / 아키텍처 결함=supersede ADR), 범위 밖 발견은
+  `feature_list.json`(`todo`)·handoff 에 기록(범위 규율 #2). `/finish` 와의 관계 명시(태스크 없으면 `fix(scope)` 커밋,
+  승격 시 `/finish`). 기존 규칙(#2/#3/#6/#7/#8/#9/#10·`review-gate`)과 정합, 충돌 없음.
+
 ## v0.10 (2026-06-08)
 
 반복 실수 못박기 — gap-analysis "N개 태스크" 수치 드리프트가 태스크 추가 때마다 CI Quality(harness-doctor)를
