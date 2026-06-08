@@ -507,7 +507,7 @@ a {
   display: flex;
   flex-direction: column;
   /* 이미지 없을 때의 본문 영역을 기준 높이로 — 커버가 있으면 이 높이를 나눠 쓴다. */
-  height: 300px;
+  height: 324px;
 }
 .ab-card:hover {
   transform: translateY(-4px);

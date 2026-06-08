@@ -1,5 +1,6 @@
 // 아바타 (ADR-0025): src 있으면 이미지, 없으면 이름 첫 글자 이니셜 원형 폴백. 인라인 style 금지(Tailwind).
 const SIZES = {
+  xs: 'w-5 h-5 text-[10px]',
   sm: 'w-7 h-7 text-xs',
   md: 'w-9 h-9 text-sm',
   lg: 'w-24 h-24 text-3xl',

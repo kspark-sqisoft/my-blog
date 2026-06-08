@@ -48,7 +48,7 @@ export function PostListView({
                 <Avatar
                   src={post.authorAvatarUrl}
                   name={post.authorName}
-                  size="sm"
+                  size="xs"
                 />
                 {post.authorName}
               </span>
