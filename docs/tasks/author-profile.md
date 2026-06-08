@@ -20,8 +20,8 @@
 
 ### 스토리 S19.2 — 작성자별 발행글 목록 (Publishing)
 
-#### T-PUB-107 — listPublished author 필터 + PostSummaryDto authorId 매핑
-- **context**: PUB / **priority**: 99 / **deps**: T-AUTH-012 / **tdd_first**: true / **예상**: 1.5h
+#### T-PUB-107 — listPublished author 필터 + PostSummaryDto authorId 매핑 ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 99 / **deps**: T-AUTH-012 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/api/src/publishing/post.service.ts`(+`.spec`), `packages/api/src/publishing/dto/list-posts.query.ts`, `packages/api/src/publishing/post.controller.ts`, `packages/api/test/post.e2e-spec.ts`
 - **acceptance**:
   1. `listPublished({ authorId })`: 그 작성자의 발행글만, `publishedAt` 최신순·페이지네이션(ADR-0010), 초안 제외. 단일 쿼리(N+1 없음).

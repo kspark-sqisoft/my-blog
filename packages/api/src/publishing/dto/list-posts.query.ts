@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
-// 발행 목록 쿼리 (?page=&pageSize=&tag=&q=). 쿼리 문자열 → 숫자 변환.
+// 발행 목록 쿼리 (?page=&pageSize=&tag=&q=&author=). 쿼리 문자열 → 숫자 변환.
 export class ListPostsQueryDto {
   @IsOptional()
   @Type(() => Number)
@@ -24,4 +24,9 @@ export class ListPostsQueryDto {
   @IsString()
   @MaxLength(100)
   q?: string;
+
+  // 작성자 필터 (author-profile, ADR-0028). User.id(cuid). 없는 author → 빈 목록.
+  @IsOptional()
+  @IsString()
+  author?: string;
 }

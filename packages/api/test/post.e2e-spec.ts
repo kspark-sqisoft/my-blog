@@ -185,6 +185,53 @@ describe('PostController (e2e)', () => {
     expect((all.body as { total: number }).total).toBeGreaterThanOrEqual(2);
   });
 
+  // T-PUB-107: 공개 목록 작성자 필터(?author=) (author-profile, ADR-0028)
+  it('공개 GET /api/posts?author= 는 해당 작성자의 발행글만, 없는 author 는 빈 목록 200', async () => {
+    // AUTHOR(authorUserId)의 발행글 1건
+    const authorPost = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', authorCookie)
+      .send({ title: 'author-filter 글', contentMarkdown: '본문' })
+      .expect(201);
+    const authorPostId = (authorPost.body as { id: string }).id;
+    await request(app.getHttpServer())
+      .post(`/api/posts/${authorPostId}/publish`)
+      .set('Cookie', authorCookie)
+      .expect(200);
+    // 운영자(authorId)의 발행글 1건 (필터에서 제외돼야 함)
+    const opPost = await request(app.getHttpServer())
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({ title: 'op 글', contentMarkdown: '본문' })
+      .expect(201);
+    const opPostId = (opPost.body as { id: string }).id;
+    await request(app.getHttpServer())
+      .post(`/api/posts/${opPostId}/publish`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    const res = await request(app.getHttpServer())
+      .get(`/api/posts?author=${authorUserId}`)
+      .expect(200);
+    const body = res.body as {
+      items: { id: string; authorId: string }[];
+      total: number;
+    };
+    expect(body.items.every((p) => p.authorId === authorUserId)).toBe(true);
+    const ids = body.items.map((p) => p.id);
+    expect(ids).toContain(authorPostId);
+    expect(ids).not.toContain(opPostId);
+
+    // 존재하지 않는 author → 빈 목록 200
+    const empty = await request(app.getHttpServer())
+      .get('/api/posts?author=nonexistent-cuid')
+      .expect(200);
+    expect((empty.body as { items: unknown[]; total: number }).items).toEqual(
+      [],
+    );
+    expect((empty.body as { total: number }).total).toBe(0);
+  });
+
   it('공개 GET /api/posts/:id — 발행 200, 초안 404', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/posts')

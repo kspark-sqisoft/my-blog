@@ -24,6 +24,7 @@ export interface ListPublishedParams {
   pageSize?: number;
   tag?: string;
   q?: string;
+  authorId?: string; // 작성자별 발행글 필터 (author-profile, ADR-0028)
 }
 
 const DEFAULT_PAGE = 1;
@@ -180,6 +181,7 @@ export class PostService {
     const q = params.q?.trim();
     const where = {
       status: 'PUBLISHED' as const,
+      ...(params.authorId && { authorId: params.authorId }),
       ...(params.tag && {
         postTags: { some: { tag: { name: params.tag } } },
       }),

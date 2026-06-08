@@ -334,6 +334,51 @@ describe('PostService (통합)', () => {
     expect(page.total).toBe(1);
   });
 
+  // T-PUB-107: 작성자별 발행글 필터(author-profile)
+  it('listPublished는 authorId로 작성자별 발행글만 필터링한다', async () => {
+    const mine = await service.create({
+      title: '내 발행글',
+      contentMarkdown: 'x',
+      authorId,
+      tags: [],
+    });
+    await service.publish(mine.id, adminActor);
+    // 다른 작성자의 발행글
+    const other = await prisma.user.create({
+      data: {
+        email: `pub107-${Date.now()}@example.com`,
+        passwordHash: 'x',
+        name: '다른이',
+        role: 'AUTHOR',
+      },
+    });
+    // assertion 실패에도 다른 작성자 데이터가 blog_test 에 남아 다른 테스트(total 카운트)를
+    // 오염시키지 않도록 try/finally 로 정리를 보장한다.
+    try {
+      const theirs = await prisma.post.create({
+        data: {
+          slug: `o-${Date.now()}`,
+          title: '남의 발행글',
+          contentMarkdown: 'x',
+          authorId: other.id,
+          status: 'PUBLISHED',
+          publishedAt: new Date(),
+        },
+      });
+
+      const page = await service.listPublished({
+        page: 1,
+        pageSize: 10,
+        authorId,
+      });
+      expect(page.items.every((p) => p.authorId === authorId)).toBe(true);
+      expect(page.items.map((p) => p.id)).not.toContain(theirs.id);
+    } finally {
+      await prisma.post.deleteMany({ where: { authorId: other.id } });
+      await prisma.user.delete({ where: { id: other.id } });
+    }
+  });
+
   // T-PUB-107: 키워드 검색(제목·본문 부분일치, 대소문자 무시)
   it('listPublished는 q로 제목/본문을 부분일치 검색한다(대소문자 무시)', async () => {
     const byTitle = await service.create({

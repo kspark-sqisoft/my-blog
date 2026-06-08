@@ -47,6 +47,7 @@ export class PostController {
       pageSize: query.pageSize,
       tag: query.tag,
       q: query.q,
+      authorId: query.author,
     });
   }
 
