@@ -19,8 +19,12 @@ const profileSchema = z.object({
     .string()
     .regex(/^\/uploads\//, '아바타 경로가 올바르지 않습니다')
     .nullable(),
+  // 소개: 0~200자(빈 문자열 = 소개 제거). 서버 @MaxLength(200)와 정합 (ADR-0028)
+  bio: z.string().max(200, '소개는 200자 이하여야 합니다'),
 });
 type ProfileForm = z.infer<typeof profileSchema>;
+
+const BIO_MAX = 200;
 
 export function Profile() {
   const user = useAuth((s) => s.user);
@@ -29,6 +33,10 @@ export function Profile() {
   const [saved, setSaved] = useState(false);
   // 아바타 미리보기는 로컬 state(제출값은 RHF avatarUrl 필드가 보유). react-hook-form watch 미사용.
   const [preview, setPreview] = useState<string | null>(user?.avatarUrl ?? null);
+
+  // 소개 글자 수 표시(서버 제한과 정합). register onChange 로 갱신(watch 미사용).
+  // 주의: 프로그램적으로 setValue('bio', ...) 를 추가하면 setBioLength 도 함께 호출할 것.
+  const [bioLength, setBioLength] = useState(user?.bio?.length ?? 0);
 
   const {
     register,
@@ -40,6 +48,7 @@ export function Profile() {
     defaultValues: {
       name: user?.name ?? '',
       avatarUrl: user?.avatarUrl ?? null,
+      bio: user?.bio ?? '',
     },
   });
 
@@ -128,6 +137,26 @@ export function Profile() {
             {...register('name', { onChange: () => setSaved(false) })}
           />
           {errors.name && <p className="ab-error">{errors.name.message}</p>}
+        </label>
+
+        <label className="ab-field">
+          <span>소개</span>
+          <textarea
+            aria-label="소개"
+            className="ab-input"
+            rows={3}
+            maxLength={BIO_MAX}
+            {...register('bio', {
+              onChange: (e: ChangeEvent<HTMLTextAreaElement>) => {
+                setSaved(false);
+                setBioLength(e.target.value.length);
+              },
+            })}
+          />
+          <span className="ab-hint">
+            {bioLength}/{BIO_MAX}
+          </span>
+          {errors.bio && <p className="ab-error">{errors.bio.message}</p>}
         </label>
 
         {update.isError && (

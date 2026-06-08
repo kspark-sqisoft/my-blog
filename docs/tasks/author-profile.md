@@ -62,8 +62,8 @@
   3. `useAuthorProfile(id)` + `usePosts({ author })` 훅(직접 fetch 금지).
   4. web unit + 회귀 0(기존 목록·상세 셀렉터 유지).
 
-#### T-WEB-403 — /profile 소개(bio) 편집
-- **context**: WEB / **priority**: 103 / **deps**: T-AUTH-014 / **tdd_first**: true / **예상**: 1h
+#### T-WEB-403 — /profile 소개(bio) 편집 ✅ done (2026-06-08)
+- **context**: WEB / **priority**: 103 / **deps**: T-AUTH-014 / **tdd_first**: true / **예상**: 1h / **status**: done
 - **변경 파일**: `packages/web/src/pages/Profile.tsx`(bio textarea), `src/profile/useUpdateProfile`(bio 포함, 기존 훅 확장), 단위 테스트
 - **acceptance**:
   1. `/profile` 에 소개(bio) textarea(현재 bio 로드), 저장 시 `PATCH /api/auth/me` 에 bio 전송 → 반영.
