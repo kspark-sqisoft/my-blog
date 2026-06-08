@@ -21,6 +21,15 @@ export interface SeriesDetailDto extends SeriesSummaryDto {
   posts: SeriesPostItemDto[];
 }
 
+// 목록 카드용 시리즈 메타. 카드에 "시리즈 · X편" 배지를 노출할 때 사용한다.
+// PostDetail 의 SeriesNavDto 와 별도로 두는 이유는 카드가 prev/next/total 같은
+// 무거운 정보를 필요로 하지 않기 때문이다(N+1 회피 + 응답 크기 ↓).
+export interface SeriesCardDto {
+  slug: string;
+  title: string;
+  order: number; // 1-based 시리즈 내 순서
+}
+
 // 글 상세의 시리즈 네비게이션용 이전/다음 글 최소 정보.
 export interface SeriesNavPostDto {
   slug: string;

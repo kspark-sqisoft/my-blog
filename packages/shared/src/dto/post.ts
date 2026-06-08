@@ -1,4 +1,4 @@
-import type { SeriesNavDto } from './series';
+import type { SeriesCardDto, SeriesNavDto } from './series';
 
 // 발행 상태 (ADR-0005). DB enum과 동일한 문자열 유니온.
 export type PostStatus = 'DRAFT' | 'PUBLISHED';
@@ -17,6 +17,7 @@ export interface PostSummaryDto {
   coverImageUrl: string | null; // 본문 첫 이미지(대표 이미지) URL, 없으면 null
   viewCount: number; // 조회수 (ADR-0024)
   likeCount: number; // 좋아요 수 (ADR-0024)
+  series: SeriesCardDto | null; // 시리즈 소속일 때 카드 배지 표시용 (ADR-0029), 미소속이면 null
 }
 
 // 상세

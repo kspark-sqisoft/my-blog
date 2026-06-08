@@ -55,10 +55,13 @@ export interface Actor {
   role: UserRole;
 }
 
-// 관계 포함 Post 조회 시 사용할 형태 (태그 + 작성자 표시 이름·아바타 — ADR-0017, ADR-0025)
+// 관계 포함 Post 조회 시 사용할 형태 (태그 + 작성자 표시 이름·아바타 — ADR-0017, ADR-0025).
+// series 도 같이 가져온다(ADR-0029) — 카드 배지("시리즈 · X편째") 노출용. 한 글당 최대 1 시리즈라
+// N+1 없음. 미소속이면 null.
 const withTags = {
   postTags: { include: { tag: true } },
   author: { select: { name: true, avatarUrl: true } },
+  series: { select: { slug: true, title: true } },
 } as const;
 
 type PostWithTags = {
@@ -74,8 +77,11 @@ type PostWithTags = {
   likeCount: number;
   createdAt: Date;
   updatedAt: Date;
+  seriesId: string | null;
+  seriesOrder: number;
   postTags: { tag: { name: string } }[];
   author: { name: string; avatarUrl: string | null };
+  series: { slug: string; title: string } | null;
 };
 
 @Injectable()
@@ -461,6 +467,15 @@ export class PostService {
   // contentHtml 가 비어있는 과도기 row 는 contentMarkdown 으로 폴백(T-INFRA-303 이후 거의 없음).
   private toSummary(post: PostWithTags): PostSummaryDto {
     const body = post.contentHtml || post.contentMarkdown;
+    // ADR-0029: 시리즈 소속이면 카드용 메타 노출(목록 카드 배지). seriesOrder 는 0-based 라 +1.
+    const series =
+      post.series && post.seriesId
+        ? {
+            slug: post.series.slug,
+            title: post.series.title,
+            order: post.seriesOrder + 1,
+          }
+        : null;
     return {
       id: post.id,
       slug: post.slug,
@@ -474,6 +489,7 @@ export class PostService {
       coverImageUrl: extractFirstImageUrl(body),
       viewCount: post.viewCount,
       likeCount: post.likeCount,
+      series,
     };
   }
 

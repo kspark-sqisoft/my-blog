@@ -267,6 +267,12 @@ export class SeriesService {
         viewCount: p.viewCount,
         likeCount: p.likeCount,
         seriesOrder: p.seriesOrder,
+        // 자기 시리즈 내부의 글이므로 카드 메타는 항상 자기 시리즈로 채운다(ADR-0029).
+        series: {
+          slug: series.slug,
+          title: series.title,
+          order: p.seriesOrder + 1,
+        },
       };
     });
     return {

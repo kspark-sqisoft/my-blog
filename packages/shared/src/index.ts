@@ -28,6 +28,7 @@ export type {
   SeriesPostItemDto,
   SeriesNavDto,
   SeriesNavPostDto,
+  SeriesCardDto,
   CreateSeriesDto,
   UpdateSeriesDto,
   SetSeriesPostsDto,

@@ -48,6 +48,18 @@ export function PostListView({
             <PostCardCover coverImageUrl={post.coverImageUrl} />
           )}
           <div className="ab-card-body">
+            {/* 시리즈 소속이면 카드 최상단에 배지 노출(ADR-0029). 클릭하면 시리즈 상세로. */}
+            {post.series && (
+              <Link
+                to={`/series/${post.series.slug}`}
+                className="inline-flex items-center gap-1 self-start rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-700 hover:bg-sky-100 dark:bg-sky-950 dark:text-sky-200 dark:hover:bg-sky-900"
+                aria-label={`시리즈 ${post.series.title}, ${post.series.order}편째`}
+              >
+                <span>{post.series.title}</span>
+                <span aria-hidden>·</span>
+                <span>{post.series.order}편째</span>
+              </Link>
+            )}
             <Link to={`/posts/${post.slug}`} className="ab-card-link">
               <h2 className="ab-card-title">{post.title}</h2>
             </Link>
