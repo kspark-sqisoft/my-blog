@@ -29,6 +29,8 @@ type CommentRow = {
   userId: string | null;
   displayName: string | null;
   body: string;
+  editedAt: Date | null;
+  deletedAt: Date | null;
   createdAt: Date;
   user: { name: string; avatarUrl: string | null } | null;
 };
@@ -135,6 +137,9 @@ export class CommentService {
       displayName: comment.displayName,
       body: comment.body,
       createdAt: comment.createdAt.toISOString(),
+      editedAt: comment.editedAt ? comment.editedAt.toISOString() : null,
+      isEdited: comment.editedAt !== null,
+      isDeleted: comment.deletedAt !== null,
       replies: [],
     };
   }

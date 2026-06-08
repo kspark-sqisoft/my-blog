@@ -32,15 +32,17 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 
 | 항목 | 내용 |
 |---|---|
-| **책임** | 독자가 발행된 Post에 Comment를 달고 깊이 2까지 답글로 소통한다. |
+| **책임** | 독자가 발행된 Post에 Comment를 달고 깊이 2까지 답글로 소통한다. 작성자 본인은 자기 Comment를 **수정·삭제**하고, 운영자(ADMIN)·글쓴이는 **삭제로 모더레이션**한다. 답글이 달린 Comment는 **소프트 삭제**로 트리를 보존한다(comment-moderation, ADR-0027). |
 | **Aggregate Root** | `Comment` (Entity) |
 | **다른 객체** | 답글 관계는 `parentId` 자기참조로 표현 (깊이 2까지 — ADR-0013) |
-| **Domain Events** | `CommentPosted` |
+| **Domain Events** | `CommentPosted`, `CommentEdited`, `CommentDeleted` (ADR-0027) |
 | **다른 Context 의존** | Publishing을 안다 — Comment는 대상 Post를 `postId`로 참조. Auth를 **선택적으로** 안다 — 로그인 회원의 Comment는 `userId`(nullable)로 User를 참조한다(ADR-0018). 비로그인 Comment는 익명(`displayName`). |
 
 - Comment는 대상 Post를 `postId`로만 참조한다 (Post 객체 직접 참조 금지).
 - 답글도 다른 Comment를 `parentId`로 참조하며 깊이 2까지만 허용한다(서비스 계층에서 강제 — ADR-0013).
 - 작성자 식별은 **선택적**이다: 로그인이면 `userId`로 실명(User.name), 비로그인이면 `displayName`로 익명. `userId` FK는 `onDelete: SetNull`이라 사용자 삭제 시 댓글은 익명으로 보존된다(ADR-0018).
+- **모더레이션(comment-moderation, ADR-0027)**: 수정은 로그인 작성자 **본인만**(body), 삭제는 **본인 + 운영자(ADMIN) + 글쓴이** 가 가능하다. 익명 Comment(`userId` null)는 식별 수단이 없어 본인 권한을 주지 않고 운영자·글쓴이만 삭제한다. 권한 판정은 Post 와 동형인 actor 소유권 패턴(ADR-0018)을 재사용한다. **글쓴이 권한은 Conversation 이 `Comment.postId` 로 대상 Post 의 `authorId` 만 ID 참조로 조회**해 actor 와 비교한다(Post 객체 보유·역방향 의존 없음 — ID 참조 규칙 유지).
+- **소프트 삭제**: 삭제 시 **직계 답글이 있으면 소프트 삭제**(본문·작성자 표시를 가리되 노드·`replies`·`depth` 보존 — "삭제된 댓글입니다"), **직계 답글이 없으면 완전 삭제(하드)**. 이로써 깊이 2 트리(ADR-0013)를 절대 깨지 않는다. 소프트 삭제 노드도 트리 위치·답글을 유지한다.
 
 ### Engagement
 
@@ -103,7 +105,7 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 | Bounded Context | NestJS 모듈 | 주요 책임 |
 |---|---|---|
 | Publishing | `PublishingModule` (또는 `PostModule`) | Post CRUD·발행, Tag 분류·탐색, 이미지 업로드(StorageProvider), 발행 외부 노출 산출물(피드·사이트맵·OG 메타 — seo-feed) |
-| Conversation | `ConversationModule` (또는 `CommentModule`) | Comment 작성·조회, 깊이 2 답글 |
+| Conversation | `ConversationModule` (또는 `CommentModule`) | Comment 작성·조회·수정·삭제(조건부 소프트)·모더레이션(ADR-0027), 깊이 2 답글 |
 | Engagement | `EngagementModule` | 좋아요 토글(로그인), 조회수 dedup 집계, 비정규화 카운터 관리(ADR-0024) |
 | Auth | `AuthModule` | User 인증(회원가입·로그인), 역할 관리(`RolesGuard`/`@Roles`), 쓰기/관리 권한 검증. 사용자 관리 API 포함 |
 

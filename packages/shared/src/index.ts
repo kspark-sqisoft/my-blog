@@ -8,7 +8,11 @@ export type {
   CreatePostDto,
   UpdatePostDto,
 } from './dto/post';
-export type { CommentDto, CreateCommentDto } from './dto/comment';
+export type {
+  CommentDto,
+  CreateCommentDto,
+  UpdateCommentDto,
+} from './dto/comment';
 export type { LikeStateDto, ViewCountDto } from './dto/engagement';
 export type { TagDto } from './dto/tag';
 export type { AuthUserDto, UserRole, RegisterDto } from './dto/auth';

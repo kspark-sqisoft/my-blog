@@ -10,6 +10,9 @@ export interface CommentDto {
   displayName: string | null; // 익명 입력 이름(하위호환). 프론트는 authorName 우선
   body: string;
   createdAt: string; // ISO 8601
+  editedAt: string | null; // 수정 시각 (null=미수정) — ADR-0027
+  isEdited: boolean; // editedAt != null (수정됨 표시)
+  isDeleted: boolean; // 소프트 삭제 여부 (true면 body·작성자 가림) — ADR-0027
   replies: CommentDto[];
 }
 
@@ -18,4 +21,9 @@ export interface CreateCommentDto {
   body: string;
   displayName?: string;
   parentId?: string;
+}
+
+// 수정 (로그인 작성자 본인만, body 만 — ADR-0027)
+export interface UpdateCommentDto {
+  body: string;
 }

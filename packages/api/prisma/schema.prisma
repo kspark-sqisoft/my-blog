@@ -100,6 +100,8 @@ model Comment {
   user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   displayName String? // 익명 독자 표시 이름(선택)
   body        String
+  editedAt    DateTime? // body 수정 시각 (null=미수정). "수정됨" 판정 (ADR-0027)
+  deletedAt   DateTime? // 소프트 삭제 시각 (null=정상). 직계 답글 있는 삭제 시 set (ADR-0027)
   createdAt   DateTime  @default(now())
 
   @@index([postId])

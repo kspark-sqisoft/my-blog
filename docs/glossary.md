@@ -50,3 +50,7 @@
 ## 사이트맵 (Sitemap)- 정의: 검색엔진 크롤러에게 색인 대상 URL 목록을 알려주는 표준 XML(sitemaps.org 0.9). **발행글 슬러그 URL + 태그 페이지(`/tags/:name`) + 홈 등 주요 정적 페이지**와 각 `lastmod` 를 담는다.- 소속 Context: Publishing (발행 콘텐츠 발견용 읽기 모델)- 코드 표현: [TBD TRD] (예: `GET /sitemap.xml`)- UI 표현: 사용자 비노출(크롤러용), `robots.txt` 에서 위치 안내- 동의어 금지: 사이트인덱스 — "사이트맵"으로 통일
 
 ## Open Graph (공유 카드 메타)- 정의: 글 링크를 SNS(카톡·페이스북·트위터 등)에 공유할 때 **제목·요약·대표이미지 카드**가 보이도록 문서 `<head>` 에 넣는 메타데이터(`og:*`, `twitter:*`). 대표이미지는 대표 이미지(coverImageUrl)를, 요약은 평문 요약을 재사용하고, canonical URL 은 슬러그 기반(ADR-0022)이다. 현재 web 은 SPA(CSR)라 크롤러가 읽도록 **서버측에서 메타를 제공**한다(방식은 TRD 결정).- 소속 Context: Publishing (발행글 프레젠테이션 메타)- 코드 표현: [TBD TRD]- UI 표현: 사용자 비노출(크롤러·SNS 용), 공유 시 카드로 표현- 동의어 금지: 메타태그(범용), SNS카드 — "Open Graph"(약칭 OG)로 통일
+
+## 댓글 모더레이션 (Comment Moderation)- 정의: Comment 를 수정·삭제하는 행위와 권한 체계(comment-moderation). 로그인 작성자 **본인**은 자기 댓글을 수정·삭제하고, **운영자(ADMIN)**·**글쓴이(대상 Post 의 Author)**는 삭제로 모더레이션한다. 익명 댓글(displayName)은 작성자 식별 수단이 없어 본인 수정/삭제가 불가하고 운영자·글쓴이만 삭제할 수 있다.- 소속 Context: Conversation- 코드 표현: [TBD TRD] (Actor 소유권 패턴 재사용 — ADR-0018)- UI 표현: 본인 댓글의 "수정"·"삭제", 운영자·글쓴이의 "삭제"- 동의어 금지: 검열(Censor), 관리(범용) — "모더레이션"으로 통일
+
+## 소프트 삭제 (Soft Delete)- 정의: **답글이 달린 Comment** 를 실제로 지우지 않고 본문·작성자를 가려 "삭제된 댓글입니다"로 표시하되 **트리(답글) 구조를 보존**하는 삭제. **답글이 없는 Comment 는 완전 삭제(하드)** 한다(조건부 — comment-moderation, ADR-0027).- 소속 Context: Conversation- 코드 표현: [TBD TRD]- UI 표현: 삭제된 자리의 "삭제된 댓글입니다" placeholder(답글은 그대로 노출)- 동의어 금지: 논리삭제(단독) — "소프트 삭제"로 통일

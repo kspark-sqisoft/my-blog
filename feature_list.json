@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-08 (seo-feed E17 완료 — T-SEO-001~006 done)",
+  "updated_at": "2026-06-08 (comment-moderation E18 기획 — T-CONV-005~008·T-WEB-401 todo)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -1742,6 +1742,93 @@
         "사이트 기본 OG 메타(og:site_name·기본 og:title/description/image·twitter:card)",
         "기본 OG 이미지(사이트명 PNG, 1200x630) public/og-default.png 배치 → GET /og-default.png 200 + image/png(왕복)",
         "web 빌드·기존 단위/e2e 회귀 0"
+      ]
+    },
+    {
+      "id": "T-CONV-005",
+      "title": "Comment editedAt/deletedAt 컬럼 + shared 타입 확장",
+      "epic": "E18",
+      "context": "CONV",
+      "priority": 93,
+      "deps": [],
+      "status": "done",
+      "completed_at": "2026-06-08",
+      "feature": "comment-moderation",
+      "tdd_first": true,
+      "acceptance": [
+        "Comment 에 editedAt/deletedAt DateTime? 추가 + 추가 전용 마이그레이션(DROP·NOT NULL 0건, check_migration_destructive), blog+blog_test 적용",
+        "CommentDto 에 editedAt(string|null)·isEdited(boolean)·isDeleted(boolean) 추가(순수 타입)",
+        "UpdateCommentDto { body: string } export(shared 순수 타입, zod 값 없음)",
+        "shared 빌드 + 기존 사용처 타입 통과(회귀 0)"
+      ]
+    },
+    {
+      "id": "T-CONV-006",
+      "title": "CommentService.update + toDto(수정됨·소프트 가림)",
+      "epic": "E18",
+      "context": "CONV",
+      "priority": 94,
+      "deps": ["T-CONV-005"],
+      "status": "todo",
+      "feature": "comment-moderation",
+      "tdd_first": true,
+      "acceptance": [
+        "update(id,body,actor): comment.userId===actor.id 면 body 변경+editedAt=now, isEdited:true 반환",
+        "익명(userId null)·타인 → 403, 없는 댓글 → 404",
+        "toDto: editedAt 있으면 isEdited true; deletedAt 있으면 isDeleted true + body/authorName/authorAvatarUrl/displayName 가림(M6)",
+        "수정은 body 만, parentId·깊이·작성자 불변(S1)"
+      ]
+    },
+    {
+      "id": "T-CONV-007",
+      "title": "CommentService.remove(조건부 soft/hard) + soft 부모 답글 차단",
+      "epic": "E18",
+      "context": "CONV",
+      "priority": 95,
+      "deps": ["T-CONV-006"],
+      "status": "todo",
+      "feature": "comment-moderation",
+      "tdd_first": true,
+      "acceptance": [
+        "remove(id,actor): 본인 || ADMIN || 글쓴이(post.authorId) 아니면 403, 없으면 404",
+        "직계 답글 있으면 soft(deletedAt=now, 노드·replies 보존), 없으면 hard(delete)",
+        "글쓴이 판정 post.findUnique({select:{authorId}}) read-only, 단위 호출 1회 단언(N+1 없음)",
+        "create: parentId 부모 deletedAt!=null 이면 400 BadRequest(삭제된 댓글 답글 불가 — S2/ADR-0027)",
+        "익명 댓글도 ADMIN/글쓴이 remove 동일(조건부)"
+      ]
+    },
+    {
+      "id": "T-CONV-008",
+      "title": "CommentController PATCH/DELETE + 가드 + e2e 권한 매트릭스",
+      "epic": "E18",
+      "context": "CONV",
+      "priority": 96,
+      "deps": ["T-CONV-007"],
+      "status": "todo",
+      "feature": "comment-moderation",
+      "tdd_first": true,
+      "acceptance": [
+        "PATCH/DELETE :id 에 JwtAuthGuard+ThrottlerGuard, actor=req.user{id,role}(JwtStrategy DB 재조회). UpdateCommentDto class-validator(body 1~maxLen, CreateCommentDto 상수 재사용). e2e spec DATABASE_URL 자체 기본값 미설정(#8)",
+        "e2e 수정: 본인 200(isEdited), 타인 403, 미인증 401, 없음 404, 익명 댓글 수정 403",
+        "e2e 삭제: 본인/ADMIN/글쓴이 204, 타인 403, 미인증 401; soft(답글有) 후 목록 isDeleted+가림 4종+답글 보존, hard(답글無) 소멸 — 절대규칙 #9 왕복",
+        "e2e: 익명 댓글 운영자 DELETE 204, soft 부모 답글 POST 400"
+      ]
+    },
+    {
+      "id": "T-WEB-401",
+      "title": "댓글 수정·삭제 UI + 훅",
+      "epic": "E18",
+      "context": "WEB",
+      "priority": 97,
+      "deps": ["T-CONV-008", "T-CONV-005"],
+      "status": "todo",
+      "feature": "comment-moderation",
+      "tdd_first": true,
+      "acceptance": [
+        "useUpdateComment·useDeleteComment 훅(src/api), 성공 시 댓글 목록 무효화(직접 fetch 금지)",
+        "canEdit=본인, canDelete=본인||ADMIN||글쓴이(postAuthorId prop) 버튼 노출",
+        "수정 인라인 폼→PATCH, '수정됨'(isEdited) 표시; 삭제 확인→DELETE, soft 노드 '삭제된 댓글입니다'(isDeleted)+답글 유지",
+        "회귀 없음: web unit + e2e GWT(작성→수정→답글有 삭제 트리 보존)"
       ]
     }
   ]

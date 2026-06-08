@@ -10,7 +10,8 @@ import { CommentTree } from './CommentTree';
 const tree: CommentDto[] = [
   {
     id: 'c0',
-    postId: 'p1', authorAvatarUrl: null,
+    postId: 'p1',
+    authorAvatarUrl: null,
     parentId: null,
     depth: 0,
     userId: null,
@@ -18,10 +19,14 @@ const tree: CommentDto[] = [
     displayName: '익명',
     body: '최상위 댓글',
     createdAt: '2026-06-01T10:00:00.000Z',
+    editedAt: null,
+    isEdited: false,
+    isDeleted: false,
     replies: [
       {
         id: 'c1',
-        postId: 'p1', authorAvatarUrl: null,
+        postId: 'p1',
+        authorAvatarUrl: null,
         parentId: 'c0',
         depth: 1,
         userId: null,
@@ -29,10 +34,14 @@ const tree: CommentDto[] = [
         displayName: null,
         body: '첫 번째 답글',
         createdAt: '2026-06-01T10:05:00.000Z',
+        editedAt: null,
+        isEdited: false,
+        isDeleted: false,
         replies: [
           {
             id: 'c2',
-            postId: 'p1', authorAvatarUrl: null,
+            postId: 'p1',
+            authorAvatarUrl: null,
             parentId: 'c1',
             depth: 2,
             userId: null,
@@ -40,6 +49,9 @@ const tree: CommentDto[] = [
             displayName: null,
             body: '답글의 답글',
             createdAt: '2026-06-01T10:10:00.000Z',
+            editedAt: null,
+            isEdited: false,
+            isDeleted: false,
             replies: [],
           },
         ],
@@ -76,7 +88,8 @@ describe('CommentTree', () => {
     const comments: CommentDto[] = [
       {
         id: 'm0',
-        postId: 'p1', authorAvatarUrl: null,
+        postId: 'p1',
+        authorAvatarUrl: null,
         parentId: null,
         depth: 0,
         userId: 'u1',
@@ -84,6 +97,9 @@ describe('CommentTree', () => {
         displayName: null,
         body: '회원 댓글',
         createdAt: '2026-06-01T10:00:00.000Z',
+        editedAt: null,
+        isEdited: false,
+        isDeleted: false,
         replies: [],
       },
     ];
@@ -101,7 +117,8 @@ describe('CommentTree', () => {
     const comments: CommentDto[] = [
       {
         id: 'm1',
-        postId: 'p1', authorAvatarUrl: null,
+        postId: 'p1',
+        authorAvatarUrl: null,
         parentId: null,
         depth: 0,
         userId: 'u1',
@@ -109,6 +126,9 @@ describe('CommentTree', () => {
         displayName: '익명입력',
         body: '우선순위 댓글',
         createdAt: '2026-06-01T10:00:00.000Z',
+        editedAt: null,
+        isEdited: false,
+        isDeleted: false,
         replies: [],
       },
     ];
