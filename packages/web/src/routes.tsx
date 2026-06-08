@@ -5,6 +5,8 @@ import { AdminLayout } from './components/layout/AdminLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { Dashboard } from './pages/admin/Dashboard';
 import { PostEditor } from './pages/admin/PostEditor';
+import { SeriesManage } from './pages/admin/SeriesManage';
+import { SeriesEditor } from './pages/admin/SeriesEditor';
 import { AuthorProfile } from './pages/AuthorProfile';
 import { SeriesDetail } from './pages/SeriesDetail';
 import { SeriesList } from './pages/SeriesList';
@@ -53,6 +55,9 @@ export const routes: RouteObject[] = [
       { path: '/admin', element: <Dashboard /> },
       { path: '/admin/posts/new', element: <PostEditor /> },
       { path: '/admin/posts/:id/edit', element: <PostEditor /> },
+      // 시리즈 관리 (series, ADR-0029) — AUTHOR 본인/ADMIN 전체
+      { path: '/admin/series', element: <SeriesManage /> },
+      { path: '/admin/series/:id/edit', element: <SeriesEditor /> },
       // 사용자 관리는 ADMIN 전용 — 운영자 셸 안에서 한 번 더 역할 게이팅
       {
         path: '/admin/users',

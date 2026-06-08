@@ -91,8 +91,9 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
   1. `/series` 시리즈 카드 목록(제목·설명·글 수·작성자) + 페이지네이션. 각 카드 → `/series/:slug`.
   2. 빈 목록 안내. `useSeriesList` 훅 경유. web unit(렌더·빈 목록·페이지네이션) + 기존 web 스위트 무회귀(전체 GREEN).
 
-#### T-WEB-504 — 작성자 시리즈 관리 UI
-- **context**: WEB / **priority**: 208 / **deps**: T-SER-002, T-SER-003 / **tdd_first**: true / **예상**: 2.5h
+#### T-WEB-504 — 작성자 시리즈 관리 UI ✅ done (2026-06-08)
+- **context**: WEB / **priority**: 208 / **deps**: T-SER-002, T-SER-003 / **tdd_first**: true / **예상**: 2.5h / **status**: done
+- **참고**: useSeriesAdmin 훅은 `src/admin/`에 위치(원안 `src/series/`에서 admin 관행에 맞춰 조정).
 - **변경 파일**: `packages/web/src/pages/admin/SeriesManage.tsx`·`SeriesEditor.tsx`(신규), `src/series/useSeriesAdmin.ts`(훅: create/update/delete/setPosts), `src/routes.tsx`(AdminLayout 하위), 단위 테스트
 - **acceptance**:
   1. `/admin/series` 내 시리즈 목록(ADMIN 전체) + 생성. `/admin/series/:id/edit` 제목·설명 수정 + 내 발행글 선택·순서 지정 → `PUT /series/:id/posts`. 삭제.
