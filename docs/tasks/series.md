@@ -69,8 +69,8 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
 
 ### 스토리 S20.4 — 웹 (WEB)
 
-#### T-WEB-501 — 시리즈 상세 페이지 /series/:slug
-- **context**: WEB / **priority**: 205 / **deps**: T-SER-004 / **tdd_first**: true / **예상**: 2h
+#### T-WEB-501 — 시리즈 상세 페이지 /series/:slug ✅ done (2026-06-08)
+- **context**: WEB / **priority**: 205 / **deps**: T-SER-004 / **tdd_first**: true / **예상**: 2h / **status**: done
 - **변경 파일**: `packages/web/src/pages/SeriesDetail.tsx`(신규), `src/series/useSeries.ts`(신규 훅), `src/routes.tsx`, 단위 테스트
 - **acceptance**:
   1. `/series/:slug` 헤더(제목·설명·작성자 링크 `/users/:authorId`) + 순서대로 발행글 목록(`PostListView` 재사용). 빈 발행글 시 "아직 발행된 글이 없습니다".
