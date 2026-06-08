@@ -1878,7 +1878,8 @@
       "context": "AUTH",
       "priority": 100,
       "deps": ["T-AUTH-012"],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "author-profile",
       "tdd_first": true,
       "acceptance": [

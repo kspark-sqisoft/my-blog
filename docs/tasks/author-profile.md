@@ -31,8 +31,8 @@
 
 ### 스토리 S19.3 — 공개 프로필 조회 (Auth)
 
-#### T-AUTH-013 — UserController GET /api/users/:id (공개 프로필)
-- **context**: AUTH / **priority**: 100 / **deps**: T-AUTH-012 / **tdd_first**: true / **예상**: 1.5h
+#### T-AUTH-013 — UserController GET /api/users/:id (공개 프로필) ✅ done (2026-06-08)
+- **context**: AUTH / **priority**: 100 / **deps**: T-AUTH-012 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/api/src/auth/user.controller.ts`(신규, `@Controller('users')`), `packages/api/src/auth/user.service.ts`(또는 auth.service `getPublicProfile`)(+`.spec`), `packages/api/src/auth/auth.module.ts`, `packages/api/test/user.e2e-spec.ts`(신규)
 - **acceptance**:
   1. `getPublicProfile(id)`: User 를 `select`(email 제외)로 조회 → `AuthorProfileDto`(id·name·avatarUrl·bio·createdAt·postCount). **이메일 절대 미포함**(단위).

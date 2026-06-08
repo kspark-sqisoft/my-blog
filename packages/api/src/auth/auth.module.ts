@@ -6,6 +6,8 @@ import { AuthService } from './auth.service';
 import { requireJwtSecret } from './jwt-secret';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './roles.guard';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
 import { UserAdminController } from './user-admin.controller';
 import { UserAdminService } from './user-admin.service';
 
@@ -21,9 +23,15 @@ import { UserAdminService } from './user-admin.service';
       }),
     }),
   ],
-  controllers: [AuthController, UserAdminController],
+  controllers: [AuthController, UserController, UserAdminController],
   // RolesGuard·JwtStrategy를 export → 다른 모듈(@UseGuards)에서 RBAC 사용 (ADR-0018)
-  providers: [AuthService, JwtStrategy, RolesGuard, UserAdminService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RolesGuard,
+    UserService,
+    UserAdminService,
+  ],
   exports: [RolesGuard, JwtStrategy, PassportModule, JwtModule],
 })
 export class AuthModule {}
