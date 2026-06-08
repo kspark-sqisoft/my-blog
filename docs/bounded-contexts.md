@@ -15,7 +15,7 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 
 | 항목 | 내용 |
 |---|---|
-| **책임** | 운영자/작성자가 Post를 작성·수정·삭제·발행하고 Tag로 분류한다. 본문은 sanitize 된 HTML(`contentHtml`, ADR-0021 — ADR-0003 supersede)이며 WYSIWYG 에디터(TipTap)로 작성된다. 본문용 미디어(이미지/비디오)는 같은 엔드포인트로 업로드한다(ADR-0012, ADR-0020). 발행된 Post를 독자에게 노출한다. |
+| **책임** | 운영자/작성자가 Post를 작성·수정·삭제·발행하고 Tag로 분류한다. 본문은 sanitize 된 HTML(`contentHtml`, ADR-0021 — ADR-0003 supersede)이며 WYSIWYG 에디터(TipTap)로 작성된다. 본문용 미디어(이미지/비디오)는 같은 엔드포인트로 업로드한다(ADR-0012, ADR-0020). 발행된 Post를 독자에게 노출한다. 나아가 발행된 Post 를 검색엔진·SNS·피드리더가 읽도록 외부 표준 포맷(사이트맵·Open Graph 메타·RSS 피드)으로도 노출한다(seo-feed, ADR-0026). |
 | **Aggregate Root** | `Post` (Entity) |
 | **다른 객체** | `Tag` (Value Object — Post당 0~5개, 독립 Aggregate 아님). 이미지는 별도 엔티티 없이 마크다운 URL로 임베드(ADR-0012) |
 | **Domain Events** | `PostPublished`, `PostUnpublished`, `PostDeleted` |
@@ -24,8 +24,9 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 - 발행 상태(초안/발행)는 Post Aggregate 내부 상태로 관리한다.
 - Tag는 Post를 통해서만 다뤄진다 (Tag 자체 생명주기를 독립 관리하지 않음).
 - **목록 읽기 모델(PostSummary)** 은 Post 본문에서 두 값을 **파생**한다: 평문 요약과 대표 이미지(본문 첫 이미지). 둘 다 저장 컬럼이 아니라 조회 시 본문에서 계산한다(ADR-0015). 따라서 Aggregate·스키마·Domain Event는 바뀌지 않는다.
+- **발행 외부 노출 읽기 모델(seo-feed, ADR-0026)** 도 같은 파생 원칙을 따른다: 피드(RSS 2.0)·사이트맵(발행글 슬러그 + 태그 페이지 + 홈)·Open Graph/Twitter 공유 메타는 모두 발행된 Post 의 기존 값(슬러그·평문 요약·대표 이미지·작성자·`updatedAt`/`publishedAt`)에서 **파생하는 외부용 읽기 표현**이다. 새 Aggregate·Entity·Domain Event 가 없고 스키마도 바뀌지 않는다. 검색엔진·SNS·피드리더는 외부 소비자(액터)이며 도메인 객체가 아니다. canonical·OG·피드 링크는 모두 슬러그 기반(ADR-0022)이며, SPA(CSR) 환경이라 크롤러용 메타는 서버측에서 제공한다(구현 방식은 ADR-0026/TRD). 초안·미발행 글은 어떤 산출물에도 노출하지 않는다.
 
-> 프론트(WEB)는 이 Context들을 소비하는 **프레젠테이션 계층**이며 별도 Bounded Context가 아니다. 시각 디자인 시스템·테마(라이트/다크)는 도메인 모델에 영향을 주지 않는다(ADR-0016).
+> 프론트(WEB)는 이 Context들을 소비하는 **프레젠테이션 계층**이며 별도 Bounded Context가 아니다. 시각 디자인 시스템·테마(라이트/다크)는 도메인 모델에 영향을 주지 않는다(ADR-0016). seo-feed 의 `robots.txt` 와 피드 자동발견 `<link rel="alternate">`(PRD M2·M6)은 정적/web 서빙 계층 책임이며 도메인 모델이 아니다.
 
 ### Conversation
 
@@ -101,7 +102,7 @@ blog-mvp는 4개의 Bounded Context로 구성된다: **Publishing**, **Conversat
 
 | Bounded Context | NestJS 모듈 | 주요 책임 |
 |---|---|---|
-| Publishing | `PublishingModule` (또는 `PostModule`) | Post CRUD·발행, Tag 분류·탐색, 이미지 업로드(StorageProvider) |
+| Publishing | `PublishingModule` (또는 `PostModule`) | Post CRUD·발행, Tag 분류·탐색, 이미지 업로드(StorageProvider), 발행 외부 노출 산출물(피드·사이트맵·OG 메타 — seo-feed) |
 | Conversation | `ConversationModule` (또는 `CommentModule`) | Comment 작성·조회, 깊이 2 답글 |
 | Engagement | `EngagementModule` | 좋아요 토글(로그인), 조회수 dedup 집계, 비정규화 카운터 관리(ADR-0024) |
 | Auth | `AuthModule` | User 인증(회원가입·로그인), 역할 관리(`RolesGuard`/`@Roles`), 쓰기/관리 권한 검증. 사용자 관리 API 포함 |

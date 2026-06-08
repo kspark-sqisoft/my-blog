@@ -1,6 +1,6 @@
 {
   "feature": "blog-mvp",
-  "updated_at": "2026-06-04 (rich-text-editor 기획 + video-upload 시리즈 완료 + RBAC 패치)",
+  "updated_at": "2026-06-08 (seo-feed E17 기획 완료 — T-SEO-001~006 todo 등록)",
   "note": "진행 상태의 정규 소스(JSON). 사람이 읽는 docs/tasks/blog-mvp.md 와 동기화하되, '다음 태스크 선택'은 이 파일을 기준으로 한다. /finish 명령이 status/completed_at 를 갱신한다. status: todo | in_progress | done.",
   "tasks": [
     {
@@ -1632,6 +1632,112 @@
         "아바타 없으면 이니셜 폴백, 회귀 없음(web unit 통과)"
       ],
       "completed_at": "2026-06-05"
+    },
+    {
+      "id": "T-SEO-001",
+      "title": "절대 URL·XML 이스케이프 유틸 + SITE_URL/FEED_MAX_ITEMS 환경변수",
+      "epic": "E17",
+      "context": "PUB",
+      "priority": 87,
+      "deps": [],
+      "status": "done",
+      "completed_at": "2026-06-08",
+      "feature": "seo-feed",
+      "tdd_first": true,
+      "acceptance": [
+        "absoluteUrl(base,'/posts/슬러그')가 SITE_URL 기준 절대 URL(한글 인코딩), 이미 절대면 그대로",
+        "isExternalUrl(url): 외부 https URL true, 로컬 /uploads 상대경로 false",
+        "escapeXml(s): & < > \" ' 엔티티 치환(주입 방지), 일반 텍스트 불변",
+        "SITE_URL 미설정 시 dev 기본값(http://localhost:5173), .env.example 에 SITE_URL·FEED_MAX_ITEMS=20 + compose 주입"
+      ]
+    },
+    {
+      "id": "T-SEO-002",
+      "title": "FeedService + GET /feed.xml (RSS 2.0, 요약만, dc:creator)",
+      "epic": "E17",
+      "context": "PUB",
+      "priority": 88,
+      "deps": ["T-SEO-001"],
+      "status": "todo",
+      "feature": "seo-feed",
+      "tdd_first": true,
+      "acceptance": [
+        "발행글만 publishedAt 최신순 최대 FEED_MAX_ITEMS, 초안 제외(단위)",
+        "각 item: 제목·description(평문요약)·link/guid(슬러그 절대URL)·pubDate(RFC822)·dc:creator(표시이름), rss 에 xmlns:atom·xmlns:dc + atom:link rel=self",
+        "제목·요약·작성자 이스케이프로 유효 XML 파싱(주입 방지)",
+        "GET /feed.xml → 200 + application/rss+xml; charset=utf-8 + Cache-Control, 초안 0건(e2e 왕복)",
+        "발행글·작성자·태그 N+1 없이 배치 로드"
+      ]
+    },
+    {
+      "id": "T-SEO-003",
+      "title": "SitemapService + GET /sitemap.xml + GET /robots.txt",
+      "epic": "E17",
+      "context": "PUB",
+      "priority": 89,
+      "deps": ["T-SEO-001"],
+      "status": "todo",
+      "feature": "seo-feed",
+      "tdd_first": true,
+      "acceptance": [
+        "홈 + 발행글 슬러그 절대URL + 태그(/tags/:name) urlset(0.9), 초안 제외(단위)",
+        "글 lastmod=updatedAt(없으면 publishedAt) 유효 날짜, 태그·홈 lastmod 선택",
+        "GET /sitemap.xml → 200 + application/xml; charset=utf-8, 발행 슬러그·태그·홈 포함·초안 0건(e2e)",
+        "GET /robots.txt → 200 + text/plain, Sitemap: {SITE_URL}/sitemap.xml 절대URL",
+        "태그·슬러그 N+1 없이 배치 로드"
+      ]
+    },
+    {
+      "id": "T-SEO-004",
+      "title": "OgMetaService + GET /og/posts/:slug (봇 OG HTML, 미발행 404, 외부이미지 폴백)",
+      "epic": "E17",
+      "context": "PUB",
+      "priority": 90,
+      "deps": ["T-SEO-001"],
+      "status": "todo",
+      "feature": "seo-feed",
+      "tdd_first": true,
+      "acceptance": [
+        "발행 Post 로 head HTML: og:type=article·og:title·og:description·og:url(canonical 절대)·og:image(절대)·twitter:card·link canonical 값 정확(단위)",
+        "대표이미지 로컬 /uploads 면 SITE_URL 절대화, 외부 절대URL 이거나 없으면 기본 이미지({SITE_URL}/og-default.png) 폴백(외부 fetch 안 함)",
+        "메타 속성값 HTML 이스케이프(주입 방지)",
+        "GET /og/posts/:slug (Twitterbot UA) → 200 + text/html + 위 메타 포함(e2e 왕복)",
+        "미발행/없는 slug → 404(ADR-0026), 초안 slug 도 404(발행 격리)"
+      ]
+    },
+    {
+      "id": "T-SEO-005",
+      "title": "nginx 봇 UA 분기 + 산출물 프록시 + dev vite proxy(서빙 정합)",
+      "epic": "E17",
+      "context": "WEB",
+      "priority": 91,
+      "deps": ["T-SEO-002", "T-SEO-003", "T-SEO-004"],
+      "status": "todo",
+      "feature": "seo-feed",
+      "tdd_first": true,
+      "acceptance": [
+        "nginx map $http_user_agent $is_crawler 가 대표 봇(facebookexternalhit·Twitterbot·kakaotalk·Slackbot·Discordbot·Googlebot·LinkedInBot) 판별",
+        "location ~ ^/posts/ 봇이면 api:3000 /og/posts/.. 프록시, 사람/무UA 면 try_files index.html(SPA 영향 0)",
+        "= /feed.xml·= /sitemap.xml·= /robots.txt·/og/ api 프록시, vite.config proxy 에도 동일 경로 추가",
+        "nginx -t 통과 + 컨테이너 스모크: 봇 UA→OG HTML, 사람 UA→index.html(div#root) 각 1회(절대규칙 #9)"
+      ]
+    },
+    {
+      "id": "T-SEO-006",
+      "title": "web index.html 기본 OG 메타 + 피드 자동발견 link + 기본 이미지 자산",
+      "epic": "E17",
+      "context": "WEB",
+      "priority": 92,
+      "deps": [],
+      "status": "todo",
+      "feature": "seo-feed",
+      "tdd_first": true,
+      "acceptance": [
+        "index.html head 에 link rel=alternate type=application/rss+xml href=/feed.xml",
+        "사이트 기본 OG 메타(og:site_name·기본 og:title/description/image·twitter:card)",
+        "기본 OG 이미지(사이트명 PNG, 1200x630) public/og-default.png 배치 → GET /og-default.png 200 + image/png(왕복)",
+        "web 빌드·기존 단위/e2e 회귀 0"
+      ]
     }
   ]
 }

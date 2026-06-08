@@ -35,6 +35,9 @@ services:
       # 업로드 크기 상한 (ADR-0020). 이미지/비디오 분리 한도.
       UPLOAD_MAX_BYTES: ${UPLOAD_MAX_BYTES:-5242880}
       UPLOAD_MAX_BYTES_VIDEO: ${UPLOAD_MAX_BYTES_VIDEO:-52428800}
+      # seo-feed (ADR-0026): 피드·사이트맵·OG 절대 URL 기준 + 피드 항목 상한
+      SITE_URL: ${SITE_URL:-http://localhost:5173}
+      FEED_MAX_ITEMS: ${FEED_MAX_ITEMS:-20}
     depends_on:
       db:
         # db healthcheck가 통과해야 api 시작

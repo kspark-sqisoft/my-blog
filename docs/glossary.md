@@ -44,3 +44,9 @@
 ## 프로필 (Profile)- 정의: 로그인 사용자가 자기 표시 정보(이름·아바타)를 보고 바꾸는 화면/개념 (ADR-0025). 이메일은 식별자라 읽기전용, 비밀번호 변경은 범위 외.- 소속 Context: Auth (User Aggregate 의 표시 속성)- 코드 표현: `PATCH /api/auth/me`(`UpdateProfileDto`), 웹 `/profile`(`pages/Profile.tsx`)- UI 표현: 상단 네비의 아바타+이메일 클릭 → 프로필 페이지- 동의어 금지: 계정설정(Account Settings 단독), 마이페이지 — "프로필"로 통일
 
 ## 아바타 (Avatar)- 정의: 사용자를 시각적으로 대표하는 이미지. 없으면 이름 첫 글자 이니셜로 폴백한다 (ADR-0025). 로컬 업로드(`/uploads/...`)만 허용(외부 URL 거부).- 소속 Context: Auth(User.avatarUrl) — 작성자 표시로 Publishing/Conversation 응답에 `authorAvatarUrl` 로 파생 노출- 코드 표현: `User.avatarUrl`(Prisma), `AuthUserDto.avatarUrl`·`PostSummary/Detail.authorAvatarUrl`·`CommentDto.authorAvatarUrl`(shared), 업로드 `POST /api/profile/avatar`, 웹 `<Avatar>` 컴포넌트- UI 표현: 네비·프로필·댓글·글 작성자에 표시되는 원형 이미지(또는 이니셜)- 동의어 금지: 프로필사진(Profile Picture 단독), 썸네일 — "아바타"로 통일
+
+## 피드 (Feed)- 정의: 발행된 Post 들을 구독자의 피드리더가 읽을 수 있게 표준 XML(**RSS 2.0**)로 신디케이션한 것. 최근 발행글의 제목·**평문 요약**·링크(슬러그 URL)·발행일·작성자를 담는다(본문 전문은 범위 외 — 요약만, seo-feed PRD).- 소속 Context: Publishing (발행글 읽기 모델의 한 표현)- 코드 표현: [TBD TRD] (예: `GET /feed.xml`)- UI 표현: 사이트의 "RSS 구독" 링크 + `<link rel="alternate" type="application/rss+xml">`- 동의어 금지: 신디케이션(Syndication 단독), RSS(형식 이름 — 개념은 "피드"로 통일)
+
+## 사이트맵 (Sitemap)- 정의: 검색엔진 크롤러에게 색인 대상 URL 목록을 알려주는 표준 XML(sitemaps.org 0.9). **발행글 슬러그 URL + 태그 페이지(`/tags/:name`) + 홈 등 주요 정적 페이지**와 각 `lastmod` 를 담는다.- 소속 Context: Publishing (발행 콘텐츠 발견용 읽기 모델)- 코드 표현: [TBD TRD] (예: `GET /sitemap.xml`)- UI 표현: 사용자 비노출(크롤러용), `robots.txt` 에서 위치 안내- 동의어 금지: 사이트인덱스 — "사이트맵"으로 통일
+
+## Open Graph (공유 카드 메타)- 정의: 글 링크를 SNS(카톡·페이스북·트위터 등)에 공유할 때 **제목·요약·대표이미지 카드**가 보이도록 문서 `<head>` 에 넣는 메타데이터(`og:*`, `twitter:*`). 대표이미지는 대표 이미지(coverImageUrl)를, 요약은 평문 요약을 재사용하고, canonical URL 은 슬러그 기반(ADR-0022)이다. 현재 web 은 SPA(CSR)라 크롤러가 읽도록 **서버측에서 메타를 제공**한다(방식은 TRD 결정).- 소속 Context: Publishing (발행글 프레젠테이션 메타)- 코드 표현: [TBD TRD]- UI 표현: 사용자 비노출(크롤러·SNS 용), 공유 시 카드로 표현- 동의어 금지: 메타태그(범용), SNS카드 — "Open Graph"(약칭 OG)로 통일
