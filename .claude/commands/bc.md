@@ -12,4 +12,7 @@ PRD의 기능들을 응집도가 높은 묶음으로 분류한다.
 사용자에게 결과 표를 보여주고 다음을 확인 요청:- "이 분류가 비즈니스적으로 자연스러운가?"- "어떤 Context가 너무 작은가 / 너무 큰가?"
 3단계 - 작성
 docs/bounded-contexts.md 에 다음 구조로 저장:- 각 Context의 표 (이름, 책임, Aggregate Root, Events)- Context 간 의존 다이어그램 (ASCII)- 어떤 Context가 어떤 NestJS 모듈로 매핑될지
+4단계 - 독립 검토
+작성 후 `plan-critic` 서브에이전트로 BC 정합(용어·Aggregate 참조·Context 크기)을 검토한다.
+Critical 은 반영해 고친 뒤 사용자에게 결과와 함께 확인 요청.
 규칙:- glossary 의 용어만 사용- Aggregate는 외부에서 ID로만 참조 (객체 직접 참조 금지)- 한 트랜잭션 = 한 Aggregate 만 수정 (DDD 원칙)- 단순 CRUD라면 한 Context로 통합. 억지로 쪼개지 않는다

@@ -4,6 +4,15 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.8 (2026-06-08)
+
+기획 단계 서브에이전트 확장 + 글로벌 설계·디자인 자산 명문화. "작성↔검토 분리"를 코드(v0.7)에서 기획으로 넓히고,
+범용 설계/디자인은 글로벌(OMC·superpowers·gstack)을 호출하도록 안내해 "프로젝트 전용 남발"을 예방한다.
+
+- **추가(`plan-critic` 서브에이전트)** — `.claude/agents/plan-critic.md`(읽기 전용): PRD·TRD·tasks·BC·ADR 의 내부 정합성(용어 일관성, PRD↔TRD 추적성, BC 1:1, ADR 분리, acceptance 테스트가능성)과 단계별 절대규칙 위반을 Critical/Warning/Suggestion 으로 검토. 기획 인터뷰는 대화형이라 위임 부적합하지만, **작성된 산출물의 독립 검토**는 저자(메인) 편향 차단에 적합.
+- **배선** — `/prd`(3단계)·`/bc`(4단계)·`/trd`(5단계)·`/tasks`(7단계) 작성 직후 `plan-critic` 자동 호출, Critical 반영 후 사용자 확인. code-reviewer(코드)·verifier(acceptance)와 같은 패턴.
+- **문서(글로벌 자산 명문화)** — `CLAUDE.md` 신규 섹션 "설계·디자인 보조 — 글로벌 자산을 호출한다": 발산(brainstorming/deep-interview)·범용 설계(planner/architect/critic/Plan)·UI 디자인(gstack-design-*·designer·visual-verdict·react-best-practices·Playwright MCP)을 단계별 표로 정리. **프로젝트 전용 신규 제작 대신 글로벌 호출**을 원칙화(중복·관리부담 회피). Claude 자동 인지 + 사용자 가시성 둘 다 확보. `harness.md` 에이전트 목록도 갱신.
+
 ## v0.7 (2026-06-08)
 
 서브에이전트 배선 — "만들어 놓고 안 쓰는" 메타 드리프트 제거(v0.6 거버넌스 정합성의 연장).
