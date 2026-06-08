@@ -44,8 +44,8 @@
 
 ### 스토리 S17.4 — Open Graph (봇 서버측 메타)
 
-#### T-SEO-004 — OgMetaService + `GET /og/posts/:slug` (봇 OG HTML)
-- **context**: PUB / **priority**: 90 / **deps**: T-SEO-001 / **tdd_first**: true / **예상**: 2h
+#### T-SEO-004 — OgMetaService + `GET /og/posts/:slug` (봇 OG HTML) — ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 90 / **deps**: T-SEO-001 / **tdd_first**: true / **예상**: 2h / **status**: done
 - **변경 파일**: `packages/api/src/publishing/seo/og-meta.service.ts`(+`.spec`), `packages/api/src/publishing/seo/og.controller.ts`, `packages/api/src/common/app-setup.ts`, `packages/api/test/seo.e2e-spec.ts`
 - **acceptance**:
   1. OgMetaService 가 발행 Post 로 `<head>` HTML 생성: `og:type=article`·`og:title`·`og:description`(요약)·`og:url`(슬러그 canonical 절대)·`og:image`(절대)·`twitter:card=summary_large_image`·`<link rel="canonical">` — 값 정확(단위 spec).

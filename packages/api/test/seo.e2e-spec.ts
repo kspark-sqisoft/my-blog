@@ -141,4 +141,45 @@ describe('SEO feed (e2e)', () => {
     expect(res.text).toContain('Sitemap:');
     expect(res.text).toContain('/sitemap.xml');
   });
+
+  it('GET /og/posts/:slug (봇 UA) → 200 text/html + og:* 포함; 미발행 404', async () => {
+    const server = app.getHttpServer();
+
+    const pub = await request(server)
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({
+        title: 'OG 발행글',
+        contentHtml: '<p>본문입니다.</p><img src="/uploads/og.jpg">',
+        tags: [],
+      })
+      .expect(201);
+    const pubBody = pub.body as { id: string; slug: string };
+    await request(server)
+      .post(`/api/posts/${pubBody.id}/publish`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    const res = await request(server)
+      .get(`/og/posts/${encodeURIComponent(pubBody.slug)}`)
+      .set('User-Agent', 'Twitterbot')
+      .expect(200);
+    expect(res.headers['content-type']).toContain('text/html');
+    expect(res.text).toContain('property="og:title"');
+    expect(res.text).toContain('name="twitter:card"');
+    expect(res.text).toContain('property="og:image"');
+    expect(res.text).toContain('rel="canonical"');
+
+    // 미발행(초안) → 404 (발행 격리)
+    const draft = await request(server)
+      .post('/api/posts')
+      .set('Cookie', cookie)
+      .send({ title: 'OG 초안', contentHtml: '<p>x</p>', tags: [] })
+      .expect(201);
+    const draftBody = draft.body as { slug: string };
+    await request(server)
+      .get(`/og/posts/${encodeURIComponent(draftBody.slug)}`)
+      .set('User-Agent', 'Twitterbot')
+      .expect(404);
+  });
 });

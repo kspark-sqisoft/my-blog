@@ -16,6 +16,7 @@ export function configureApp(app: INestApplication): INestApplication {
       { path: 'feed.xml', method: RequestMethod.GET },
       { path: 'sitemap.xml', method: RequestMethod.GET },
       { path: 'robots.txt', method: RequestMethod.GET },
+      { path: 'og/(.*)', method: RequestMethod.GET },
     ],
   });
 
