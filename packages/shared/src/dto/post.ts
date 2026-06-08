@@ -1,3 +1,5 @@
+import type { SeriesNavDto } from './series';
+
 // 발행 상태 (ADR-0005). DB enum과 동일한 문자열 유니온.
 export type PostStatus = 'DRAFT' | 'PUBLISHED';
 
@@ -38,6 +40,7 @@ export interface PostDetailDto {
   viewCount: number; // 조회수 (ADR-0024)
   likeCount: number; // 좋아요 수 (ADR-0024)
   likedByMe: boolean; // 요청자가 좋아요를 눌렀는지 (비로그인=false) (ADR-0024)
+  series: SeriesNavDto | null; // 시리즈 네비게이션 (ADR-0029), 미소속이면 null
 }
 
 // 관련 글 항목 (T-READ-104). 태그 겹침 기반 추천. 카드 표시용 최소 필드.

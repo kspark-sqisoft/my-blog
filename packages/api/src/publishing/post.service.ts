@@ -470,6 +470,7 @@ export class PostService {
       viewCount: post.viewCount,
       likeCount: post.likeCount,
       likedByMe,
+      series: null, // 시리즈 네비게이션은 T-SER-005 에서 파생 (ADR-0029)
     };
   }
 }

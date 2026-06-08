@@ -22,6 +22,15 @@ export type {
   RegisterDto,
 } from './dto/auth';
 export type { UpdateProfileDto, AvatarUploadResultDto } from './dto/profile';
+export type {
+  SeriesSummaryDto,
+  SeriesDetailDto,
+  SeriesNavDto,
+  SeriesNavPostDto,
+  CreateSeriesDto,
+  UpdateSeriesDto,
+  SetSeriesPostsDto,
+} from './dto/series';
 export type { AdminUserDto, UpdateUserRoleDto } from './dto/user';
 export type { UploadResultDto } from './dto/upload';
 export type { Paginated } from './dto/pagination';

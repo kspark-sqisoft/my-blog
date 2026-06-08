@@ -20,8 +20,8 @@ T-SER-002+003 ─▶ T-WEB-504 (작성자 시리즈 관리 UI)
 
 ### 스토리 S20.1 — 토대 (Publishing)
 
-#### T-SER-001 — Series 스키마 + Post 소속/순서 + shared 타입
-- **context**: PUB / **priority**: 200 / **deps**: 없음 / **tdd_first**: true / **예상**: 1.5h
+#### T-SER-001 — Series 스키마 + Post 소속/순서 + shared 타입 ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 200 / **deps**: 없음 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/api/prisma/schema.prisma`(+migration), `packages/shared/src/dto/series.ts`(신규), `packages/shared/src/dto/post.ts`(PostDetailDto.series), `packages/shared/src/index.ts`
 - **acceptance**:
   1. `Series{id,slug(unique),title,description?,authorId,createdAt,updatedAt}` 모델 + `@@index([authorId])`. `Post.seriesId String?`(`onDelete: SetNull`)+`seriesOrder Int @default(0)`+`@@index([seriesId, seriesOrder])`. 마이그레이션 **비파괴**(`check_migration_destructive`)·인덱스 점검(`check_index`).

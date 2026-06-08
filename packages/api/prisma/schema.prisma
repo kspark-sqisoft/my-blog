@@ -41,6 +41,7 @@ model User {
   posts    Post[]
   comments Comment[] // 로그인 회원이 작성한 댓글 (ADR-0018)
   likes    Like[] // 로그인 회원이 누른 좋아요 (ADR-0024)
+  series   Series[] // 소유한 시리즈 (ADR-0029)
 
   @@map("users")
 }
@@ -56,6 +57,9 @@ model Post {
   publishedAt     DateTime?
   authorId        String
   author          User       @relation(fields: [authorId], references: [id])
+  seriesId        String? // 소속 시리즈 (ADR-0029). 한 글 최대 1 시리즈, 미소속이면 null
+  series          Series?    @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  seriesOrder     Int        @default(0) // 시리즈 내 순서 (ADR-0029). 미소속이면 무의미
   postTags        PostTag[]
   comments        Comment[]
   viewCount       Int        @default(0) // 비정규화 조회수 카운터 (ADR-0024). 진실원천=PostView
@@ -67,7 +71,25 @@ model Post {
 
   @@index([status, publishedAt])
   @@index([authorId, status, publishedAt]) // 작성자별 발행글 목록 (author-profile, ADR-0028)
+  @@index([seriesId, seriesOrder]) // 시리즈 상세·네비 정렬 (series, ADR-0029)
   @@map("posts")
+}
+
+// 시리즈 (Publishing Context, Aggregate Root — ADR-0029). 순서 있는 Post 묶음.
+// 소속·순서는 Post 측(seriesId/seriesOrder)이 보유. Series 는 Post 객체를 직접 보유하지 않는다.
+model Series {
+  id          String   @id @default(cuid())
+  slug        String   @unique // URL 슬러그 (ADR-0022). 생성 시 제목 파생, 유일
+  title       String
+  description String?
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  posts       Post[] // 역참조(읽기 전용). 진실원천은 Post.seriesId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([authorId])
+  @@map("series")
 }
 
 // 태그 (Publishing Context, Value Object — ADR-0006)

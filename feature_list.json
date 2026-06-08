@@ -1949,7 +1949,8 @@
       "context": "PUB",
       "priority": 200,
       "deps": [],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "series",
       "tdd_first": true,
       "acceptance": [
