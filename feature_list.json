@@ -1658,7 +1658,8 @@
       "context": "PUB",
       "priority": 88,
       "deps": ["T-SEO-001"],
-      "status": "todo",
+      "status": "done",
+      "completed_at": "2026-06-08",
       "feature": "seo-feed",
       "tdd_first": true,
       "acceptance": [

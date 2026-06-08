@@ -20,8 +20,8 @@
 
 ### 스토리 S17.2 — RSS 피드
 
-#### T-SEO-002 — FeedService + `GET /feed.xml` (RSS 2.0, 요약만)
-- **context**: PUB / **priority**: 88 / **deps**: T-SEO-001 / **tdd_first**: true / **예상**: 1.5h
+#### T-SEO-002 — FeedService + `GET /feed.xml` (RSS 2.0, 요약만) — ✅ done (2026-06-08)
+- **context**: PUB / **priority**: 88 / **deps**: T-SEO-001 / **tdd_first**: true / **예상**: 1.5h / **status**: done
 - **변경 파일**: `packages/api/src/publishing/seo/feed.service.ts`(+`.spec`), `packages/api/src/publishing/seo/seo.controller.ts`, `packages/api/src/common/app-setup.ts`(`setGlobalPrefix` exclude), `packages/api/test/seo.e2e-spec.ts`
 - **acceptance**:
   1. FeedService 가 발행글만 `publishedAt` 최신순, 최대 `FEED_MAX_ITEMS`(기본 20)로 RSS 2.0 XML 생성 — 초안/미발행 제외(단위 spec).

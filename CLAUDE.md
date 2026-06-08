@@ -37,6 +37,7 @@
 | POST | `/api/posts/:postId/view` | 조회 기록(30분 dedup) | 공개 |
 | GET | `/api/tags` | 태그 목록 | 공개 |
 | POST | `/api/uploads` | 이미지 업로드 | 운영자 |
+| GET | `/feed.xml` | RSS 2.0 피드(발행글, /api prefix 제외) | 공개 |
 <!-- AUTO-MANAGED:endpoints:end -->
 
 ## 패키지 매니저
