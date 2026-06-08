@@ -4,6 +4,19 @@
 > 가이드 12.5("하네스의 지속적 진화 — 버전을 매기고 PR로 리뷰") 적용.
 > 갱신 주체: 하네스 파일(.claude/**, init.sh, CLAUDE.md 규칙, feature_list 스키마)을 바꾼 작업의 `/finish`.
 
+## v0.12 (2026-06-09)
+
+walkinglabs 가이드의 **메인 페이지 12개 강의(Lectures)** 매핑 1회 스냅샷 추가. 이전 v0.9 는 templates
+페이지(8종) 비교만 했고, 강의별 권고는 미커버 → 가이드 핵심 권고(폐쇄 루프·SoR·초기화·feature_list·
+조기 완료 차단·E2E·관측 가능성·클린 종료)를 우리 보유 메커니즘과 일대일 매핑.
+
+- **추가(`docs/harness-template-comparison.md`)** — "메인 12강 매핑" 섹션. 11강 외 11개는 ✅(9·10 초과
+  반영). 11강(관측 가능성)은 부분: 프로세스 관측(`evaluator-rubric.md` + `quality-document.md` +
+  `acceptance[]`)은 ✅, **OpenTelemetry 런타임 trace 는 의도적 미적용**(1인 저볼륨에 over-engineering,
+  commit/handoff/changelog/CI 로그가 70% 대체).
+- **추가(`docs/harness-gap-analysis.md` §4)** — 의도적 미적용 목록에 "OTel 세션/작업 trace" 한 줄.
+- 코드 변경 0건. 문서 매핑만 갱신.
+
 ## v0.11 (2026-06-08)
 
 - **추가(`CLAUDE.md` "버그 수정 워크플로" 섹션)** — 신규 기능(10-Phase/4-Phase)과 구분되는 별도 규칙.

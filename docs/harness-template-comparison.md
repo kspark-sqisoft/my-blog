@@ -1,9 +1,9 @@
-# 하네스 템플릿 비교 — walkinglabs 가이드 대비 my-blog
+# walkinglabs 가이드 비교 — 템플릿 & 강의 vs my-blog
 
-> 출처: <https://walkinglabs.github.io/learn-harness-engineering/ko/resources/templates/>
-> 작성일: 2026-06-08 · 비교 시점 진행: 95/99 done, 4 todo(comment-moderation)
-> 목적: "Harness Engineering" 템플릿 8종이 우리 프로젝트에 얼마나 반영돼 있는지 1회 스냅샷.
-> 갱신 주기: 템플릿이 바뀌거나 하네스를 크게 손볼 때만.
+> 출처: <https://walkinglabs.github.io/learn-harness-engineering/ko/> (메인 12강) + `/resources/templates/` (템플릿 8종)
+> 작성일: 2026-06-08 · 갱신: 2026-06-09 (메인 12강 매핑 추가)
+> 목적: walkinglabs "Harness Engineering" 가이드의 강의·템플릿이 우리 프로젝트에 얼마나 반영돼 있는지 스냅샷.
+> 갱신 주기: 가이드가 바뀌거나 하네스를 크게 손볼 때만.
 
 ## 요약
 
@@ -42,3 +42,38 @@
 | 코드베이스 건전성 시계열 추적 부재 | 해소(초판) | `quality-document.md` 신설(2026-06-08 스냅샷) |
 | "현재 검증된 상태" 단일 뷰 부재 | 보완됨 | handoff 누적 + SessionStart 주입으로 대체(단일 파일 도입은 보류 — 중복) |
 | status 값 명칭 불일치 | 유지 | 한글화 정책상 의도된 차이. 변경하지 않음 |
+
+## 메인 12강 매핑 (2026-06-09 추가)
+
+가이드 메인 페이지의 12개 강의(Lectures)별 우리 보유 여부. 출처 URL 슬러그는 `/lectures/lecture-NN-*/`.
+
+| # | 가이드 강의 | 우리 매핑 | 상태 |
+|---|---|---|---|
+| 1 | 유능한 에이전트가 실패하는 이유 | (배경) | N/A |
+| 2 | 하네스란 무엇인가 | docs/harness.md | ✅ |
+| 3 | 저장소가 SoR | feature_list.json + DDD + ADR | ✅ |
+| 4 | 거대 단일 지시 파일 실패 | 루트+패키지 CLAUDE.md 3중 + 슬래시 명령 + AUTO-MANAGED | ✅ |
+| 5 | 장기 작업 연속성 | docs/handoff/ (80+) + session-start 훅 | ✅ |
+| 6 | 초기화가 별도 단계 | init.sh + dev compose migrate deploy (함정 #10) | ✅ |
+| 7 | 과도 손댐·끝맺지 못함 | 절대규칙 #2 + /implement + /finish | ✅ |
+| 8 | 기능 목록이 기본 단위 | feature_list.json 단일 변경 경로(/finish) | ✅ |
+| 9 | 조기 완료 선언 | verify-done-tasks + review-gate + verifier 에이전트(3중) | ✅ 초과 |
+| 10 | E2E 테스트가 결과 바꿈 | 3-tier DB(blog/blog_test/blog_e2e) + 격리 Playwright | ✅ 초과 |
+| 11 | 관측 가능성 | 프로세스 관측은 ✅(evaluator-rubric.md), 런타임 telemetry ⚠️/❌ | ⚠️ |
+| 12 | 클린 상태 종료 | /finish + handoff + Stop 훅 + review-gate | ✅ |
+
+### 11강 — 의도적 미적용 부분
+
+가이드 11강은 두 계층을 구분한다:
+- **프로세스 관측** ("왜 이 변경이 수용되는가" — 계획·루브릭·인수 기준)
+- **런타임 관측** ("시스템이 무엇을 했는가" — 앱 수명주기·기능 경로·세션 trace)
+
+가이드 권고 메커니즘 vs 우리 상태:
+- **스프린트 계약(.md)**: `feature_list.json` 의 `acceptance[]` + PRD/TRD/tasks 가 ~80% 대체 (의도된 변형 — JSON 정규 소스 정책상 별도 .md 두지 않음).
+- **평가자 루브릭**: ✅ `docs/evaluator-rubric.md` 보유, `/finish` 7.5단계 연동.
+- **OpenTelemetry(세션 trace·작업 span)**: ❌ **의도적 미적용**. 1인 저볼륨 블로그라 over-engineering. 같은 신호의 70% 는 commit log(`fix(scope)` 메시지)·`docs/handoff/`(시간별 누적)·`docs/harness-changelog.md`(하네스 진화)·CI 로그가 이미 제공한다. 코드 telemetry(앱 운영 메트릭)가 필요해지는 시점(예: 다중 작성자·운영 트래픽 증가)에 OTel/Tempo 도입 검토.
+
+## 메모
+
+- harness-gap-analysis.md 와 역할 분리: 이 문서는 **walkinglabs 가이드 출처 매핑**(외부 자료 ↔ 우리), gap-analysis 는 **시간별 v0.x 보강 히스토리**(우리 내부 진화).
+- 11강 갭은 `harness-gap-analysis.md` §4 "의도적으로 채택하지 않은 것" 에도 한 줄 추가됨.

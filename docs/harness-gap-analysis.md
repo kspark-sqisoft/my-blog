@@ -66,6 +66,7 @@
 ## 4. 의도적으로 채택하지 않은 것
 - **Dynamic Workflows / Agent Teams 상시화**: 저볼륨 1인 블로그라 over-engineering(가이드도 "doom-loop 경계"). 명시 요청 시에만.
 - **AUTO-MANAGED 자동(훅) 갱신**: 우선 `/finish` 수동 갱신으로 충분. 엔드포인트가 잦게 바뀌면 PostToolUse/Stop 자동화로 승격.
+- **OpenTelemetry 세션/작업 trace (가이드 11강 런타임 관측 가능성)**: 1인 저볼륨에 over-engineering. 같은 신호의 70% 는 commit 메시지(`fix(scope):`)·`docs/handoff/`·`docs/harness-changelog.md`·CI 로그가 이미 제공. 다중 작성자·운영 트래픽 증가 시점에 OTel/Tempo 도입 검토(`docs/harness-template-comparison.md` "11강 — 의도적 미적용 부분" 참조).
 
 ## 5. 한 줄 결론
 핵심 루프(init→feature_list→TDD→검증 훅→handoff→commit)는 가이드와 정합한다. v0.2~v0.4 로 식별된 갭(자동 포맷/린트, AUTO-MANAGED, 4-Phase 명문화, GC 센서, 리뷰 서브에이전트, 전용 MCP, worktree)을 **모두 보완**했다. 남은 것은 advanced/검토 대상(의미 센서, CI 자동 AUTO-MANAGED 갱신)뿐이며 현 규모(1인 저볼륨)에선 현행 유지가 적절하다.
